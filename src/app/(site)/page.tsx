@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -19,9 +20,10 @@ export default function Home() {
             Desenvolvido para os setores do comércio, indústria e serviços,
             integrando todos os processos do dia a dia da sua empresa.
           </p>
+          <Link href="/auth/login">
           <button className="mb-8 btn-primary cursor-pointer shadow-md">FAZER LOGIN</button>
+          </Link>
         </div>
-
         <div className="md:w-1/2 flex justify-center">
           <div className="flex-col items-center justify-center">
             <div className="rounded-md md:p-4 bg-white place-items-center">
