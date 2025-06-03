@@ -8,7 +8,7 @@
   --secondary-color: #3b82f6;
   --text-color: #333333;
   --background-color: #ffffff;
-  --gray-light: #f5f5f5;
+  --gray-light: #dfdfdf;
   --radius: 0.65rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
@@ -139,6 +139,11 @@
 }
 
 .dark {
+  --primary-color: #3b82f6;
+  --secondary-color: #5000aa;
+  --text-color: #ffffff;
+  --background-color: #333333;
+  --gray-light: #dfdfdf;
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);

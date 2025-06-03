@@ -26,7 +26,7 @@ export default function Home() {
         </div>
         <div className="md:w-1/2 flex justify-center">
           <div className="flex-col items-center justify-center">
-            <div className="rounded-md md:p-4 bg-white place-items-center">
+            <div className="rounded-md md:p-4 place-items-center">
               <Image
                 src="/images/hero-illustration.png"
                 alt="Ilustração de gestão empresarial"
