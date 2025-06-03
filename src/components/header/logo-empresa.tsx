@@ -1,8 +1,6 @@
-"use client";
-
-import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 type LogoEmpresaProps = {
   dark?: boolean;
@@ -10,15 +8,28 @@ type LogoEmpresaProps = {
 };
 
 export default function LogoEmpresa(props: LogoEmpresaProps) {
-  const homeRoute = props.privado ? "/home" : "/";
-  const { theme } = useTheme();
-  let logoClass = props.dark ? "-dark" : "-light";
-  if (theme === "dark") {
-    logoClass = "-dark";
+  function ThemedImage(props: { dark?: boolean }) {
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+      setIsClient(true);
+    }, []);
+
+    if (!isClient) {
+      return null; // This component will not render on the server
+    }
+
+    const src = props.dark
+      ? "/images/logoB3Erp-dark.png"
+      : "/images/logoB3Erp-light.png";
+    return <Image src={src} alt="Logo" width={100} height={30} />;
   }
+
+  const homeRoute = props.privado ? "/home" : "/";
+
   return (
-    <Link href={homeRoute} >
-    <Image src={`/images/logoB3Erp${logoClass}.png`} alt="Logo" width={100} height={30} />
+    <Link href={homeRoute}>
+      <ThemedImage {...props} />
     </Link>
   );
 }

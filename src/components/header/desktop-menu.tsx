@@ -60,13 +60,13 @@ const SubmenuDropdown = ({
   return (
     <div
       ref={dropdownRef}
-      className="absolute top-full left-0 mt-2 bg-white shadow-lg rounded-md py-2 min-w-max z-50"
+      className="absolute top-full left-0 mt-2 bg-gray-50 dark:bg-gray-800 shadow-lg rounded-md py-2 min-w-max z-50 border border-gray-200 dark:border-gray-700"
     >
       {subMenuItems.map((subItem, index) => (
         <Link
           key={index}
           href={subItem.routePath}
-          className="block px-4 py-2 text-gray-800 hover:bg-gray-100 whitespace-nowrap"
+          className="block px-4 py-2 text-gray-800 dark:text-gray-50 hover:bg-gray-200 dark:hover:bg-gray-600 whitespace-nowrap"
           onClick={onClose}
           target={subItem.routePath.includes("http") ? "_blank" : "_self"}
           rel={subItem.routePath.includes("http") ? "noopener noreferrer" : undefined}

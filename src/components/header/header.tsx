@@ -6,8 +6,10 @@ import MobileMenu from "./mobile-menu";
 import LogoEmpresa from "./logo-empresa";
 import { menuItemsPublic } from "@/mocks/menu-items-public";
 import DesktopMenu from "./desktop-menu";
+import { useTheme } from "next-themes";
 
 export default function Header() {
+  const {resolvedTheme} = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItems = menuItemsPublic;
@@ -19,7 +21,7 @@ export default function Header() {
     <>
       <header className="bg-gray-200 dark:bg-gray-800 p-3 flex justify-between items-center border-b">
         <div className="text-2xl font-bold">
-          <LogoEmpresa dark={false} />
+          <LogoEmpresa dark={resolvedTheme==="dark" ? true : false} />
         </div>
         <div className="flex items-center">
           {/* Menu Desktop */}

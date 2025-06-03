@@ -37,6 +37,7 @@ export const FormLogin: React.FC = () => {
                     name="email"
                     type="email"
                     placeholder="mail@example.com"
+                    autoComplete="username"
                     required
                   />
                   {state?.errors?.email && (
@@ -47,7 +48,7 @@ export const FormLogin: React.FC = () => {
                   <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
                   </div>
-                  <Input id="password" name="password" type="password" required />
+                  <Input id="password" name="password" type="password" autoComplete="current-password" required />
                   {state?.errors?.password && (
                     <div>
                       <p>Campo senha deve:</p>

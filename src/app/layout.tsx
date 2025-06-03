@@ -22,6 +22,7 @@ export default function RootLayout({
         className={`flex flex-col min-h-svh ${robotoFont.variable} ${ibmPlexSansFont.variable} antialiased`}
       >
         <ThemeProvider
+          themes={["light", "dark", "system"]}
           attribute="class"
           defaultTheme="system"
           enableSystem
