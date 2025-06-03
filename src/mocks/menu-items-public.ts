@@ -1,5 +1,4 @@
-// Dados do menu estruturados
-export const menuItemsPuclic = [
+export const menuItemsPublic = [
   {
     name: "Acesso Sistema",
     hasSubmenu: true,

@@ -4,20 +4,20 @@ import { useState } from "react";
 import { FiMenu } from "react-icons/fi";
 import MobileMenu from "./mobile-menu";
 import LogoEmpresa from "./logo-empresa";
-import { menuItemsPuclic } from "@/mocks/menu-items-public";
+import { menuItemsPublic } from "@/mocks/menu-items-public";
 import DesktopMenu from "./desktop-menu";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const menuItems = menuItemsPuclic;
+  const menuItems = menuItemsPublic;
 
   const openMobileMenu = () => setIsMobileMenuOpen(true);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <>
-      <header className="bg-gray-100 p-3 flex justify-between items-center">
+      <header className="bg-gray-200 dark:bg-gray-800 p-3 flex justify-between items-center border-b">
         <div className="text-2xl font-bold">
           <LogoEmpresa dark={false} />
         </div>
