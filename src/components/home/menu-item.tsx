@@ -24,10 +24,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
                         group-hover:from-blue-200 group-hover:to-indigo-200 
                         dark:group-hover:from-indigo-500 dark:group-hover:to-indigo-700 
                         transition-colors duration-200">
-          <IconComponent 
-            // size={20} 
-            // className="sm:w-6 sm:h-6 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" 
-          />
+          <IconComponent />
         </div>
         <span className="text-md font-medium text-gray-800 dark:text-white text-left sm:text-center leading-tight
                          group-hover:text-gray-900 transition-colors duration-200
