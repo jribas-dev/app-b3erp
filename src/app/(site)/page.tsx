@@ -33,6 +33,7 @@ export default function Home() {
                 width={300}
                 height={435}
                 className="w-8/12 md:w-full"
+                priority={false}
               />
             </div>
           </div>
