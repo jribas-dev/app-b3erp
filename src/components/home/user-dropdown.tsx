@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { User } from "lucide-react";
-import { signOut } from "@/lib/auth.service";
+import { signOut, userEdit } from "@/lib/auth.service";
 
 export default function UserDropDown() {
   return (
@@ -27,7 +27,7 @@ export default function UserDropDown() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup className="pt-2 space-y-2">
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={userEdit}>
             Editar Dados
             <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
           </DropdownMenuItem>

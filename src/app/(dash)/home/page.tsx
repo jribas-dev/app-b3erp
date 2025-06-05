@@ -1,9 +1,20 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DashboardMenu } from "@/components/home/dashboard-menu";
 
 export default function Home() {
-  const [currentRole, setCurrentRole] = useState<string>("saler");
+  const [currentRole, setCurrentRole] = useState("");
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("selectedRole");
+    if (storedRole) {
+      setCurrentRole(storedRole);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("selectedRole", currentRole);
+  }, [currentRole]);
 
   const roles = [
     { value: "saler", label: "Vendedor" },
