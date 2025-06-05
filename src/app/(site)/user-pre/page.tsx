@@ -16,9 +16,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { checkPreRegisterToken } from "@/lib/user-pre.service";
+import { useState } from "react";
 
 export default function UserPre() {
   const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const {
     register,
@@ -32,21 +34,20 @@ export default function UserPre() {
     },
   });
 
+  const handleChange = () => {
+    setErrorMessage("");
+  };
+
   const onSubmit = async (data: PreRegisterFormData) => {
     const response = await checkPreRegisterToken(data.email, data.token);
     if (!response.success) {
-      // Exibir mensagem de erro se o token for inválido
-      alert(response.message || "Erro ao verificar o token");
+      setErrorMessage(response.message || "Erro ao verificar o token");
       return;
     }
-
-    // Construir a URL com os parâmetros de consulta
     const queryParams = new URLSearchParams({
       email: data.email,
       token: data.token,
     }).toString();
-
-    // Redirecionar para a segunda rota com os parâmetros
     router.push(`/user-pre/confirm?${queryParams}`);
   };
 
@@ -72,6 +73,7 @@ export default function UserPre() {
                     disabled={isSubmitting}
                     {...register("email")}
                     className={errors.email ? "border-red-500" : ""}
+                    onChange={handleChange}
                   />
                   {errors.email && (
                     <span className="text-xs text-red-400 mt-1">
@@ -93,6 +95,7 @@ export default function UserPre() {
                     }
                     disabled={isSubmitting}
                     rows={3}
+                    onChange={handleChange}
                   />
                   {errors.token && (
                     <span className="text-xs text-red-400 mt-1">
@@ -100,6 +103,11 @@ export default function UserPre() {
                     </span>
                   )}
                 </div>
+                {errorMessage && (
+                  <div className="bg-red-100 p-3 rounded-md text-red-700">
+                    <p className="text-sm">{errorMessage}</p>
+                  </div>
+                )}
                 <div className="flex flex-col gap-3">
                   <Button
                     type="submit"

@@ -22,24 +22,24 @@ export const preRegisterSchema = z.object({
 // FORM - CADASTRO COMPLETO
 export const completeRegisterSchema = z
   .object({
-    nome: z.string().min(3, "Nome completo é obrigatório"),
-    telefone: z
+    name: z.string().min(3, "Nome completo é obrigatório"),
+    phone: z
       .string()
       .min(1, "Telefone é obrigatório")
       .regex(
         /^\(?([0-9]{2})\)?[-. ]?([0-9]{4,5})[-. ]?([0-9]{4})$/,
         "Formato de telefone inválido"
       ),
-    senha: z
+    password: z
       .string()
       .min(8, "Senha deve ter pelo menos 8 caracteres")
       .regex(/[a-zA-Z]/, "Senha deve conter pelo menos uma letra")
       .regex(/[0-9]/, "Senha deve conter pelo menos um número"),
-    confirmacaoSenha: z.string(),
+    passwordConfirm: z.string(),
   })
-  .refine((data) => data.senha === data.confirmacaoSenha, {
+  .refine((data) => data.password === data.passwordConfirm, {
     message: "As senhas não conferem",
-    path: ["confirmacaoSenha"],
+    path: ["passwordConfirm"],
   });
 
 export type SignInFormData = z.infer<typeof SignInFormSchema>;
