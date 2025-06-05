@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { User } from "lucide-react";
-import { signOut } from "@/app/actions/auth";
+import { signOut } from "@/lib/auth.service";
 
 export default function UserDropDown() {
   return (
