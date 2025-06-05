@@ -1,24 +1,18 @@
-import { 
-  Users, 
-  ShoppingCart, 
-  Calendar, 
-  DollarSign, 
-  BarChart3, 
-  Truck, 
-  Sliders, 
-  PieChart, 
-  UserCheck, 
-  FileText 
+import {
+  Users,
+  ShoppingCart,
+  Calendar,
+  DollarSign,
+  BarChart3,
+  Truck,
+  Sliders,
+  PieChart,
+  UserCheck,
+  FileText,
 } from "lucide-react";
 import { DashItem } from "@/types/dash-item";
 
 export const dashItemsPrivate: DashItem[] = [
-  {
-    name: "Lista de Clientes",
-    routePath: "/super/clients",
-    iconComponent: Users,
-    roles: ["supervisor"],
-  },
   {
     name: "Lançamento de Pedidos",
     routePath: "/saler/orders",
@@ -44,6 +38,12 @@ export const dashItemsPrivate: DashItem[] = [
     roles: ["supervisor", "saler"],
   },
   {
+    name: "Lista de Clientes",
+    routePath: "/super/customers",
+    iconComponent: Users,
+    roles: ["supervisor"],
+  },
+  {
     name: "Configurar Equipe",
     routePath: "/super/team",
     iconComponent: Sliders,
@@ -51,7 +51,7 @@ export const dashItemsPrivate: DashItem[] = [
   },
   {
     name: "Configurar Rota",
-    routePath: "/super/routes",
+    routePath: "/super/team-route",
     iconComponent: Truck,
     roles: ["supervisor"],
   },
