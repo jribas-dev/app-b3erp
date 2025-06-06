@@ -10,9 +10,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { User } from "lucide-react";
-import { signOut, userEdit } from "@/lib/auth.service";
+import { useAuth } from "@/hooks/useAuth.hook"; 
+import { useRouter } from "next/router";
 
 export default function UserDropDown() {
+  const { logout } = useAuth();
+
+  const useRedirectEdit = () => {
+    const router = useRouter();
+    router.push("/user/edit");
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -27,12 +35,12 @@ export default function UserDropDown() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup className="pt-2 space-y-2">
-          <DropdownMenuItem onClick={userEdit}>
+          <DropdownMenuItem onClick={useRedirectEdit}>
             Editar Dados
             <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={signOut}>
+          <DropdownMenuItem onClick={logout}>
             Sair / Logout
             <DropdownMenuShortcut>⌘Q</DropdownMenuShortcut>
           </DropdownMenuItem>

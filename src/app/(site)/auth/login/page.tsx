@@ -14,11 +14,12 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { SignInFormData, SignInFormSchema } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "@/lib/auth.service";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth.hook";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { login, isPending } = useAuth();
+  const [error, setError] = useState("");
 
   const {
     register,
@@ -33,12 +34,13 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: SignInFormData) => {
-    const response = await signIn(data);
-    if (!response.success) {
-      alert(response.message || "Erro na autenticação");
-      return;
+    setError("");
+
+    const result = await login(data);
+
+    if (!result.success && result.error) {
+      setError(result.error);
     }
-    router.push(`/home`);
   };
 
   return (
@@ -61,7 +63,7 @@ export default function LoginPage() {
                     type="email"
                     placeholder="mail@example.com"
                     autoComplete="username"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isPending}
                     {...register("email")}
                     className={errors.email ? "border-red-500" : ""}
                   />
@@ -79,7 +81,7 @@ export default function LoginPage() {
                     id="password"
                     type="password"
                     autoComplete="current-password"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isPending}
                     {...register("password")}
                     className={errors.email ? "border-red-500" : ""}
                   />
@@ -105,13 +107,18 @@ export default function LoginPage() {
                     Esqueceu sua senha?
                   </Link>
                 </div>
+                {error && (
+                  <div className="bg-red-100 p-3 rounded-md text-red-700">
+                    <p className="text-sm">{error}</p>
+                  </div>
+                )}
                 <div className="flex flex-col gap-3">
                   <Button
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isPending}
                     type="submit"
                     className="w-full cursor-pointer shadow-md"
                   >
-                    Login
+                    {isSubmitting ? "Entrando..." : "Fazer login"}
                   </Button>
                 </div>
               </div>

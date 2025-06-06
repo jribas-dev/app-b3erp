@@ -7,7 +7,7 @@ export const ROLES = {
 
 export type UserRole = (typeof ROLES)[keyof typeof ROLES];
 
-export const ROUTE_PERMISSIONS = {
+export const PROTECTED_ROUTES = {
   "/home": ["saler", "supervisor", "buyer"],
   "/saler": ["saler", "supervisor"],
   "/buyer": ["buyer"],
@@ -16,7 +16,6 @@ export const ROUTE_PERMISSIONS = {
 } as const;
 
 export const PUBLIC_ROUTES = [
-  "/",
   "/auth",
   "/privacy-policy",
   "/terms-of-service",

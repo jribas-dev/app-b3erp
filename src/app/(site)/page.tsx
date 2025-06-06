@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export default function Home() {
+export default function HomePage() {
   return (
     <div className="container px-1 md:px-4 md:py-8">
       <div className="flex flex-col md:flex-row md:items-center">
