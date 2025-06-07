@@ -1,7 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth.hook";
 import { useSession } from "@/hooks/useSession.hook";
+import { useUserInstances } from "@/hooks/useUserInstances.hook";
 import {
   Select,
   SelectTrigger,
@@ -9,40 +10,73 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { DashboardMenu } from "@/components/home/dashboard-menu";
+import { GitCommitHorizontal } from "lucide-react";
 
 export default function HomePage() {
-  const { session, isLoading, error, refetch } = useSession();
+  const { session, isLoading: isSessionLoading, error: sessionError, refetch: refetchSession } = useSession();
   const { selectInstance, logout, isPending } = useAuth();
-  const [instanceError, setInstanceError] = useState("");
-  const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(
-    null
-  );
-  const [instances] = useState([
-    { id: "g009qh2hnvwzp4likl3hgr1h", name: "Área de Desenvolvimento" },
-    { id: "cprd7b8uvkbe1ng8qyut79m3", name: "Área de Demonstração" },
-  ]); // Você deve buscar as instâncias do backend
+  const { 
+    instances, 
+    isLoadingInstances, 
+    errorInstances, 
+    fetchUserInstances 
+  } = useUserInstances();
 
-  // Atualiza a sessão quando uma instância é selecionada
+  const [instanceError, setInstanceError] = useState("");
+  const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
+  const [showInstanceSelector, setShowInstanceSelector] = useState(false);
+  const [hasAutoSelected, setHasAutoSelected] = useState(false);
+  const [hasLoadedInstances, setHasLoadedInstances] = useState(false);
+
+  // Memoiza o estado de loading geral
+  const isLoading = useMemo(() => 
+    isSessionLoading || isLoadingInstances, 
+    [isSessionLoading, isLoadingInstances]
+  );
+
+  // Memoiza o erro geral
+  const error = useMemo(() => 
+    sessionError || errorInstances, 
+    [sessionError, errorInstances]
+  );
+
+  // Carrega as instâncias quando a sessão estiver disponível
+  useEffect(() => {
+    if (session?.userId && !hasLoadedInstances && !isLoadingInstances) {
+      setHasLoadedInstances(true);
+      fetchUserInstances(session.userId);
+    }
+  }, [session?.userId, fetchUserInstances, hasLoadedInstances, isLoadingInstances]);
+
+  // Determina se deve mostrar o seletor
+  useEffect(() => {
+    if (instances.length > 1 && !session?.instanceName) {
+      setShowInstanceSelector(true);
+    } else if (session?.instanceName) {
+      setShowInstanceSelector(false);
+    }
+  }, [instances.length, session?.instanceName]);
+
+  // Atualiza a sessão após selecionar instância
   useEffect(() => {
     if (selectedInstanceId && !isPending) {
-      // Aguarda um pouco para o backend processar e depois atualiza a sessão
       const timer = setTimeout(() => {
-        refetch();
-        setSelectedInstanceId(null); // Reset do estado
+        refetchSession();
+        setSelectedInstanceId(null);
       }, 500);
 
       return () => clearTimeout(timer);
     }
-  }, [selectedInstanceId, isPending, refetch]);
+  }, [selectedInstanceId, isPending, refetchSession]);
 
-  const handleInstanceSelect = async (instanceId: string) => {
+  const handleInstanceSelect = useCallback(async (instanceId: string) => {
     setInstanceError("");
     setSelectedInstanceId(instanceId);
 
     try {
       const result = await selectInstance(instanceId);
       if (!result.success && result.error) {
-        // Filtra o erro NEXT_REDIRECT que não é um erro real
         if (
           result.error !== "NEXT_REDIRECT" &&
           !result.error.includes("NEXT_REDIRECT")
@@ -51,17 +85,38 @@ export default function HomePage() {
         }
         setSelectedInstanceId(null);
       }
-      // Se success é true, o useEffect vai lidar com o refetch
     } catch (error) {
       console.error("Erro ao selecionar instância:", error);
       setInstanceError("Erro inesperado ao selecionar instância");
       setSelectedInstanceId(null);
     }
-  };
+  }, [selectInstance]);
 
+  // Lógica para auto-seleção de instância única
+  useEffect(() => {
+    if (
+      instances.length === 1 && 
+      !session?.instanceName && 
+      !hasAutoSelected && 
+      !isPending
+    ) {
+      setHasAutoSelected(true);
+      handleInstanceSelect(instances[0].dbId);
+    }
+  }, [instances, session?.instanceName, hasAutoSelected, isPending, handleInstanceSelect]);
+
+  const handleShowInstanceSelector = useCallback(() => {
+    setShowInstanceSelector(true);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    logout();
+  }, [logout]);
+
+  // Componente de loading
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Carregando...</p>
@@ -70,20 +125,59 @@ export default function HomePage() {
     );
   }
 
+  // Componente de erro
   if (error || !session) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-100 flex items-center justify-center">
         <div className="text-center">
           <div className="bg-red-50 border border-red-200 rounded-md p-4">
             <h3 className="text-red-800 font-medium">
-              Erro ao carregar sessão
+              Erro ao carregar dados
             </h3>
             <p className="text-red-600 text-sm mt-1">{error}</p>
+            <div className="mt-3 space-x-2">
+              <button
+                onClick={() => {
+                  refetchSession();
+                  if (session?.userId) {
+                    fetchUserInstances(session.userId);
+                  }
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+              >
+                Tentar novamente
+              </button>
+              <button
+                onClick={handleLogout}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+              >
+                Sair
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Situação: usuário sem instâncias
+  if (hasLoadedInstances && !isLoadingInstances && instances.length === 0) {
+    return (
+      <div className="min-h-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-6">
+            <h3 className="text-yellow-800 font-medium text-lg mb-2">
+              Nenhuma instância disponível
+            </h3>
+            <p className="text-yellow-600 text-sm mb-4">
+              Você não possui acesso a nenhuma instância ativa. Entre em contato com o administrador.
+            </p>
             <button
-              onClick={refetch}
-              className="mt-3 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+              onClick={handleLogout}
+              disabled={isPending}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Tentar novamente
+              {isPending ? "Saindo..." : "Sair"}
             </button>
           </div>
         </div>
@@ -92,120 +186,98 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="bg-white shadow">
+    <div className="flex-col">
+      <div className="bg-white dark:bg-gray-800 shadow-md rounded-t-lg border border-gray-200 dark:border-gray-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex justify-between items-center py-4">
             <div>
-              <h1 className="text-lg font-bold text-gray-900">
-                Bem-vindo, {session.email}
-              </h1>
+              <h1 className="text-lg font-bold">Bem-vindo, {session.email}</h1>
               {session.instanceName && (
-                <p className="text-sm text-gray-600">
-                  Instância:{" "}
-                  <span className="text-blue-600">{session.instanceName}</span>
-                </p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-sm">
+                    Instância:&nbsp;{session.instanceName}
+                  </p>
+                  {instances.length > 1 && (
+                    <button
+                      onClick={handleShowInstanceSelector}
+                      className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-200 dark:hover:text-indigo-400 text-xs px-2 py-1 rounded border border-indigo-300 hover:border-indigo-400 transition-colors"
+                      title="Trocar instância"
+                    >
+                      Trocar
+                    </button>
+                  )}
+                </div>
               )}
             </div>
             <button
-              onClick={logout}
+              onClick={handleLogout}
               disabled={isPending}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? "Saindo..." : "Sair"}
             </button>
           </div>
+
+          {/* Seletor de instância */}
+          {showInstanceSelector && (
+            <div className="pb-6">
+              <div className="max-w-full">
+                <Select
+                  value={selectedInstanceId || ""}
+                  onValueChange={(value) => handleInstanceSelect(value)}
+                  disabled={isPending}
+                >
+                  <SelectTrigger
+                    className="w-full"
+                    aria-label="Selecione uma instância"
+                  >
+                    <SelectValue placeholder="Escolha uma instância" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {instances.map((instance) => (
+                      <SelectItem
+                        key={instance.id}
+                        value={instance.dbId}
+                        disabled={isPending}
+                        className="leading-10"
+                      >
+                        <GitCommitHorizontal size={16} />
+                        {instance.instanceName}
+                        {selectedInstanceId === instance.dbId && (
+                          <span className="ml-2 text-indigo-600 text-xs">
+                            Abrindo...
+                          </span>
+                        )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {instanceError && (
+                  <div className="mt-2 bg-red-50 border border-red-200 rounded-md p-3">
+                    <p className="text-red-600 text-sm">{instanceError}</p>
+                  </div>
+                )}
+
+                {selectedInstanceId && isPending && (
+                  <div className="flex items-center mt-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
+                    <span className="text-xs text-indigo-600">Abrindo...</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Dashboard - só aparece quando uma instância está selecionada */}
       <div className="max-w-7xl mx-auto py-4 sm:px-2 lg:px-4">
-        <div className="bg-white overflow-hidden shadow rounded-lg mx-4">
-          <div className="px-4 py-4">
-            <div className="max-w-full">
-              <Select
-                value={selectedInstanceId || ""}
-                onValueChange={(value) => handleInstanceSelect(value)}
-                disabled={isPending}
-              >
-                <SelectTrigger
-                  className="w-full"
-                  aria-label="Selecione uma instância"
-                >
-                  <SelectValue placeholder="Escolha uma instância" />
-                </SelectTrigger>
-                <SelectContent>
-                  {instances.map((instance) => (
-                    <SelectItem
-                      key={instance.id}
-                      value={instance.id}
-                      disabled={isPending}
-                    >
-                      {instance.name}
-                      {selectedInstanceId === instance.id && (
-                        <span className="ml-2 text-indigo-600 text-xs">
-                          Abrindo...
-                        </span>
-                      )}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {instanceError && (
-                <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-3">
-                  <p className="text-red-600 text-sm">{instanceError}</p>
-                </div>
-              )}
-              {selectedInstanceId && isPending && (
-                <div className="flex items-center mt-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
-                  <span className="text-xs text-indigo-600">Abrindo...</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
         {session.instanceName && (
-          <div className="px-4 py-6 sm:px-0">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                  Dashboard Principal
-                </h3>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <a
-                    href="/saler"
-                    className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
-                        Área de Vendas
-                      </p>
-                    </div>
-                  </a>
-                  <a
-                    href="/buyer"
-                    className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
-                        Área de Compras
-                      </p>
-                    </div>
-                  </a>
-                  {session.roleFront === "supervisor" && (
-                    <a
-                      href="/super"
-                      className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">
-                          Supervisão
-                        </p>
-                      </div>
-                    </a>
-                  )}
-                </div>
-              </div>
+          <div className="flex-col">
+            <div className="max-w-6xl mx-auto px-4">
+              {/* Dashboard Menu */}
+              <DashboardMenu userRole={session.roleFront} />
             </div>
           </div>
         )}

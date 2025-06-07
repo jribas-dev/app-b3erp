@@ -39,7 +39,12 @@ export default function LoginPage() {
     const result = await login(data);
 
     if (!result.success && result.error) {
-      setError(result.error);
+      if (
+        result.error !== "NEXT_REDIRECT" &&
+        !result.error.includes("NEXT_REDIRECT")
+      ) {
+        setError(result.error);
+      }
     }
   };
 

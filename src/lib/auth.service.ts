@@ -3,6 +3,7 @@
 import { SignInFormData } from "./validations";
 import { type AuthResponse } from "@/types/auth-response";
 import { type SessionData } from "@/types/session-data";
+import { UserInstanceList, UserInstanceListResponse } from "@/types/user-instance-list";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -222,6 +223,49 @@ export async function logoutAction(): Promise<void> {
     console.error("Erro ao notificar logout no backend:", error);
   } finally {
     await clearAuthCookies(); // Adiciona await aqui
+  }
+}
+
+export async function getUserInstancesAction(
+  userId: string
+): Promise<UserInstanceListResponse> {
+  try {
+    const apiUrl = process.env.BACKEND_URL;
+    if (!apiUrl) {
+      return { success: false, error: "URL da API não configurada" };
+    }
+
+    const { accessToken } = await getAuthTokens();
+    if (!accessToken) {
+      return { success: false, error: "Token de acesso não encontrado" };
+    }
+
+    const response = await fetch(`${apiUrl}/user-instances/user/${userId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return {
+        success: false,
+        error: error.message || "Erro ao buscar instâncias do usuário",
+      };
+    }
+
+    const data: UserInstanceList[] = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao buscar instâncias do usuário:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Erro interno do servidor",
+    };
   }
 }
 

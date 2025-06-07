@@ -9,3 +9,9 @@ export interface UserInstanceList {
   instanceDbName: string
   instanceDbHost: string
 }
+
+export interface UserInstanceListResponse {
+  success: boolean
+  data?: UserInstanceList[]
+  error?: string
+}

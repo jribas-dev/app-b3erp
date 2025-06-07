@@ -7,8 +7,10 @@ import {
   logoutAction,
   redirectAfterLogin,
   redirectToLogin,
+  getUserInstancesAction,
 } from "@/lib/auth.service";
 import { SignInFormData } from "@/lib/validations";
+import { UserInstanceListResponse } from "@/types/user-instance-list";
 
 export function useAuth() {
   const [isPending, startTransition] = useTransition();
@@ -73,10 +75,29 @@ export function useAuth() {
     });
   };
 
+  const getUserInstances = async (
+    userId: string
+  ): Promise<UserInstanceListResponse> => {
+    return new Promise((resolve) => {
+      startTransition(async () => {
+        try {
+          const result = await getUserInstancesAction(userId);
+          resolve(result);
+        } catch (error) {
+          resolve({
+            success: false,
+            error: error instanceof Error ? error.message : "Erro inesperado",
+          });
+        }
+      });
+    });
+  };
+
   return {
     login,
     selectInstance,
     logout,
+    getUserInstances,
     isPending,
   };
 }
