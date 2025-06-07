@@ -1,29 +1,64 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth.hook";
 import { useSession } from "@/hooks/useSession.hook";
 
 export default function HomePage() {
-  const { session, isLoading, error } = useSession();
+  const { session, isLoading, error, refetch } = useSession();
   const { selectInstance, logout, isPending } = useAuth();
   const [instanceError, setInstanceError] = useState("");
+  const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(
+    null
+  );
   const [instances] = useState([
     { id: "g009qh2hnvwzp4likl3hgr1h", name: "Área de Desenvolvimento" },
     { id: "cprd7b8uvkbe1ng8qyut79m3", name: "Área de Demonstração" },
   ]); // Você deve buscar as instâncias do backend
 
+  // Atualiza a sessão quando uma instância é selecionada
+  useEffect(() => {
+    if (selectedInstanceId && !isPending) {
+      // Aguarda um pouco para o backend processar e depois atualiza a sessão
+      const timer = setTimeout(() => {
+        refetch();
+        setSelectedInstanceId(null); // Reset do estado
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [selectedInstanceId, isPending, refetch]);
+
   const handleInstanceSelect = async (instanceId: string) => {
     setInstanceError("");
-    const result = await selectInstance(instanceId);
-    if (!result.success && result.error) {
-      setInstanceError(result.error);
+    setSelectedInstanceId(instanceId);
+
+    try {
+      const result = await selectInstance(instanceId);
+      if (!result.success && result.error) {
+        // Filtra o erro NEXT_REDIRECT que não é um erro real
+        if (
+          result.error !== "NEXT_REDIRECT" &&
+          !result.error.includes("NEXT_REDIRECT")
+        ) {
+          setInstanceError(result.error);
+        }
+        setSelectedInstanceId(null);
+      }
+      // Se success é true, o useEffect vai lidar com o refetch
+    } catch (error) {
+      console.error("Erro ao selecionar instância:", error);
+      setInstanceError("Erro inesperado ao selecionar instância");
+      setSelectedInstanceId(null);
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Carregando...
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
       </div>
     );
   }
@@ -31,7 +66,20 @@ export default function HomePage() {
   if (error || !session) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Erro ao carregar sessão: {error}
+        <div className="text-center">
+          <div className="bg-red-50 border border-red-200 rounded-md p-4">
+            <h3 className="text-red-800 font-medium">
+              Erro ao carregar sessão
+            </h3>
+            <p className="text-red-600 text-sm mt-1">{error}</p>
+            <button
+              onClick={refetch}
+              className="mt-3 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -57,7 +105,7 @@ export default function HomePage() {
             <button
               onClick={logout}
               disabled={isPending}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? "Saindo..." : "Sair"}
             </button>
@@ -74,8 +122,8 @@ export default function HomePage() {
                   Selecione uma instância
                 </h3>
                 {instanceError && (
-                  <div className="mb-4 text-red-600 text-sm">
-                    {instanceError}
+                  <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-3">
+                    <p className="text-red-600 text-sm">{instanceError}</p>
                   </div>
                 )}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -83,15 +131,23 @@ export default function HomePage() {
                     <button
                       key={instance.id}
                       onClick={() => handleInstanceSelect(instance.id)}
-                      disabled={isPending}
-                      className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                      disabled={isPending || selectedInstanceId === instance.id}
+                      className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <div className="flex-1 min-w-0">
                         <span className="absolute inset-0" aria-hidden="true" />
                         <p className="text-sm font-medium text-gray-900">
                           {instance.name}
                         </p>
+                        {selectedInstanceId === instance.id && (
+                          <p className="text-xs text-indigo-600 mt-1">
+                            Selecionando...
+                          </p>
+                        )}
                       </div>
+                      {selectedInstanceId === instance.id && (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -108,7 +164,7 @@ export default function HomePage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <a
                     href="/saler"
-                    className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">
@@ -118,7 +174,7 @@ export default function HomePage() {
                   </a>
                   <a
                     href="/buyer"
-                    className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">
@@ -129,7 +185,7 @@ export default function HomePage() {
                   {session.roleFront === "supervisor" && (
                     <a
                       href="/super"
-                      className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900">

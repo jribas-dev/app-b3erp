@@ -6,7 +6,6 @@ import {
   selectInstanceAction,
   logoutAction,
   redirectAfterLogin,
-  redirectAfterInstanceSelection,
   redirectToLogin,
 } from "@/lib/auth.service";
 import { SignInFormData } from "@/lib/validations";
@@ -44,9 +43,9 @@ export function useAuth() {
       startTransition(async () => {
         try {
           const result = await selectInstanceAction(instanceId);
-          if (result.success) {
-            await redirectAfterInstanceSelection();
-          }
+
+          // Remove o redirecionamento automático - deixa o componente gerenciar
+          // A atualização da sessão será feita via refetch no componente
           resolve(result);
         } catch (error) {
           resolve({

@@ -119,6 +119,8 @@ export async function selectInstanceAction(
 
     const data: AuthResponse = await response.json();
     await setAuthCookies(data.accessToken, data.refreshToken);
+
+    // Retorna sucesso e deixa o componente gerenciar a atualização da UI
     return { success: true };
   } catch (error) {
     console.error("Erro na seleção de instância:", error);
@@ -149,6 +151,7 @@ export async function getSessionAction(): Promise<SessionData | null> {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
       },
+      cache: "no-store", // Evita cache para sempre pegar dados atualizados
     });
 
     if (!response.ok) {
@@ -218,15 +221,11 @@ export async function logoutAction(): Promise<void> {
   } catch (error) {
     console.error("Erro ao notificar logout no backend:", error);
   } finally {
-    clearAuthCookies();
+    await clearAuthCookies(); // Adiciona await aqui
   }
 }
 
 export async function redirectAfterLogin() {
-  redirect("/home");
-}
-
-export async function redirectAfterInstanceSelection() {
   redirect("/home");
 }
 
