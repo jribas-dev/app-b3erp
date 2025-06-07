@@ -2,6 +2,13 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth.hook";
 import { useSession } from "@/hooks/useSession.hook";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 export default function HomePage() {
   const { session, isLoading, error, refetch } = useSession();
@@ -85,20 +92,18 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-lg font-bold text-gray-900">
                 Bem-vindo, {session.email}
               </h1>
-              {session.roleFront && (
-                <p className="text-gray-600">Cargo: {session.roleFront}</p>
-              )}
               {session.instanceName && (
-                <p className="text-gray-600">
-                  Instância: {session.instanceName}
+                <p className="text-sm text-gray-600">
+                  Instância:{" "}
+                  <span className="text-blue-600">{session.instanceName}</span>
                 </p>
               )}
             </div>
@@ -113,48 +118,53 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {!session.instanceName ? (
-          <div className="px-4 py-6 sm:px-0">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                  Selecione uma instância
-                </h3>
-                {instanceError && (
-                  <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-3">
-                    <p className="text-red-600 text-sm">{instanceError}</p>
-                  </div>
-                )}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="max-w-7xl mx-auto py-4 sm:px-2 lg:px-4">
+        <div className="bg-white overflow-hidden shadow rounded-lg mx-4">
+          <div className="px-4 py-4">
+            <div className="max-w-full">
+              <Select
+                value={selectedInstanceId || ""}
+                onValueChange={(value) => handleInstanceSelect(value)}
+                disabled={isPending}
+              >
+                <SelectTrigger
+                  className="w-full"
+                  aria-label="Selecione uma instância"
+                >
+                  <SelectValue placeholder="Escolha uma instância" />
+                </SelectTrigger>
+                <SelectContent>
                   {instances.map((instance) => (
-                    <button
+                    <SelectItem
                       key={instance.id}
-                      onClick={() => handleInstanceSelect(instance.id)}
-                      disabled={isPending || selectedInstanceId === instance.id}
-                      className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      value={instance.id}
+                      disabled={isPending}
                     >
-                      <div className="flex-1 min-w-0">
-                        <span className="absolute inset-0" aria-hidden="true" />
-                        <p className="text-sm font-medium text-gray-900">
-                          {instance.name}
-                        </p>
-                        {selectedInstanceId === instance.id && (
-                          <p className="text-xs text-indigo-600 mt-1">
-                            Selecionando...
-                          </p>
-                        )}
-                      </div>
+                      {instance.name}
                       {selectedInstanceId === instance.id && (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                        <span className="ml-2 text-indigo-600 text-xs">
+                          Abrindo...
+                        </span>
                       )}
-                    </button>
+                    </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              {instanceError && (
+                <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-3">
+                  <p className="text-red-600 text-sm">{instanceError}</p>
                 </div>
-              </div>
+              )}
+              {selectedInstanceId && isPending && (
+                <div className="flex items-center mt-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
+                  <span className="text-xs text-indigo-600">Abrindo...</span>
+                </div>
+              )}
             </div>
           </div>
-        ) : (
+        </div>
+        {session.instanceName && (
           <div className="px-4 py-6 sm:px-0">
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
