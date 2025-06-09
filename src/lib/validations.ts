@@ -42,16 +42,52 @@ export const completeRegisterSchema = z
     path: ["passwordConfirm"],
   });
 
+// FORM USER-EDIT
+export const UserEditFormSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Nome deve ter pelo menos 2 caracteres")
+    .max(100, "Nome deve ter no máximo 100 caracteres"),
+  email: z
+    .string()
+    .email("Email inválido")
+    .min(1, "Email é obrigatório"),
+  phone: z
+    .string()
+    .min(10, "Telefone deve ter pelo menos 10 dígitos")
+    .max(15, "Telefone deve ter no máximo 15 dígitos")
+    .regex(/^[\d\s\-\(\)\+]+$/, "Telefone deve conter apenas números e símbolos válidos"),
+});
+
+// FORM - USER-EDIT PASSWORD CHANGE
+export const PasswordChangeSchema = z.object({
+  newPassword: z
+    .string()
+    .min(8, "Nova senha deve ter pelo menos 8 caracteres")
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      "Nova senha deve conter pelo menos uma letra minúscula, uma maiúscula e um número"
+    ),
+  confirmPassword: z
+    .string()
+    .min(1, "Confirmação de senha é obrigatória"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Senhas não coincidem",
+  path: ["confirmPassword"],
+});
+
 export type SignInFormData = z.infer<typeof SignInFormSchema>;
 export type PreRegisterFormData = z.infer<typeof preRegisterSchema>;
 export type CompleteRegisterFormData = z.infer<typeof completeRegisterSchema>;
+export type UserEditFormData = z.infer<typeof UserEditFormSchema>;
+export type PasswordChangeFormData = z.infer<typeof PasswordChangeSchema>;
 
-export type FormState =
-  | {
-      errors?: {
-        email?: string[];
-        password?: string[];
-      };
-      message?: string;
-    }
-  | undefined;
+// export type FormState =
+//   | {
+//       errors?: {
+//         email?: string[];
+//         password?: string[];
+//       };
+//       message?: string;
+//     }
+//   | undefined;
