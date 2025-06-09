@@ -19,7 +19,11 @@ const ACCESS_TOKEN_FIRST_MAX_AGE = 15 * 60; // 15 minutos
 const ACCESS_TOKEN_SECOND_MAX_AGE = 3 * 60 * 60; // 3 horas
 const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60; // 7 dias
 
-async function setAuthCookies(accessToken: string, refreshToken?: string) {
+async function setAuthCookies(
+  accessToken: string,
+  refreshToken?: string,
+  rememberMe: boolean = false
+) {
   const cookieStore = await cookies();
   const accessTokenMaxAge = refreshToken
     ? ACCESS_TOKEN_SECOND_MAX_AGE
@@ -36,12 +40,18 @@ async function setAuthCookies(accessToken: string, refreshToken?: string) {
       maxAge: REFRESH_TOKEN_MAX_AGE,
     });
   }
+  
+  cookieStore.set("rememberMe", rememberMe ? "true" : "false", {
+    ...COOKIE_OPTIONS,
+    maxAge: rememberMe ? REFRESH_TOKEN_MAX_AGE : 0,
+  });
 }
 
 async function clearAuthCookies() {
   const cookieStore = await cookies();
   cookieStore.delete("accessToken");
   cookieStore.delete("refreshToken");
+  cookieStore.delete("rememberMe");
 }
 
 async function getAuthTokens() {
@@ -49,11 +59,13 @@ async function getAuthTokens() {
   return {
     accessToken: cookieStore.get("accessToken")?.value,
     refreshToken: cookieStore.get("refreshToken")?.value,
+    rememberMe: cookieStore.get("rememberMe")?.value === "true",
   };
 }
 
 export async function loginAction(
-  credentials: SignInFormData
+  credentials: SignInFormData,
+  rememberMe: boolean = false
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const apiUrl = process.env.BACKEND_URL;
@@ -75,7 +87,7 @@ export async function loginAction(
     }
 
     const data: AuthResponse = await response.json();
-    await setAuthCookies(data.accessToken);
+    await setAuthCookies(data.accessToken, undefined, rememberMe);
     return { success: true };
   } catch (error) {
     console.error("Erro no login:", error);
@@ -96,7 +108,7 @@ export async function selectInstanceAction(
       throw new Error("URL da API não configurada");
     }
 
-    const { accessToken } = await getAuthTokens();
+    const { accessToken, rememberMe } = await getAuthTokens();
     if (!accessToken) {
       return { success: false, error: "Token de acesso não encontrado" };
     }
@@ -119,7 +131,7 @@ export async function selectInstanceAction(
     }
 
     const data: AuthResponse = await response.json();
-    await setAuthCookies(data.accessToken, data.refreshToken);
+    await setAuthCookies(data.accessToken, data.refreshToken, rememberMe);
 
     // Retorna sucesso e deixa o componente gerenciar a atualização da UI
     return { success: true };

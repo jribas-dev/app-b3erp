@@ -16,13 +16,13 @@ export function useAuth() {
   const [isPending, startTransition] = useTransition();
 
   const login = async (
-    credentials: SignInFormData
+    credentials: SignInFormData,
+    rememberMe: boolean = false
   ): Promise<{ success: boolean; error?: string }> => {
     return new Promise((resolve) => {
       startTransition(async () => {
         try {
-          const result = await loginAction(credentials);
-
+          const result = await loginAction(credentials, rememberMe);
           if (result.success) {
             await redirectAfterLogin();
           }
@@ -64,6 +64,7 @@ export function useAuth() {
       startTransition(async () => {
         try {
           await logoutAction();
+          localStorage.removeItem("rememberMe");
           await redirectToLogin();
         } catch (error) {
           console.error("Erro durante logout:", error);

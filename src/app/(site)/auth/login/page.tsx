@@ -16,10 +16,13 @@ import { SignInFormData, SignInFormSchema } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth.hook";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const { login, isPending } = useAuth();
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const {
     register,
@@ -36,7 +39,7 @@ export default function LoginPage() {
   const onSubmit = async (data: SignInFormData) => {
     setError("");
 
-    const result = await login(data);
+    const result = await login(data, rememberMe);
 
     if (!result.success && result.error) {
       if (
@@ -46,6 +49,10 @@ export default function LoginPage() {
         setError(result.error);
       }
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -82,14 +89,30 @@ export default function LoginPage() {
                   <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
                   </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    autoComplete="current-password"
-                    disabled={isSubmitting || isPending}
-                    {...register("password")}
-                    className={errors.email ? "border-red-500" : ""}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      disabled={isSubmitting || isPending}
+                      {...register("password")}
+                      className={`pr-10 ${
+                        errors.password ? "border-red-500" : ""
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                      disabled={isSubmitting || isPending}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                   {errors.password && (
                     <span className="text-xs text-red-400 mt-1">
                       {errors.password.message}
@@ -101,9 +124,11 @@ export default function LoginPage() {
                     <Input
                       id="remember"
                       type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
                       className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <Label htmlFor="remember">Lembrar-me</Label>
+                    <Label htmlFor="remember">Permanecer conectado</Label>
                   </div>
                   <Link
                     href="/auth/reset-password"

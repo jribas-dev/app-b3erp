@@ -14,30 +14,33 @@ import { DashboardMenu } from "@/components/home/dashboard-menu";
 import { GitCommitHorizontal } from "lucide-react";
 
 export default function HomePage() {
-  const { session, isLoading: isSessionLoading, error: sessionError, refetch: refetchSession } = useSession();
+  const {
+    session,
+    isLoading: isSessionLoading,
+    error: sessionError,
+    refetch: refetchSession,
+  } = useSession();
   const { selectInstance, logout, isPending } = useAuth();
-  const { 
-    instances, 
-    isLoadingInstances, 
-    errorInstances, 
-    fetchUserInstances 
-  } = useUserInstances();
+  const { instances, isLoadingInstances, errorInstances, fetchUserInstances } =
+    useUserInstances();
 
   const [instanceError, setInstanceError] = useState("");
-  const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
+  const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(
+    null
+  );
   const [showInstanceSelector, setShowInstanceSelector] = useState(false);
   const [hasAutoSelected, setHasAutoSelected] = useState(false);
   const [hasLoadedInstances, setHasLoadedInstances] = useState(false);
 
   // Memoiza o estado de loading geral
-  const isLoading = useMemo(() => 
-    isSessionLoading || isLoadingInstances, 
+  const isLoading = useMemo(
+    () => isSessionLoading || isLoadingInstances,
     [isSessionLoading, isLoadingInstances]
   );
 
   // Memoiza o erro geral
-  const error = useMemo(() => 
-    sessionError || errorInstances, 
+  const error = useMemo(
+    () => sessionError || errorInstances,
     [sessionError, errorInstances]
   );
 
@@ -47,7 +50,12 @@ export default function HomePage() {
       setHasLoadedInstances(true);
       fetchUserInstances(session.userId);
     }
-  }, [session?.userId, fetchUserInstances, hasLoadedInstances, isLoadingInstances]);
+  }, [
+    session?.userId,
+    fetchUserInstances,
+    hasLoadedInstances,
+    isLoadingInstances,
+  ]);
 
   // Determina se deve mostrar o seletor
   useEffect(() => {
@@ -70,40 +78,49 @@ export default function HomePage() {
     }
   }, [selectedInstanceId, isPending, refetchSession]);
 
-  const handleInstanceSelect = useCallback(async (instanceId: string) => {
-    setInstanceError("");
-    setSelectedInstanceId(instanceId);
+  const handleInstanceSelect = useCallback(
+    async (instanceId: string) => {
+      setInstanceError("");
+      setSelectedInstanceId(instanceId);
 
-    try {
-      const result = await selectInstance(instanceId);
-      if (!result.success && result.error) {
-        if (
-          result.error !== "NEXT_REDIRECT" &&
-          !result.error.includes("NEXT_REDIRECT")
-        ) {
-          setInstanceError(result.error);
+      try {
+        const result = await selectInstance(instanceId);
+        if (!result.success && result.error) {
+          if (
+            result.error !== "NEXT_REDIRECT" &&
+            !result.error.includes("NEXT_REDIRECT")
+          ) {
+            setInstanceError(result.error);
+          }
+          setSelectedInstanceId(null);
         }
+      } catch (error) {
+        console.error("Erro ao selecionar instância:", error);
+        setInstanceError("Erro inesperado ao selecionar instância");
         setSelectedInstanceId(null);
       }
-    } catch (error) {
-      console.error("Erro ao selecionar instância:", error);
-      setInstanceError("Erro inesperado ao selecionar instância");
-      setSelectedInstanceId(null);
-    }
-  }, [selectInstance]);
+    },
+    [selectInstance]
+  );
 
   // Lógica para auto-seleção de instância única
   useEffect(() => {
     if (
-      instances.length === 1 && 
-      !session?.instanceName && 
-      !hasAutoSelected && 
+      instances.length === 1 &&
+      !session?.instanceName &&
+      !hasAutoSelected &&
       !isPending
     ) {
       setHasAutoSelected(true);
       handleInstanceSelect(instances[0].dbId);
     }
-  }, [instances, session?.instanceName, hasAutoSelected, isPending, handleInstanceSelect]);
+  }, [
+    instances,
+    session?.instanceName,
+    hasAutoSelected,
+    isPending,
+    handleInstanceSelect,
+  ]);
 
   const handleShowInstanceSelector = useCallback(() => {
     setShowInstanceSelector(true);
@@ -131,9 +148,7 @@ export default function HomePage() {
       <div className="min-h-100 flex items-center justify-center">
         <div className="text-center">
           <div className="bg-red-50 border border-red-200 rounded-md p-4">
-            <h3 className="text-red-800 font-medium">
-              Erro ao carregar dados
-            </h3>
+            <h3 className="text-red-800 font-medium">Erro ao carregar dados</h3>
             <p className="text-red-600 text-sm mt-1">{error}</p>
             <div className="mt-3 space-x-2">
               <button
@@ -170,7 +185,8 @@ export default function HomePage() {
               Nenhuma instância disponível
             </h3>
             <p className="text-yellow-600 text-sm mb-4">
-              Você não possui acesso a nenhuma instância ativa. Entre em contato com o administrador.
+              Você não possui acesso a nenhuma instância ativa. Entre em contato
+              com o administrador.
             </p>
             <button
               onClick={handleLogout}
@@ -194,8 +210,9 @@ export default function HomePage() {
               <h1 className="text-lg font-bold">Bem-vindo, {session.email}</h1>
               {session.instanceName && (
                 <div className="flex items-center space-x-2">
-                  <p className="text-sm">
-                    Instância:&nbsp;{session.instanceName}
+                  <p className="flex text-sm">
+                    <GitCommitHorizontal size={16} />
+                    &nbsp;{session.instanceName}
                   </p>
                   {instances.length > 1 && (
                     <button

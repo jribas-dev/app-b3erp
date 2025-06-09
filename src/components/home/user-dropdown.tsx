@@ -11,14 +11,14 @@ import {
 import { Button } from "../ui/button";
 import { User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth.hook"; 
-import { useRouter } from "next/router";
+import { redirect } from "next/navigation";
 
 export default function UserDropDown() {
   const { logout } = useAuth();
 
+  // function to handle redirection to the edit page
   const useRedirectEdit = () => {
-    const router = useRouter();
-    router.push("/user/edit");
+    redirect("/home/user-edit");
   };
 
   return (

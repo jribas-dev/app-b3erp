@@ -77,6 +77,7 @@ function setSecureCookies(
 function clearAuthCookies(response: NextResponse) {
   response.cookies.delete("accessToken");
   response.cookies.delete("refreshToken");
+  response.cookies.delete("rememberMe");
 }
 
 function isPublicRoute(pathname: string): boolean {
@@ -98,13 +99,43 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   console.log("MIDDLEWARE:", pathname);
 
+  const accessToken = request.cookies.get("accessToken")?.value;
+  const refreshToken = request.cookies.get("refreshToken")?.value;
+  const rememberMe = request.cookies.get("rememberMe")?.value === "true";
+
+  // Verificar se usuário já está autenticado e está tentando acessar página de login
+  if (pathname === "/auth/login" && accessToken && rememberMe) {
+    // Verificar se a sessão ainda é válida
+    let session = await getSession(accessToken);
+
+    // Se a sessão não é válida mas há refresh token, tentar renovar
+    if (!session && refreshToken) {
+      const refreshResult = await refreshAccessToken(refreshToken);
+      if (refreshResult) {
+        session = await getSession(refreshResult.accessToken);
+        if (session) {
+          // Redirecionar para home com novos tokens
+          const response = NextResponse.redirect(new URL("/home", request.url));
+          setSecureCookies(
+            response,
+            refreshResult.accessToken,
+            refreshResult.refreshToken
+          );
+          return response;
+        }
+      }
+    }
+
+    // Se a sessão é válida, redirecionar para home
+    if (session) {
+      return NextResponse.redirect(new URL("/home", request.url));
+    }
+  }
+
   // Permitir rotas públicas
   if (isPublicRoute(pathname)) {
     return NextResponse.next();
   }
-
-  const accessToken = request.cookies.get("accessToken")?.value;
-  const refreshToken = request.cookies.get("refreshToken")?.value;
 
   // Se não há token de acesso, redirecionar para login
   if (!accessToken) {
