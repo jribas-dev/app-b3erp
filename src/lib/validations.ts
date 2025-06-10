@@ -64,10 +64,8 @@ export const PasswordChangeSchema = z.object({
   newPassword: z
     .string()
     .min(8, "Nova senha deve ter pelo menos 8 caracteres")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      "Nova senha deve conter pelo menos uma letra minúscula, uma maiúscula e um número"
-    ),
+    .regex(/[a-zA-Z]/, "Senha deve conter pelo menos uma letra")
+    .regex(/[0-9]/, "Senha deve conter pelo menos um número"),
   confirmPassword: z
     .string()
     .min(1, "Confirmação de senha é obrigatória"),

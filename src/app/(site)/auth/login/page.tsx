@@ -103,8 +103,9 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={togglePasswordVisibility}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors cursor-pointer"
                       disabled={isSubmitting || isPending}
+                      tabIndex={-1}
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />

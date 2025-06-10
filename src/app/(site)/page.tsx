@@ -33,7 +33,7 @@ export default function HomePage() {
                 width={300}
                 height={435}
                 className="w-8/12 md:w-full"
-                priority={false}
+                priority={true}
               />
             </div>
           </div>

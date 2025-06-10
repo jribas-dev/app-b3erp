@@ -1,5 +1,6 @@
 import Footer from "@/components/footer/footer";
 import Header from "@/components/header/header";
+import { LoadingFallbackLarge } from "@/components/home/loading-fallback";
 import { Suspense } from "react";
 
 export default function SiteLayout({
@@ -11,7 +12,7 @@ export default function SiteLayout({
     <>
       <Header />
       <main className="flex-1 mx-auto w-full max-w-6xl p-3 md:p-4 content-center">
-        <Suspense fallback={<div className="text-center">Carregando...</div>}>
+        <Suspense fallback={<LoadingFallbackLarge />}>
           {children}
         </Suspense>
       </main>

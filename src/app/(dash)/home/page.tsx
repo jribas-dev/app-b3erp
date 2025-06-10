@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { DashboardMenu } from "@/components/home/dashboard-menu";
 import { GitCommitHorizontal } from "lucide-react";
+import { LoadingFallbackLargeFinish } from "@/components/home/loading-fallback";
 
 export default function HomePage() {
   const {
@@ -132,20 +133,13 @@ export default function HomePage() {
 
   // Componente de loading
   if (isLoading) {
-    return (
-      <div className="min-h-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
+    return <LoadingFallbackLargeFinish />;
   }
 
   // Componente de erro
   if (error || !session) {
     return (
-      <div className="min-h-100 flex items-center justify-center">
+      <div className="min-h-full flex items-center justify-center">
         <div className="text-center">
           <div className="bg-red-50 border border-red-200 rounded-md p-4">
             <h3 className="text-red-800 font-medium">Erro ao carregar dados</h3>
@@ -178,7 +172,7 @@ export default function HomePage() {
   // Situação: usuário sem instâncias
   if (hasLoadedInstances && !isLoadingInstances && instances.length === 0) {
     return (
-      <div className="min-h-100 flex items-center justify-center">
+      <div className="min-h-full flex items-center justify-center">
         <div className="text-center">
           <div className="bg-yellow-50 border border-yellow-200 rounded-md p-6">
             <h3 className="text-yellow-800 font-medium text-lg mb-2">

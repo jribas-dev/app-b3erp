@@ -22,7 +22,7 @@ export default function LogoEmpresa(props: LogoEmpresaProps) {
     const src = props.dark
       ? "/images/logoB3Erp-dark.png"
       : "/images/logoB3Erp-light.png";
-    return <Image src={src} alt="Logo" width={100} height={30} />;
+    return <Image src={src} alt="Logo" width={100} height={30} priority={true} />;
   }
 
   const homeRoute = props.privado ? "/home" : "/";

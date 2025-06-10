@@ -16,6 +16,7 @@ import { useEffect } from "react";
 import { useUserEdit } from "@/hooks/useUserEdit.hook";
 import { useSession } from "@/hooks/useSession.hook";
 import { useRouter } from "next/navigation";
+import { LoadingFallbackSmall } from "./loading-fallback";
 
 export default function UserDropDown() {
   const { logout } = useAuth();
@@ -33,18 +34,14 @@ export default function UserDropDown() {
   const useRedirectEdit = () => {
     router.push("/home/user-edit");
   };
-  
+
   const useRedirectHome = () => {
     router.push("/home");
   };
 
   if (isLoadingSession || isLoadingUser) {
     return (
-      <div className="flex items-center justify-center p-1">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-2 w-2 border-b-2 border-blue-600 mx-auto"></div>
-        </div>
-      </div>
+      <LoadingFallbackSmall />
     );
   }
 
@@ -63,10 +60,10 @@ export default function UserDropDown() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={useRedirectHome}>
-            Dashboard
+            Dashboard principal
           </DropdownMenuItem>
           <DropdownMenuItem onClick={useRedirectEdit}>
-            Editar Dados
+            Editar meu perfil
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={logout}>Sair / Logout</DropdownMenuItem>

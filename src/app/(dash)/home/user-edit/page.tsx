@@ -22,6 +22,7 @@ import {
   PasswordChangeFormData,
   PasswordChangeSchema,
 } from "@/lib/validations";
+import { LoadingFallbackLargeFinish } from "@/components/home/loading-fallback";
 
 export default function UserEditPage() {
   const { session, isLoading: isLoadingSession } = useSession();
@@ -131,14 +132,7 @@ export default function UserEditPage() {
   };
 
   if (isLoadingSession || isLoadingUser) {
-    return (
-      <div className="flex items-center justify-center p-6 md:p-10">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando dados do usuário...</p>
-        </div>
-      </div>
-    );
+    return <LoadingFallbackLargeFinish />;
   }
 
   if (!session?.userId || !userData) {
@@ -239,7 +233,7 @@ export default function UserEditPage() {
               <Button
                 type="submit"
                 disabled={isUpdatingUser}
-                className="w-full flex items-center gap-2"
+                className="w-full flex items-center gap-2 cursor-pointer"
               >
                 <Save className="h-4 w-4" />
                 {isUpdatingUser ? "Salvando..." : "Salvar Alterações"}
@@ -290,8 +284,9 @@ export default function UserEditPage() {
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors cursor-pointer"
                       disabled={isUpdatingPassword}
+                      tabIndex={-1}
                     >
                       {showNewPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -327,8 +322,9 @@ export default function UserEditPage() {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors cursor-pointer"
                       disabled={isUpdatingPassword}
+                      tabIndex={-1}
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -360,7 +356,7 @@ export default function UserEditPage() {
                   <Button
                     type="submit"
                     disabled={isUpdatingPassword}
-                    className="flex-1 flex items-center gap-2"
+                    className="flex-1 flex items-center gap-2 cursor-pointer"
                   >
                     <Save className="h-4 w-4" />
                     {isUpdatingPassword ? "Salvando..." : "Salvar Nova Senha"}
@@ -370,7 +366,7 @@ export default function UserEditPage() {
                     variant="outline"
                     onClick={handleCancelPasswordChange}
                     disabled={isUpdatingPassword}
-                    className="flex-1"
+                    className="flex-1 cursor-pointer"
                   >
                     Cancelar
                   </Button>
