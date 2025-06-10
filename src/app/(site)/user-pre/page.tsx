@@ -20,7 +20,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { checkPreRegisterToken } from "@/lib/user-pre.service";
 import { useState } from "react";
-import { TicketCheck } from "lucide-react";
+import { ArrowLeft, TicketCheck } from "lucide-react";
+import Link from "next/link";
 
 export default function UserPre() {
   const router = useRouter();
@@ -121,11 +122,21 @@ export default function UserPre() {
                     disabled={isSubmitting}
                     className="btn-primary"
                   >
-                    {isSubmitting ? "Enviando..." : "Enviar"}
+                    <TicketCheck className="h-4 w-4" />
+                    {isSubmitting ? "Validando..." : "Validar Dados"}
                   </Button>
                 </div>
               </div>
             </form>
+            <div className="mt-6 text-center">
+              <Link
+                href="/auth/login"
+                className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar para o login
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>
