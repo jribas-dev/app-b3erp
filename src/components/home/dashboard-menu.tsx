@@ -29,7 +29,7 @@ export const DashboardMenu: React.FC<DashboardMenuProps> = ({
       {filteredItems.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">
-            Nenhum item disponível para o seu perfil
+            Nenhuma ação liberada para o seu perfil
           </p>
         </div>
       )}

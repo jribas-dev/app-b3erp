@@ -1,7 +1,7 @@
 "use server";
 
 import { ApiResponse } from "@/types/api-response";
-import { CompleteRegisterFormData } from "./validations";
+import { CompleteRegisterFormData } from "./validations/register.form";
 
 /**
  * Verifica o token de pré-cadastro

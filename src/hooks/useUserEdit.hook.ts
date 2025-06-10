@@ -6,7 +6,7 @@ import {
   updateUserDataAction,
   updateUserPasswordAction,
 } from "@/lib/user-edit.service";
-import { UserEditFormData, PasswordChangeFormData } from "@/lib/validations";
+import { UserEditFormData, PasswordChangeFormData } from "@/lib/validations/user-edit.form";
 import { UserData } from "@/types/user-edit";
 
 interface UseUserEditReturn {

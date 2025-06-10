@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { DashboardMenu } from "@/components/home/dashboard-menu";
 import { GitCommitHorizontal } from "lucide-react";
-import { LoadingFallbackLargeFinish } from "@/components/home/loading-fallback";
+import { LoadingFallbackLarge } from "@/components/home/loading-fallback";
 
 export default function HomePage() {
   const {
@@ -133,7 +133,7 @@ export default function HomePage() {
 
   // Componente de loading
   if (isLoading) {
-    return <LoadingFallbackLargeFinish />;
+    return <LoadingFallbackLarge />;
   }
 
   // Componente de erro

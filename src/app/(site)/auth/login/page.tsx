@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
-import { SignInFormData, SignInFormSchema } from "@/lib/validations";
+import { SignInFormData, SignInFormSchema } from "@/lib/validations/sign-in.form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth.hook";

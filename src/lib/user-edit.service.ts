@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { UserEditFormData } from "@/lib/validations";
+import { UserEditFormData } from "@/lib/validations/user-edit.form";
 import {
   UserData,
   UserUpdateResponse,

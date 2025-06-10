@@ -1,6 +1,6 @@
 "use server";
 
-import { SignInFormData } from "./validations";
+import { SignInFormData } from "./validations/sign-in.form";
 import { type AuthResponse } from "@/types/auth-response";
 import { type SessionData } from "@/types/session-data";
 import { UserInstanceList, UserInstanceListResponse } from "@/types/user-instance-list";

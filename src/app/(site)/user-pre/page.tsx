@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { preRegisterSchema, PreRegisterFormData } from "@/lib/validations";
+import { preRegisterSchema, PreRegisterFormData } from "@/lib/validations/register.form";
 import {
   Card,
   CardContent,

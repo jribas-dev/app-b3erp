@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import {
   completeRegisterSchema,
   CompleteRegisterFormData,
-} from "@/lib/validations";
+} from "@/lib/validations/register.form";
 import {
   checkPreRegisterToken,
   completeUserRegistration,

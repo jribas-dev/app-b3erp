@@ -21,8 +21,8 @@ import {
   UserEditFormSchema,
   PasswordChangeFormData,
   PasswordChangeSchema,
-} from "@/lib/validations";
-import { LoadingFallbackLargeFinish } from "@/components/home/loading-fallback";
+} from "@/lib/validations/user-edit.form";
+import { LoadingFallbackLarge } from "@/components/home/loading-fallback";
 
 export default function UserEditPage() {
   const { session, isLoading: isLoadingSession } = useSession();
@@ -132,7 +132,7 @@ export default function UserEditPage() {
   };
 
   if (isLoadingSession || isLoadingUser) {
-    return <LoadingFallbackLargeFinish />;
+    return <LoadingFallbackLarge />;
   }
 
   if (!session?.userId || !userData) {
