@@ -261,6 +261,10 @@ export async function getUserInstancesAction(
       cache: "no-store",
     });
 
+    if (response.status === 404) {
+      return { success: true, data: [] };
+    }
+
     if (!response.ok) {
       const error = await response.json();
       return {

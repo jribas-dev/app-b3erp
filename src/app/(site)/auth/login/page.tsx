@@ -16,7 +16,7 @@ import { SignInFormData, SignInFormSchema } from "@/lib/validations/sign-in.form
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth.hook";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, KeyRound } from "lucide-react";
 
 export default function LoginPage() {
   const { login, isPending } = useAuth();
@@ -60,9 +60,12 @@ export default function LoginPage() {
       <div className="flex flex-col gap-6 w-full max-w-sm md:max-w-md">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">Acesso B3Erp</CardTitle>
-            <CardDescription className="text-center">
-              Informe seu e-mail e senha
+            <CardTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5" />
+              Acesso B3Erp
+            </CardTitle>
+            <CardDescription>
+              Informe suas credenciais para acessar o sistema
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -132,7 +135,7 @@ export default function LoginPage() {
                     <Label htmlFor="remember">Permanecer conectado</Label>
                   </div>
                   <Link
-                    href="/auth/reset-password"
+                    href="/auth/lost-password"
                     className="text-sm text-blue-600 hover:underline"
                   >
                     Esqueceu sua senha?

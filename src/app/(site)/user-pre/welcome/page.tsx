@@ -17,7 +17,7 @@ export default function CadastroConcluido() {
   }, [router]);
 
   return (
-    <div className="max-w-md mx-auto p-6">
+    <div className="container max-w-4xl mx-auto p-6">
       <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-800 shadow-lg p-6 rounded-md mb-4">
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
           <svg
@@ -41,7 +41,7 @@ export default function CadastroConcluido() {
           Você já pode acessar a plataforma.
         </p>
 
-        <div className="w-full">
+        <div className="w-full mx-auto">
           <Link href="/auth/login">
             <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md mb-8 transition-colors">
               Ir para o Login
@@ -49,7 +49,7 @@ export default function CadastroConcluido() {
           </Link>
 
           <p className="text-center text-sm">
-            Você será redirecionado para acessar a plataforma em breve.
+            Você será redirecionado em breve.
           </p>
         </div>
       </div>

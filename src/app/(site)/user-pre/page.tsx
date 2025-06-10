@@ -3,7 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { preRegisterSchema, PreRegisterFormData } from "@/lib/validations/register.form";
+import {
+  preRegisterSchema,
+  PreRegisterFormData,
+} from "@/lib/validations/register.form";
 import {
   Card,
   CardContent,
@@ -17,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { checkPreRegisterToken } from "@/lib/user-pre.service";
 import { useState } from "react";
+import { TicketCheck } from "lucide-react";
 
 export default function UserPre() {
   const router = useRouter();
@@ -56,8 +60,11 @@ export default function UserPre() {
       <div className="flex flex-col w-full max-w-sm md:max-w-md">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">Pré cadastro</CardTitle>
-            <CardDescription className="text-center">
+            <CardTitle className="flex items-center gap-2">
+              <TicketCheck className="h-5 w-5" />
+              Pré Cadastro
+            </CardTitle>
+            <CardDescription>
               Informe seu e-mail e token recebido
             </CardDescription>
           </CardHeader>

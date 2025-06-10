@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Card,
@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, User, Lock, Save, KeyRound } from "lucide-react";
+import { User, Lock, Save, KeyRound } from "lucide-react";
 import { useSession } from "@/hooks/useSession.hook";
 import { useUserEdit } from "@/hooks/useUserEdit.hook";
 import {
@@ -23,6 +23,8 @@ import {
   PasswordChangeSchema,
 } from "@/lib/validations/user-edit.form";
 import { LoadingFallbackLarge } from "@/components/home/loading-fallback";
+import { PasswordInput } from "@/components/ui/password-input";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 export default function UserEditPage() {
   const { session, isLoading: isLoadingSession } = useSession();
@@ -40,8 +42,6 @@ export default function UserEditPage() {
   } = useUserEdit();
 
   const [showChangePassword, setShowChangePassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userUpdateSuccess, setUserUpdateSuccess] = useState(false);
   const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState(false);
 
@@ -201,15 +201,17 @@ export default function UserEditPage() {
 
               <div className="grid gap-1">
                 <Label htmlFor="phone">Telefone</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="(11) 99999-9999"
-                  disabled={isUpdatingUser}
-                  {...userForm.register("phone")}
-                  className={
-                    userForm.formState.errors.phone ? "border-red-500" : ""
-                  }
+                <Controller
+                  name="phone"
+                  control={userForm.control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      id="phone"
+                      disabled={isUpdatingUser}
+                      error={!!userForm.formState.errors.phone}
+                      {...field}
+                    />
+                  )}
                 />
                 {userForm.formState.errors.phone && (
                   <span className="text-xs text-red-400 mt-1">
@@ -267,6 +269,53 @@ export default function UserEditPage() {
             <form onSubmit={passwordForm.handleSubmit(onSubmitPassword)}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-1">
+                  <Label htmlFor="password">Senha</Label>
+                  <Controller
+                    name="newPassword"
+                    control={passwordForm.control}
+                    render={({ field }) => (
+                      <PasswordInput
+                        id="newPassword"
+                        placeholder="Utilize uma senha segura"
+                        disabled={isUpdatingPassword}
+                        autoComplete="new-password"
+                        showStrengthMeter={true}
+                        error={!!passwordForm.formState.errors.newPassword}
+                        {...field}
+                      />
+                    )}
+                  />
+                  {passwordForm.formState.errors.newPassword && (
+                    <span className="text-xs text-red-400 mt-1">
+                      {passwordForm.formState.errors.newPassword.message}
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid gap-1">
+                  <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                  <Controller
+                    name="confirmPassword"
+                    control={passwordForm.control}
+                    render={({ field }) => (
+                      <PasswordInput
+                        id="confirmPassword"
+                        placeholder="Repita sua senha"
+                        disabled={isUpdatingPassword}
+                        showStrengthMeter={false}
+                        error={!!passwordForm.formState.errors.confirmPassword}
+                        {...field}
+                      />
+                    )}
+                  />
+                  {passwordForm.formState.errors.confirmPassword && (
+                    <span className="text-xs text-red-400 mt-1">
+                      {passwordForm.formState.errors.confirmPassword.message}
+                    </span>
+                  )}
+                </div>
+
+                {/* <div className="grid gap-1">
                   <Label htmlFor="newPassword">Nova senha</Label>
                   <div className="relative">
                     <Input
@@ -338,7 +387,7 @@ export default function UserEditPage() {
                       {passwordForm.formState.errors.confirmPassword.message}
                     </span>
                   )}
-                </div>
+                </div> */}
 
                 {passwordError && (
                   <div className="bg-red-100 p-3 rounded-md text-red-700">

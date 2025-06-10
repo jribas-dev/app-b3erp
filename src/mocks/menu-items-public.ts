@@ -5,7 +5,7 @@ export const menuItemsPublic = [
     subMenuItems: [
       { name: "Criar conta", routePath: "/user-pre" },
       { name: "Fazer login", routePath: "/auth/login" },
-      { name: "Recuperar senha", routePath: "/auth/reset-password" },
+      { name: "Recuperar senha", routePath: "/auth/lost-password" },
     ],
   },
   {
