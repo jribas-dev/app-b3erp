@@ -8,52 +8,62 @@ export const metadata: Metadata = {
 
 export default function TermsOfService() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-full bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white shadow-lg rounded-lg p-8">
+        <div className="bg-card shadow-lg rounded-lg p-8 border">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            <h1 className="text-2xl font-bold text-foreground mb-4">
               TERMOS E CONDIÇÕES DE USO
             </h1>
-            <div className="w-24 h-1 bg-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">3B3 SISTEMAS E CONSULTORIA - B3ERP</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <div className="w-24 h-1 bg-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">
+              3B3 SISTEMAS E CONSULTORIA - B3ERP
+            </p>
+            <p className="text-sm text-muted-foreground/80 mt-2">
               Última atualização: {new Date().toLocaleDateString("pt-BR")}
             </p>
           </div>
 
           {/* Content */}
-          <div className="space-y-6 text-gray-700">
+          <div className="space-y-6 text-foreground">
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 1. DEFINIÇÕES E IDENTIFICAÇÃO
               </h2>
               <div className="space-y-3">
-                <p>
+                <p className="text-muted-foreground">
                   Os presentes Termos e Condições de Uso regulam a utilização do
                   software
-                  <strong> B3ERP</strong>, desenvolvido e licenciado pela
-                  <strong> 3B3 SISTEMAS E CONSULTORIA</strong>, pessoa jurídica
-                  inscrita no CNPJ 23.281.549/0001-05, com sede em Ribeirão
-                  Preto, São Paulo.
+                  <strong className="text-foreground"> B3ERP</strong>,
+                  desenvolvido e licenciado pela
+                  <strong className="text-foreground">
+                    {" "}
+                    3B3 SISTEMAS E CONSULTORIA
+                  </strong>
+                  , pessoa jurídica inscrita no CNPJ 23.281.549/0001-05, com
+                  sede em Ribeirão Preto, São Paulo.
                 </p>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold mb-2">Definições:</h3>
-                  <ul className="space-y-1 text-sm">
+                <div className="bg-muted/50 p-4 rounded-lg border">
+                  <h3 className="font-semibold mb-2 text-foreground">
+                    Definições:
+                  </h3>
+                  <ul className="space-y-1 text-sm text-muted-foreground">
                     <li>
-                      <strong>B3ERP:</strong> Software integrado de gestão
-                      empresarial
+                      <strong className="text-foreground">B3ERP:</strong>{" "}
+                      Software integrado de gestão empresarial
                     </li>
                     <li>
-                      <strong>Licenciante:</strong> 3B3 Sistemas e Consultoria
+                      <strong className="text-foreground">Licenciante:</strong>{" "}
+                      3B3 Sistemas e Consultoria
                     </li>
                     <li>
-                      <strong>Licenciado:</strong> Pessoa física ou jurídica
-                      contratante
+                      <strong className="text-foreground">Licenciado:</strong>{" "}
+                      Pessoa física ou jurídica contratante
                     </li>
                     <li>
-                      <strong>Sistema:</strong> Conjunto de módulos do B3ERP
+                      <strong className="text-foreground">Sistema:</strong>{" "}
+                      Conjunto de módulos do B3ERP
                     </li>
                   </ul>
                 </div>
@@ -61,30 +71,30 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 2. ACEITAÇÃO DOS TERMOS
               </h2>
-              <p className="mb-3">
+              <p className="mb-3 text-muted-foreground">
                 Ao utilizar o B3ERP, você concorda integralmente com estes
                 Termos e Condições. Caso não concorde com qualquer disposição,
                 deve cessar imediatamente o uso do sistema.
               </p>
-              <p>
+              <p className="text-muted-foreground">
                 O uso continuado do sistema após alterações nos Termos constitui
                 aceitação das modificações realizadas.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 3. LICENÇA DE USO
               </h2>
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold text-blue-600 mb-2">
+                  <h3 className="font-semibold text-secondary-foreground mb-2">
                     3.1 Concessão da Licença
                   </h3>
-                  <p>
+                  <p className="text-muted-foreground">
                     A 3B3 Sistemas concede ao Licenciado uma licença não
                     exclusiva, intransferível e revogável para uso do B3ERP,
                     limitada ao ambiente operacional definido no contrato de
@@ -93,11 +103,13 @@ export default function TermsOfService() {
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-blue-600 mb-2">
+                  <h3 className="font-semibold text-secondary-foreground mb-2">
                     3.2 Restrições de Uso
                   </h3>
-                  <p className="mb-2">É expressamente vedado ao usuário:</p>
-                  <ul className="list-disc pl-6 space-y-1">
+                  <p className="mb-2 text-muted-foreground">
+                    É expressamente vedado ao usuário:
+                  </p>
+                  <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                     <li>
                       Fazer engenharia reversa, descompilar ou desmontar o
                       software
@@ -118,10 +130,10 @@ export default function TermsOfService() {
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-blue-600 mb-2">
+                  <h3 className="font-semibold text-secondary-foreground mb-2">
                     3.3 Propriedade Intelectual
                   </h3>
-                  <p>
+                  <p className="text-muted-foreground">
                     O B3ERP, incluindo seu código-fonte, documentação, interface
                     e funcionalidades, é propriedade exclusiva da 3B3 Sistemas,
                     protegido por direitos autorais e outras leis de propriedade
@@ -132,29 +144,29 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 4. MÓDULOS E FUNCIONALIDADES
               </h2>
-              <p className="mb-3">
+              <p className="mb-3 text-muted-foreground">
                 O B3ERP é composto pelos seguintes módulos principais:
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-blue-600 mb-2">
+                <div className="bg-muted/50 p-4 rounded-lg border">
+                  <h4 className="font-semibold text-secondary-foreground mb-2">
                     Módulos Operacionais
                   </h4>
-                  <ul className="text-sm space-y-1">
+                  <ul className="text-sm space-y-1 text-muted-foreground">
                     <li>• Cadastros Básicos</li>
                     <li>• Vendas e Faturamento</li>
                     <li>• Controle de Estoque</li>
                     <li>• Gestão Financeira</li>
                   </ul>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-blue-600 mb-2">
+                <div className="bg-muted/50 p-4 rounded-lg border">
+                  <h4 className="font-semibold text-secondary-foreground mb-2">
                     Módulos Auxiliares
                   </h4>
-                  <ul className="text-sm space-y-1">
+                  <ul className="text-sm space-y-1 text-muted-foreground">
                     <li>• Emissão Fiscal (NFe, CTe, MDFe)</li>
                     <li>• Relatórios Gerenciais</li>
                     <li>• Ferramentas e Dashboard</li>
@@ -165,12 +177,14 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 5. RESPONSABILIDADES DO USUÁRIO
               </h2>
               <div className="space-y-3">
-                <p className="mb-3">O usuário compromete-se a:</p>
-                <ul className="list-disc pl-6 space-y-1">
+                <p className="mb-3 text-muted-foreground">
+                  O usuário compromete-se a:
+                </p>
+                <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                   <li>
                     Utilizar o sistema de forma lícita e em conformidade com a
                     legislação
@@ -198,48 +212,55 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 6. SUPORTE TÉCNICO E MANUTENÇÃO
               </h2>
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold text-blue-600 mb-2">
+                  <h3 className="font-semibold text-secondary-foreground mb-2">
                     6.1 Horário de Atendimento
                   </h3>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <p>
+                  <div className="bg-muted/30 p-4 rounded-lg border">
+                    <p className="text-foreground mb-2">
                       <strong>Segunda a Sexta-feira:</strong>
                     </p>
-                    <p>• Manhã: 08:30h às 12:30h</p>
-                    <p>• Tarde: 14:00h às 18:30h</p>
-                    <p className="text-sm mt-2 text-gray-600">
+                    <p className="text-muted-foreground">
+                      • Manhã: 08:30h às 12:30h
+                    </p>
+                    <p className="text-muted-foreground">
+                      • Tarde: 14:00h às 18:30h
+                    </p>
+                    <p className="text-sm mt-2 text-muted-foreground/80">
                       Exceto feriados nacionais, estaduais e municipais
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-blue-600 mb-2">
+                  <h3 className="font-semibold text-secondary-foreground mb-2">
                     6.2 Níveis de Prioridade
                   </h3>
-                  <ul className="space-y-2">
+                  <ul className="space-y-2 text-muted-foreground">
                     <li>
-                      <strong>Prioridade 1:</strong> Atendimento em até 4 horas
+                      <strong className="text-foreground">Prioridade 1:</strong>{" "}
+                      Atendimento em até 4 horas
                     </li>
                     <li>
-                      <strong>Prioridade 2:</strong> Atendimento em até 24 horas
+                      <strong className="text-foreground">Prioridade 2:</strong>{" "}
+                      Atendimento em até 24 horas
                     </li>
                     <li>
-                      <strong>Prioridade 3:</strong> Atendimento em até 48 horas
+                      <strong className="text-foreground">Prioridade 3:</strong>{" "}
+                      Atendimento em até 48 horas
                     </li>
                   </ul>
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-blue-600 mb-2">
+                  <h3 className="font-semibold text-secondary-foreground mb-2">
                     6.3 Canais de Suporte
                   </h3>
-                  <ul className="space-y-1">
+                  <ul className="space-y-1 text-muted-foreground">
                     <li>• Portal Web: http://3b3.com.br/suporte</li>
                     <li>• WhatsApp Oficial</li>
                     <li>• E-mail: suporte@3b3.com.br</li>
@@ -249,14 +270,14 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 7. LIMITAÇÕES E ISENÇÕES
               </h2>
               <div className="space-y-3">
-                <p className="mb-3">
+                <p className="mb-3 text-muted-foreground">
                   A 3B3 Sistemas não se responsabiliza por:
                 </p>
-                <ul className="list-disc pl-6 space-y-1">
+                <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                   <li>Danos decorrentes de uso inadequado do sistema</li>
                   <li>
                     Perdas de dados por falhas não atribuíveis ao software
@@ -274,8 +295,8 @@ export default function TermsOfService() {
                   </li>
                 </ul>
 
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">
-                  <p className="text-sm">
+                <div className="bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-400 dark:border-amber-600 p-4 mt-4">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
                     <strong>Importante:</strong> O sistema deve ser utilizado
                     apenas para finalidades lícitas. O usuário é integralmente
                     responsável pelo cumprimento da legislação aplicável ao seu
@@ -286,21 +307,21 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 8. PAGAMENTOS E INADIMPLEMENTO
               </h2>
               <div className="space-y-3">
-                <p className="mb-3">
+                <p className="mb-3 text-muted-foreground">
                   Os valores devem ser pagos nas datas estabelecidas no contrato
                   de licenciamento.
                 </p>
-                <div className="bg-red-50 border-l-4 border-red-400 p-4">
-                  <h4 className="font-semibold text-red-700 mb-2">
+                <div className="bg-red-50 dark:bg-red-950/20 border-l-4 border-red-400 dark:border-red-600 p-4">
+                  <h4 className="font-semibold text-red-700 dark:text-red-300 mb-2">
                     Consequências do Atraso:
                   </h4>
-                  <ul className="text-sm space-y-1">
+                  <ul className="text-sm space-y-1 text-red-600 dark:text-red-400">
                     <li>• Juros de 0,33% ao dia</li>
-                    <li>• Multa de 10% sobre o valor em atraso</li>
+                    <li>• Multa de 10% referente a bonificação concedida</li>
                     <li>• Suspensão dos serviços após 30 dias de atraso</li>
                     <li>• Bloqueio da chave de liberação mensal do sistema</li>
                   </ul>
@@ -309,33 +330,33 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 9. PRAZO E RESCISÃO
               </h2>
               <div className="space-y-3">
-                <p>
+                <p className="text-muted-foreground">
                   O contrato tem prazo inicial de 12 meses, renovando-se
                   automaticamente por prazo indeterminado, salvo manifestação
                   contrária de qualquer das partes.
                 </p>
-                <p>
-                  <strong>Rescisão:</strong> Qualquer parte pode rescindir com
-                  aviso prévio de 90 dias. A rescisão implica na cessação
-                  imediata dos serviços e remoção do sistema dos equipamentos do
-                  cliente.
+                <p className="text-muted-foreground">
+                  <strong className="text-foreground">Rescisão:</strong>{" "}
+                  Qualquer parte pode rescindir com aviso prévio de 90 dias. A
+                  rescisão implica na cessação imediata dos serviços e remoção
+                  do sistema dos equipamentos do cliente.
                 </p>
               </div>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 10. PROTEÇÃO DE DADOS
               </h2>
-              <p className="mb-3">
+              <p className="mb-3 text-muted-foreground">
                 O tratamento de dados pessoais segue nossa Política de
                 Privacidade, em conformidade com a LGPD. Destacamos:
               </p>
-              <ul className="list-disc pl-6 space-y-1">
+              <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                 <li>Backups diários automatizados com replicação em nuvem</li>
                 <li>Medidas de segurança técnica e administrativa</li>
                 <li>Acesso restrito a dados mediante autenticação</li>
@@ -344,10 +365,10 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 11. ATUALIZAÇÕES DOS TERMOS
               </h2>
-              <p>
+              <p className="text-muted-foreground">
                 Estes Termos podem ser atualizados periodicamente. Alterações
                 significativas serão comunicadas através dos canais oficiais com
                 antecedência mínima de 30 dias. O uso continuado após as
@@ -356,89 +377,98 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 12. LEGISLAÇÃO E FORO
               </h2>
-              <p className="mb-3">
+              <p className="mb-3 text-muted-foreground">
                 Estes Termos são regidos pela legislação brasileira,
                 especialmente:
               </p>
-              <ul className="list-disc pl-6 space-y-1">
+              <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                 <li>Código Civil Brasileiro (Lei nº 10.406/2002)</li>
                 <li>Lei Geral de Proteção de Dados (Lei nº 13.709/2018)</li>
                 <li>Marco Civil da Internet (Lei nº 12.965/2014)</li>
                 <li>Código de Defesa do Consumidor (quando aplicável)</li>
               </ul>
-              <p className="mt-3">
-                <strong>Foro:</strong> Fica eleito o foro de Ribeirão Preto - SP
-                para dirimir quaisquer controvérsias decorrentes destes Termos.
+              <p className="mt-3 text-muted-foreground">
+                <strong className="text-foreground">Foro:</strong> Fica eleito o
+                foro de Ribeirão Preto - SP para dirimir quaisquer controvérsias
+                decorrentes destes Termos.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 13. CONTATO
               </h2>
-              <p className="mb-3">
+              <p className="mb-3 text-muted-foreground">
                 Para dúvidas sobre estes Termos ou questões relacionadas ao uso
                 do B3ERP, entre em contato conosco:
               </p>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <ul className="space-y-2">
+              <div className="bg-muted/50 p-4 rounded-lg border">
+                <ul className="space-y-2 text-muted-foreground">
                   <li>
-                    <strong>E-mail:</strong> suporte@3b3.com.br
+                    <strong className="text-foreground">E-mail:</strong>{" "}
+                    suporte@3b3.com.br
                   </li>
                   <li>
-                    <strong>Portal de Suporte:</strong>{" "}
+                    <strong className="text-foreground">
+                      Portal de Suporte:
+                    </strong>{" "}
                     http://3b3.com.br/suporte
                   </li>
                   <li>
-                    <strong>WhatsApp:</strong> Disponível em nosso site oficial
+                    <strong className="text-foreground">WhatsApp:</strong>{" "}
+                    Disponível em nosso site oficial
                   </li>
                   <li>
-                    <strong>Endereço:</strong> Ribeirão Preto, São Paulo
+                    <strong className="text-foreground">Endereço:</strong>{" "}
+                    Ribeirão Preto, São Paulo
                   </li>
                   <li>
-                    <strong>CNPJ:</strong> 23.281.549/0001-05
+                    <strong className="text-foreground">CNPJ:</strong>{" "}
+                    23.281.549/0001-05
                   </li>
                 </ul>
               </div>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 14. DISPOSIÇÕES FINAIS
               </h2>
               <div className="space-y-3">
-                <p>
+                <p className="text-muted-foreground">
                   Estes Termos constituem o acordo integral entre as partes
                   sobre o uso do B3ERP, prevalecendo sobre quaisquer acordos
                   anteriores sobre o mesmo objeto.
                 </p>
-                <p>
+                <p className="text-muted-foreground">
                   A eventual invalidade de qualquer cláusula não prejudica a
                   validade das demais disposições.
                 </p>
-                <p>
+                <p className="text-muted-foreground">
                   A tolerância quanto ao descumprimento de qualquer condição não
                   implica renúncia ao direito de exigi-la no futuro.
                 </p>
               </div>
             </section>
 
-            <section className="bg-purple-50 p-6 rounded-lg mt-8">
+            <section className="bg-muted/30 p-6 rounded-lg mt-8 border">
               <div className="text-center">
-                <h3 className="font-bold text-lg text-gray-800 mb-4">
+                <h3 className="font-bold text-lg text-foreground mb-4">
                   DECLARAÇÃO DE ACEITE
                 </h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-muted-foreground mb-4">
                   Ao utilizar o sistema B3ERP, você declara ter lido,
                   compreendido e concordado integralmente com estes Termos e
                   Condições de Uso.
                 </p>
-                <div className="border-t border-gray-300 pt-4 mt-4">
-                  <p className="text-sm text-gray-600">
-                    <strong>3B3 SISTEMAS E CONSULTORIA</strong>
+                <div className="border-t border-border pt-4 mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    <strong className="text-foreground">
+                      3B3 SISTEMAS E CONSULTORIA
+                    </strong>
                     <br />
                     CNPJ: 23.281.549/0001-05
                     <br />

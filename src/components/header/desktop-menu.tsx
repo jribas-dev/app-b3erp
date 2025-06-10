@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { RiArrowDownSLine } from "react-icons/ri";
-import { ThemeDropDown } from "../home/theme-dropdown";
 
 // Interface para os subitens do menu
 interface SubMenuItem {
@@ -142,7 +141,6 @@ export default function DesktopMenu({ menuItems }: DesktopMenuProps) {
           <DesktopMenuItem key={index} item={item} />
         ))}
       </nav>
-      <ThemeDropDown />
     </>
   );
 }

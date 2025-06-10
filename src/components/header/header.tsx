@@ -7,6 +7,7 @@ import LogoEmpresa from "./logo-empresa";
 import { menuItemsPublic } from "@/mocks/menu-items-public";
 import DesktopMenu from "./desktop-menu";
 import { useTheme } from "next-themes";
+import { ThemeDropDown } from "../home/theme-dropdown";
 
 export default function Header() {
   const {resolvedTheme} = useTheme();
@@ -29,12 +30,13 @@ export default function Header() {
           
           {/* Botão hamburguer para abrir menu mobile */}
           <button
-            className="md:hidden text-2xl"
+            className="md:hidden text-2xl mr-6"
             onClick={openMobileMenu}
             aria-label="Toggle menu"
           >
             <FiMenu />
           </button>
+          <ThemeDropDown />
         </div>
       </header>
       <MobileMenu

@@ -8,64 +8,73 @@ export const metadata: Metadata = {
 
 export default function TermsOfUsePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-full bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white shadow-lg rounded-lg p-8">
+        <div className="bg-card shadow-lg rounded-lg p-8 border">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            <h1 className="text-2xl font-bold text-foreground mb-4">
               POLÍTICA DE PRIVACIDADE
             </h1>
-            <div className="w-24 h-1 bg-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">3B3 SISTEMAS E CONSULTORIA - B3ERP</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <div className="w-24 h-1 bg-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">
+              3B3 SISTEMAS E CONSULTORIA - B3ERP
+            </p>
+            <p className="text-sm text-muted-foreground/80 mt-2">
               Última atualização: {new Date().toLocaleDateString("pt-BR")}
             </p>
           </div>
 
           {/* Content */}
-          <div className="space-y-6 text-gray-700">
+          <div className="space-y-6 text-foreground">
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 1. IDENTIFICAÇÃO DO CONTROLADOR
               </h2>
-              <p className="mb-4">
+              <p className="mb-4 text-muted-foreground">
                 A presente Política de Privacidade é aplicável aos serviços
                 prestados pela
-                <strong> 3B3 SISTEMAS E CONSULTORIA</strong>, pessoa jurídica de
-                direito privado, inscrita no CNPJ sob o nº 23.281.549/0001-05,
-                com sede em Ribeirão Preto, São Paulo, doravante denominada{" "}
-                <strong>&quot;Controladora&quot;</strong>.
+                <strong className="text-foreground">
+                  {" "}
+                  3B3 SISTEMAS E CONSULTORIA
+                </strong>
+                , pessoa jurídica de direito privado, inscrita no CNPJ sob o nº
+                23.281.549/0001-05, com sede em Ribeirão Preto, São Paulo,
+                doravante denominada{" "}
+                <strong className="text-foreground">
+                  &quot;Controladora&quot;
+                </strong>
+                .
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 2. SOBRE ESTA POLÍTICA
               </h2>
-              <p className="mb-4">
+              <p className="mb-4 text-muted-foreground">
                 Esta Política de Privacidade tem por objetivo esclarecer como a
                 3B3 Sistemas coleta, usa, armazena e protege os dados pessoais
                 dos usuários do sistema B3ERP, em conformidade com a Lei Geral
                 de Proteção de Dados Pessoais (Lei nº 13.709/2018 - LGPD) e
                 demais normas aplicáveis.
               </p>
-              <p>
+              <p className="text-muted-foreground">
                 Ao utilizar nossos serviços, você concorda com os termos desta
                 Política de Privacidade.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 3. DADOS COLETADOS
               </h2>
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold text-blue-600 mb-2">
+                  <h3 className="font-semibold text-secondary-foreground mb-2">
                     3.1 Dados de Identificação
                   </h3>
-                  <ul className="list-disc pl-6 space-y-1">
+                  <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                     <li>Nome completo e razão social</li>
                     <li>CPF/CNPJ e Inscrição Estadual</li>
                     <li>Endereço completo</li>
@@ -75,10 +84,10 @@ export default function TermsOfUsePage() {
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-blue-600 mb-2">
+                  <h3 className="font-semibold text-secondary-foreground mb-2">
                     3.2 Dados Operacionais
                   </h3>
-                  <ul className="list-disc pl-6 space-y-1">
+                  <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                     <li>Informações de acesso ao sistema (logs de login)</li>
                     <li>Dados de uso dos módulos do B3ERP</li>
                     <li>Informações técnicas do ambiente computacional</li>
@@ -87,10 +96,10 @@ export default function TermsOfUsePage() {
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-blue-600 mb-2">
+                  <h3 className="font-semibold text-secondary-foreground mb-2">
                     3.3 Dados Empresariais
                   </h3>
-                  <ul className="list-disc pl-6 space-y-1">
+                  <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                     <li>Dados financeiros (contas a pagar/receber)</li>
                     <li>Informações fiscais e tributárias</li>
                     <li>Dados de estoque e produção</li>
@@ -103,13 +112,13 @@ export default function TermsOfUsePage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 4. FINALIDADES DO TRATAMENTO
               </h2>
-              <p className="mb-3">
+              <p className="mb-3 text-muted-foreground">
                 Os dados pessoais são tratados para as seguintes finalidades:
               </p>
-              <ul className="list-disc pl-6 space-y-1">
+              <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                 <li>
                   Execução do contrato de cessão de direito de uso do software
                   B3ERP
@@ -128,41 +137,50 @@ export default function TermsOfUsePage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 5. BASE LEGAL
               </h2>
-              <p className="mb-3">
+              <p className="mb-3 text-muted-foreground">
                 O tratamento de dados pessoais fundamenta-se nas seguintes bases
                 legais:
               </p>
-              <ul className="list-disc pl-6 space-y-1">
+              <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                 <li>
-                  <strong>Execução de contrato:</strong> Art. 7º, V da LGPD
+                  <strong className="text-foreground">
+                    Execução de contrato:
+                  </strong>{" "}
+                  Art. 7º, V da LGPD
                 </li>
                 <li>
-                  <strong>Cumprimento de obrigação legal:</strong> Art. 7º, II
-                  da LGPD
+                  <strong className="text-foreground">
+                    Cumprimento de obrigação legal:
+                  </strong>{" "}
+                  Art. 7º, II da LGPD
                 </li>
                 <li>
-                  <strong>Exercício regular de direitos:</strong> Art. 7º, VI da
-                  LGPD
+                  <strong className="text-foreground">
+                    Exercício regular de direitos:
+                  </strong>{" "}
+                  Art. 7º, VI da LGPD
                 </li>
                 <li>
-                  <strong>Legítimo interesse:</strong> Art. 7º, IX da LGPD (para
-                  melhorias do sistema)
+                  <strong className="text-foreground">
+                    Legítimo interesse:
+                  </strong>{" "}
+                  Art. 7º, IX da LGPD (para melhorias do sistema)
                 </li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 6. COMPARTILHAMENTO DE DADOS
               </h2>
-              <p className="mb-3">
+              <p className="mb-3 text-muted-foreground">
                 Os dados pessoais poderão ser compartilhados apenas nas
                 seguintes situações:
               </p>
-              <ul className="list-disc pl-6 space-y-1">
+              <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                 <li>Com autoridades competentes, quando exigido por lei</li>
                 <li>
                   Com prestadores de serviços terceirizados (ex: serviços de
@@ -176,26 +194,30 @@ export default function TermsOfUsePage() {
                   Para defesa de direitos da empresa em processos judiciais
                 </li>
               </ul>
-              <p className="mt-3">
-                <strong>Importante:</strong> Não vendemos, alugamos ou
-                comercializamos dados pessoais.
+              <p className="mt-3 text-muted-foreground">
+                <strong className="text-foreground">Importante:</strong> Não
+                vendemos, alugamos ou comercializamos dados pessoais.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 7. ARMAZENAMENTO E SEGURANÇA
               </h2>
               <div className="space-y-3">
-                <p>
-                  <strong>Prazo de Armazenamento:</strong> Os dados são mantidos
-                  pelo período necessário ao cumprimento das finalidades
-                  descritas ou conforme exigido por lei.
+                <p className="text-muted-foreground">
+                  <strong className="text-foreground">
+                    Prazo de Armazenamento:
+                  </strong>{" "}
+                  Os dados são mantidos pelo período necessário ao cumprimento
+                  das finalidades descritas ou conforme exigido por lei.
                 </p>
-                <p>
-                  <strong>Medidas de Segurança:</strong>
+                <p className="text-muted-foreground">
+                  <strong className="text-foreground">
+                    Medidas de Segurança:
+                  </strong>
                 </p>
-                <ul className="list-disc pl-6 space-y-1">
+                <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                   <li>Backups diários automatizados com replicação em nuvem</li>
                   <li>Criptografia de dados sensíveis</li>
                   <li>Controle de acesso por usuário e perfil</li>
@@ -206,14 +228,14 @@ export default function TermsOfUsePage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 8. DIREITOS DOS TITULARES
               </h2>
-              <p className="mb-3">
+              <p className="mb-3 text-muted-foreground">
                 Conforme a LGPD, você possui os seguintes direitos sobre seus
                 dados pessoais:
               </p>
-              <ul className="list-disc pl-6 space-y-1">
+              <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                 <li>Confirmação da existência de tratamento</li>
                 <li>Acesso aos dados</li>
                 <li>
@@ -228,37 +250,42 @@ export default function TermsOfUsePage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 9. CANAL DE COMUNICAÇÃO
               </h2>
-              <p className="mb-3">
+              <p className="mb-3 text-muted-foreground">
                 Para exercer seus direitos ou esclarecer dúvidas sobre esta
                 Política, entre em contato conosco através dos seguintes canais:
               </p>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <ul className="space-y-2">
+              <div className="bg-muted/50 p-4 rounded-lg border">
+                <ul className="space-y-2 text-muted-foreground">
                   <li>
-                    <strong>E-mail:</strong> suporte@3b3.com.br
+                    <strong className="text-foreground">E-mail:</strong>{" "}
+                    suporte@3b3.com.br
                   </li>
                   <li>
-                    <strong>WhatsApp:</strong> Disponível em nosso site
+                    <strong className="text-foreground">WhatsApp:</strong>{" "}
+                    Disponível em nosso site
                   </li>
                   <li>
-                    <strong>Portal de Suporte:</strong>{" "}
+                    <strong className="text-foreground">
+                      Portal de Suporte:
+                    </strong>{" "}
                     http://3b3.com.br/suporte
                   </li>
                   <li>
-                    <strong>Endereço:</strong> Ribeirão Preto, São Paulo
+                    <strong className="text-foreground">Endereço:</strong>{" "}
+                    Ribeirão Preto, São Paulo
                   </li>
                 </ul>
               </div>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 10. ALTERAÇÕES NESTA POLÍTICA
               </h2>
-              <p>
+              <p className="text-muted-foreground">
                 Esta Política de Privacidade pode ser atualizada periodicamente.
                 Alterações significativas serão comunicadas através dos canais
                 oficiais. Recomendamos a consulta regular desta página para
@@ -267,14 +294,14 @@ export default function TermsOfUsePage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-purple-600 mb-3">
+              <h2 className="text-xl font-semibold text-primary mb-3">
                 11. LEGISLAÇÃO APLICÁVEL
               </h2>
-              <p>
+              <p className="text-muted-foreground mb-3">
                 Esta Política é regida pela legislação brasileira,
                 especialmente:
               </p>
-              <ul className="list-disc pl-6 space-y-1">
+              <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                 <li>Lei Geral de Proteção de Dados (Lei nº 13.709/2018)</li>
                 <li>Marco Civil da Internet (Lei nº 12.965/2014)</li>
                 <li>Código de Defesa do Consumidor (Lei nº 8.078/1990)</li>
@@ -282,9 +309,11 @@ export default function TermsOfUsePage() {
               </ul>
             </section>
 
-            <section className="bg-purple-50 p-6 rounded-lg mt-8">
-              <p className="text-center text-sm text-gray-600">
-                <strong>3B3 SISTEMAS E CONSULTORIA</strong>
+            <section className="bg-muted/30 p-6 rounded-lg mt-8 border">
+              <p className="text-center text-sm text-muted-foreground">
+                <strong className="text-foreground">
+                  3B3 SISTEMAS E CONSULTORIA
+                </strong>
                 <br />
                 CNPJ: 23.281.549/0001-05
                 <br />
