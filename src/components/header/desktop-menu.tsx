@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { RiArrowDownSLine } from "react-icons/ri";
+import { ThemeDropDown } from "../home/theme-dropdown";
 
 // Interface para os subitens do menu
 interface SubMenuItem {
@@ -69,7 +70,11 @@ const SubmenuDropdown = ({
           className="block px-4 py-2 text-gray-800 dark:text-gray-50 hover:bg-gray-200 dark:hover:bg-gray-600 whitespace-nowrap"
           onClick={onClose}
           target={subItem.routePath.includes("http") ? "_blank" : "_self"}
-          rel={subItem.routePath.includes("http") ? "noopener noreferrer" : undefined}
+          rel={
+            subItem.routePath.includes("http")
+              ? "noopener noreferrer"
+              : undefined
+          }
         >
           {subItem.name}
         </Link>
@@ -118,7 +123,9 @@ const DesktopMenuItem = ({ item }: { item: MenuItem }) => {
         href={item.routePath || "#"}
         className="nav-link"
         target={item.routePath?.includes("http") ? "_blank" : "_self"}
-        rel={item.routePath?.includes("http") ? "noopener noreferrer" : undefined}
+        rel={
+          item.routePath?.includes("http") ? "noopener noreferrer" : undefined
+        }
       >
         {item.name}
       </Link>
@@ -129,10 +136,13 @@ const DesktopMenuItem = ({ item }: { item: MenuItem }) => {
 // Componente principal de menu desktop
 export default function DesktopMenu({ menuItems }: DesktopMenuProps) {
   return (
-    <nav className="hidden md:flex space-x-6 items-center">
-      {menuItems.map((item, index) => (
-        <DesktopMenuItem key={index} item={item} />
-      ))}
-    </nav>
+    <>
+      <nav className="hidden md:flex space-x-6 items-center mr-6">
+        {menuItems.map((item, index) => (
+          <DesktopMenuItem key={index} item={item} />
+        ))}
+      </nav>
+      <ThemeDropDown />
+    </>
   );
 }
