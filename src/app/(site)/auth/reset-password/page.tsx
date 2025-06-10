@@ -66,7 +66,7 @@ export default function ResetPasswordPage() {
     if (successMessage) {
       const timer = setTimeout(() => {
         router.push("/auth/login");
-      }, 3000);
+      }, 10000);
 
       return () => clearTimeout(timer);
     }
