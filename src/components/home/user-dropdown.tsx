@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { User } from "lucide-react";
+import { DoorClosedLocked, LayoutDashboard, User, UserCircle, UserCog } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth.hook";
 import { useEffect } from "react";
 import { useUserEdit } from "@/hooks/useUserEdit.hook";
@@ -54,19 +54,25 @@ export default function UserDropDown() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-60" align="end">
-        <DropdownMenuLabel className="text-center">
+        <DropdownMenuLabel>
+          <UserCircle className="mr-2 h-4 w-4 inline-block" />
           {userData ? userData.name : "Carregando..."}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={useRedirectHome}>
+            <LayoutDashboard className="mr-2 h-4 w-4 inline-block" />
             Dashboard principal
           </DropdownMenuItem>
           <DropdownMenuItem onClick={useRedirectEdit}>
+            <UserCog className="mr-2 h-4 w-4 inline-block" />
             Editar meu perfil
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={logout}>Sair / Logout</DropdownMenuItem>
+          <DropdownMenuItem onClick={logout}>
+            <DoorClosedLocked className="mr-2 h-4 w-4 inline-block" />
+            Sair com segurança
+          </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

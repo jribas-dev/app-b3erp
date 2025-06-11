@@ -11,7 +11,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { DashboardMenu } from "@/components/home/dashboard-menu";
-import { GitCommitHorizontal } from "lucide-react";
+import { DatabaseZap, GitCommitHorizontal } from "lucide-react";
 import { LoadingFallbackLarge } from "@/components/home/loading-fallback";
 
 export default function HomePage() {
@@ -198,87 +198,81 @@ export default function HomePage() {
   return (
     <div className="flex-col">
       <div className="bg-white dark:bg-gray-800 shadow-md rounded-t-lg border border-gray-200 dark:border-gray-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-lg font-bold">Bem-vindo, {session.email}</h1>
-              {session.instanceName && (
-                <div className="flex items-center space-x-2">
-                  <p className="flex text-sm">
-                    <GitCommitHorizontal size={16} />
-                    &nbsp;{session.instanceName}
-                  </p>
-                  {instances.length > 1 && (
-                    <button
-                      onClick={handleShowInstanceSelector}
-                      className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-200 dark:hover:text-indigo-400 text-xs px-2 py-1 rounded border border-indigo-300 hover:border-indigo-400 transition-colors"
-                      title="Trocar instância"
-                    >
-                      Trocar
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-            <button
-              onClick={handleLogout}
-              disabled={isPending}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPending ? "Saindo..." : "Sair"}
-            </button>
-          </div>
-
-          {/* Seletor de instância */}
-          {showInstanceSelector && (
-            <div className="pb-6">
-              <div className="max-w-full">
-                <Select
-                  value={selectedInstanceId || ""}
-                  onValueChange={(value) => handleInstanceSelect(value)}
-                  disabled={isPending}
-                >
-                  <SelectTrigger
-                    className="w-full"
-                    aria-label="Selecione uma instância"
+        <div className="max-w-7xl p-4 sm:px-6 lg:px-8 justify-center items-center">
+          <div className="min-w-full flex flex-col justify-center items-center">
+            <h1 className="text-md font-bold">Bem-vindo, {session.email}</h1>
+            <hr className="my-2 w-full border-gray-300 dark:border-gray-700" />
+            {/* ID do usuário */}
+            {session.instanceName && (
+              <div className="flex items-center space-x-2 gap-2">
+                <p className="flex text-sm gap-1">
+                  <DatabaseZap size={16} />
+                  &nbsp;{session.instanceName}
+                </p>
+                {instances.length > 1 && (
+                  <button
+                    onClick={handleShowInstanceSelector}
+                    className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-200 dark:hover:text-indigo-400 text-xs px-2 py-1 rounded border border-indigo-300 hover:border-indigo-400 transition-colors"
+                    title="Trocar instância"
                   >
-                    <SelectValue placeholder="Escolha uma instância" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {instances.map((instance) => (
-                      <SelectItem
-                        key={instance.id}
-                        value={instance.dbId}
-                        disabled={isPending}
-                        className="leading-10"
-                      >
-                        <GitCommitHorizontal size={16} />
-                        {instance.instanceName}
-                        {selectedInstanceId === instance.dbId && (
-                          <span className="ml-2 text-indigo-600 text-xs">
-                            Abrindo...
-                          </span>
-                        )}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {instanceError && (
-                  <div className="mt-2 bg-red-50 border border-red-200 rounded-md p-3">
-                    <p className="text-red-600 text-sm">{instanceError}</p>
-                  </div>
-                )}
-
-                {selectedInstanceId && isPending && (
-                  <div className="flex items-center mt-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
-                    <span className="text-xs text-indigo-600">Abrindo...</span>
-                  </div>
+                    Trocar
+                  </button>
                 )}
               </div>
-            </div>
-          )}
+            )}
+            {/* Seletor de instância */}
+            {showInstanceSelector && (
+              <div className="py-4 mt-2 w-full max-w-md">
+                <div className="max-w-full">
+                  <Select
+                    value={selectedInstanceId || ""}
+                    onValueChange={(value) => handleInstanceSelect(value)}
+                    disabled={isPending}
+                  >
+                    <SelectTrigger
+                      className="w-full"
+                      aria-label="Selecione uma instância"
+                    >
+                      <SelectValue placeholder="Escolha uma instância" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {instances.map((instance) => (
+                        <SelectItem
+                          key={instance.id}
+                          value={instance.dbId}
+                          disabled={isPending}
+                          className="leading-10"
+                        >
+                          <GitCommitHorizontal size={16} />
+                          {instance.instanceName}
+                          {selectedInstanceId === instance.dbId && (
+                            <span className="ml-2 text-indigo-600 text-xs">
+                              Abrindo...
+                            </span>
+                          )}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {instanceError && (
+                    <div className="mt-2 bg-red-50 border border-red-200 rounded-md p-3">
+                      <p className="text-red-600 text-sm">{instanceError}</p>
+                    </div>
+                  )}
+
+                  {selectedInstanceId && isPending && (
+                    <div className="flex items-center mt-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
+                      <span className="text-xs text-indigo-600">
+                        Abrindo...
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
