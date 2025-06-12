@@ -120,7 +120,7 @@ export default function UserPre() {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="btn-primary"
+                    className="btn-primary cursor-pointer"
                   >
                     <TicketCheck className="h-4 w-4" />
                     {isSubmitting ? "Validando..." : "Validar Dados"}

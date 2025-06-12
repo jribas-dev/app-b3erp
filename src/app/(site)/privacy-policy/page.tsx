@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Política de Privacidade - B3ERP",
@@ -261,17 +262,17 @@ export default function TermsOfUsePage() {
                 <ul className="space-y-2 text-muted-foreground">
                   <li>
                     <strong className="text-foreground">E-mail:</strong>{" "}
-                    suporte@3b3.com.br
+                    <Link href="mailto:suporte@3b3.com.br" className="text-primary">suporte@3b3.com.br</Link>
                   </li>
                   <li>
                     <strong className="text-foreground">WhatsApp:</strong>{" "}
-                    Disponível em nosso site
+                    <Link href="https://wa.link/r5v6tn" className="text-primary" target="_blank">clique aqui</Link>
                   </li>
                   <li>
                     <strong className="text-foreground">
                       Portal de Suporte:
                     </strong>{" "}
-                    http://3b3.com.br/suporte
+                    <Link href="http://3b3.com.br/suporte" className="text-primary" target="_blank">http://3b3.com.br/suporte</Link>
                   </li>
                   <li>
                     <strong className="text-foreground">Endereço:</strong>{" "}

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Termos e Condições de Uso - B3ERP",
@@ -64,6 +65,15 @@ export default function TermsOfService() {
                     <li>
                       <strong className="text-foreground">Sistema:</strong>{" "}
                       Conjunto de módulos do B3ERP
+                    </li>
+                    <li>
+                      <strong className="text-foreground">Legados*:</strong>{" "}
+                      SINGRA / SIGA / DDRInfo / SIGA Genisi / respectivos
+                      módulos
+                    </li>
+                    <li className="text-muted-foreground text-xs">
+                      * Sistemas que foram descontinuados, mas ainda possuem
+                      clientes ativos.
                     </li>
                   </ul>
                 </div>
@@ -158,8 +168,13 @@ export default function TermsOfService() {
                   <ul className="text-sm space-y-1 text-muted-foreground">
                     <li>• Cadastros Básicos</li>
                     <li>• Vendas e Faturamento</li>
+                    <li>• Ordem de Serviços</li>
+                    <li>• Carga / Entrega</li>
+                    <li>• Gestão de Compras</li>
                     <li>• Controle de Estoque</li>
+                    <li>• Gestão de Produção</li>
                     <li>• Gestão Financeira</li>
+                    <li>• SPED Fiscal</li>
                   </ul>
                 </div>
                 <div className="bg-muted/50 p-4 rounded-lg border">
@@ -167,9 +182,12 @@ export default function TermsOfService() {
                     Módulos Auxiliares
                   </h4>
                   <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• Emissão Fiscal (NFe, CTe, MDFe)</li>
+                    <li>• CRM (Customer Relationship Management)</li>
+                    <li>• Emissão Fiscal (NFe, NFCe, NFSe, CFe, CTe, MDFe)</li>
                     <li>• Relatórios Gerenciais</li>
-                    <li>• Ferramentas e Dashboard</li>
+                    <li>• Dashboard Gerencial</li>
+                    <li>• Gestão de Agenda</li>
+                    <li>• Exportação de Dados Power BI</li>
                     <li>• Controle de Segurança</li>
                   </ul>
                 </div>
@@ -197,9 +215,6 @@ export default function TermsOfService() {
                     conta
                   </li>
                   <li>Manter seus dados atualizados e precisos</li>
-                  <li>
-                    Realizar backups regulares conforme orientações técnicas
-                  </li>
                   <li>
                     Informar problemas técnicos através dos canais oficiais de
                     suporte
@@ -261,9 +276,9 @@ export default function TermsOfService() {
                     6.3 Canais de Suporte
                   </h3>
                   <ul className="space-y-1 text-muted-foreground">
-                    <li>• Portal Web: http://3b3.com.br/suporte</li>
-                    <li>• WhatsApp Oficial</li>
-                    <li>• E-mail: suporte@3b3.com.br</li>
+                    <li>• Portal Web: <Link href="http://3b3.com.br/suporte" className="text-primary" target="_blank">http://3b3.com.br/suporte</Link></li>
+                    <li className="flex gap-2 items-center">• WhatsApp Oficial: <Link href="https://wa.link/r5v6tn" className="text-primary" target="_blank">clique aqui</Link></li>
+                    <li>• E-mail: <Link href="mailto:suporte@3b3.com.br" className="text-primary">suporte@3b3.com.br</Link></li>
                   </ul>
                 </div>
               </div>
@@ -353,8 +368,11 @@ export default function TermsOfService() {
                 10. PROTEÇÃO DE DADOS
               </h2>
               <p className="mb-3 text-muted-foreground">
-                O tratamento de dados pessoais segue nossa Política de
-                Privacidade, em conformidade com a LGPD. Destacamos:
+                O tratamento de dados pessoais segue nossa{" "}
+                <Link href="/privacy-policy" className="text-primary">
+                  Política de Privacidade
+                </Link>
+                , em conformidade com a LGPD. Destacamos:
               </p>
               <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                 <li>Backups diários automatizados com replicação em nuvem</li>
@@ -409,17 +427,17 @@ export default function TermsOfService() {
                 <ul className="space-y-2 text-muted-foreground">
                   <li>
                     <strong className="text-foreground">E-mail:</strong>{" "}
-                    suporte@3b3.com.br
+                    <Link href="mailto:suporte@3b3.com.br" className="text-primary">suporte@3b3.com.br</Link>
                   </li>
                   <li>
                     <strong className="text-foreground">
                       Portal de Suporte:
                     </strong>{" "}
-                    http://3b3.com.br/suporte
+                    <Link href="http://3b3.com.br/suporte" className="text-primary" target="_blank">http://3b3.com.br/suporte</Link>
                   </li>
                   <li>
                     <strong className="text-foreground">WhatsApp:</strong>{" "}
-                    Disponível em nosso site oficial
+                    <Link href="https://wa.link/r5v6tn" className="text-primary" target="_blank">clique aqui</Link>
                   </li>
                   <li>
                     <strong className="text-foreground">Endereço:</strong>{" "}
