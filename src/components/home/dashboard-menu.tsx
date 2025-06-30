@@ -16,7 +16,7 @@ export const DashboardMenu: React.FC<DashboardMenuProps> = ({
   );
 
   return (
-    <div className={`w-full md:max-w-4xl lg:max-w-6xl mx-auto p-4 ${className}`}>
+    <div className={`w-full md:max-w-4xl lg:max-w-6xl mx-auto px-4 ${className}`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
         {filteredItems.map((item, index) => (
           <MenuItem

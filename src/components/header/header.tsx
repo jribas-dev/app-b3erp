@@ -20,7 +20,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-gray-200 dark:bg-gray-800 p-3 flex justify-between items-center border-b">
+      <header className="p-3 flex justify-between items-center border-b animate-in fade-in slide-in-from-top duration-500">
         <div className="text-2xl font-bold">
           <LogoEmpresa dark={resolvedTheme==="dark" ? true : false} />
         </div>

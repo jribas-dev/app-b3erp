@@ -141,9 +141,11 @@ export default function HomePage() {
     return (
       <div className="min-h-full flex items-center justify-center">
         <div className="text-center">
-          <div className="bg-red-50 border border-red-200 rounded-md p-4">
-            <h3 className="text-red-800 font-medium">Erro ao carregar dados</h3>
-            <p className="text-red-600 text-sm mt-1">{error}</p>
+          <div className="bg-destructive/10 border border-destructive/20 rounded-md p-4">
+            <h3 className="text-destructive-foreground font-medium">
+              Erro ao carregar dados
+            </h3>
+            <p className="text-destructive text-sm mt-1">{error}</p>
             <div className="mt-3 space-x-2">
               <button
                 onClick={() => {
@@ -152,13 +154,13 @@ export default function HomePage() {
                     fetchUserInstances(session.userId);
                   }
                 }}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                className="bg-destructive hover:bg-destructive/90 text-white px-4 py-2 rounded-md text-sm font-medium"
               >
                 Tentar novamente
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                className="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-md text-sm font-medium"
               >
                 Sair
               </button>
@@ -174,11 +176,11 @@ export default function HomePage() {
     return (
       <div className="min-h-full flex items-center justify-center">
         <div className="text-center">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-6">
-            <h3 className="text-yellow-800 font-medium text-lg mb-2">
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-md p-6">
+            <h3 className="text-yellow-800 dark:text-yellow-300 font-medium text-lg mb-2">
               Nenhuma instância disponível
             </h3>
-            <p className="text-yellow-600 text-sm mb-4">
+            <p className="text-yellow-600 dark:text-yellow-400 text-sm mb-4">
               Você não possui acesso a nenhuma instância ativa. Entre em contato
               com o administrador.
             </p>
@@ -197,82 +199,83 @@ export default function HomePage() {
 
   return (
     <div className="flex-col">
-      <div className="bg-white dark:bg-gray-800 shadow-md rounded-t-lg border border-gray-200 dark:border-gray-600">
-        <div className="max-w-7xl p-4 sm:px-6 lg:px-8 justify-center items-center">
-          <div className="min-w-full flex flex-col justify-center items-center">
-            <h1 className="text-md font-bold">Bem-vindo, {session.email}</h1>
-            <hr className="my-2 w-full border-gray-300 dark:border-gray-700" />
-            {/* ID do usuário */}
-            {session.instanceName && (
-              <div className="flex items-center space-x-2 gap-2">
-                <p className="flex text-sm gap-1">
-                  <DatabaseZap size={16} />
-                  &nbsp;{session.instanceName}
-                </p>
-                {instances.length > 1 && (
-                  <button
-                    onClick={handleShowInstanceSelector}
-                    className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-200 dark:hover:text-indigo-400 text-xs px-2 py-1 rounded border border-indigo-300 hover:border-indigo-400 transition-colors"
-                    title="Trocar instância"
-                  >
-                    Trocar
-                  </button>
-                )}
-              </div>
-            )}
-            {/* Seletor de instância */}
-            {showInstanceSelector && (
-              <div className="py-4 mt-2 w-full max-w-md">
-                <div className="max-w-full">
-                  <Select
-                    value={selectedInstanceId || ""}
-                    onValueChange={(value) => handleInstanceSelect(value)}
-                    disabled={isPending}
-                  >
-                    <SelectTrigger
-                      className="w-full"
-                      aria-label="Selecione uma instância"
+      <div className="bg-card shadow-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-1 py-3">
+            {/* Saudação ao usuário - agora com um destaque maior */}
+            <div className="flex-shrink-0">
+              <h1 className="text-lg font-medium text-foreground">
+                Bem-vindo, <span className="font-bold">{session.email}</span>
+              </h1>
+            </div>
+
+            {/* Seção da Instância - alinhada à direita em telas maiores */}
+            <div className="flex items-center gap-4">
+              {session.instanceName && !showInstanceSelector && (
+                <div className="flex items-center gap-3 bg-secondary/20 text-secondary-foreground p-2 rounded-lg">
+                  <DatabaseZap className="h-5 w-5 text-destructive" />
+                  <p className="text-foreground text-xs font-semibold">
+                    {session.instanceName}
+                  </p>
+                  {instances.length > 1 && (
+                    <button
+                      onClick={handleShowInstanceSelector}
+                      className="text-xs font-medium text-destructive hover:underline focus:outline-none focus:ring-2 focus:ring-primary rounded"
+                      title="Trocar instância"
                     >
-                      <SelectValue placeholder="Escolha uma instância" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {instances.map((instance) => (
-                        <SelectItem
-                          key={instance.id}
-                          value={instance.dbId}
-                          disabled={isPending}
-                          className="leading-10"
-                        >
-                          <GitCommitHorizontal size={16} />
-                          {instance.instanceName}
-                          {selectedInstanceId === instance.dbId && (
-                            <span className="ml-2 text-indigo-600 text-xs">
-                              Abrindo...
-                            </span>
-                          )}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {instanceError && (
-                    <div className="mt-2 bg-red-50 border border-red-200 rounded-md p-3">
-                      <p className="text-red-600 text-sm">{instanceError}</p>
-                    </div>
-                  )}
-
-                  {selectedInstanceId && isPending && (
-                    <div className="flex items-center mt-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
-                      <span className="text-xs text-indigo-600">
-                        Abrindo...
-                      </span>
-                    </div>
+                      Trocar
+                    </button>
                   )}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
+
+          {/* Seletor de instância - aparece em uma nova seção para maior clareza */}
+          {showInstanceSelector && (
+            <div className="py-4 border-t border-border/80 animate-in fade-in-20 slide-in-from-top-1">
+              <div className="w-full max-w-sm mx-auto">
+                <p className="text-sm font-medium text-center mb-2">
+                  Selecione uma instância para continuar
+                </p>
+                <Select
+                  value={selectedInstanceId || ""}
+                  onValueChange={(value) => handleInstanceSelect(value)}
+                  disabled={isPending}
+                >
+                  <SelectTrigger aria-label="Selecione uma instância" className="w-full">
+                    <SelectValue placeholder="Escolha uma instância" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {instances.map((instance) => (
+                      <SelectItem
+                        key={instance.id}
+                        value={instance.dbId}
+                        disabled={isPending}
+                        // Melhorando o alinhamento interno do item
+                        className="flex items-center gap-2"
+                      >
+                        <GitCommitHorizontal className="h-4 w-4 text-muted-foreground" />
+                        <span>{instance.instanceName}</span>
+                        {selectedInstanceId === instance.dbId && (
+                          <span className="ml-auto text-primary text-xs flex items-center gap-1">
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+                            Abrindo...
+                          </span>
+                        )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {instanceError && (
+                  <div className="mt-2 text-center bg-destructive/10 border border-destructive/20 rounded-md p-3">
+                    <p className="text-destructive text-sm">{instanceError}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -280,7 +283,7 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto py-4 sm:px-2 lg:px-4">
         {session.instanceName && (
           <div className="flex-col">
-            <div className="max-w-6xl mx-auto px-4">
+            <div className="max-w-6xl mx-auto px-2">
               {/* Dashboard Menu */}
               <DashboardMenu userRole={session.roleFront} />
             </div>

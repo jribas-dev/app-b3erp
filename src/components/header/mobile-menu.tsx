@@ -144,7 +144,7 @@ export default function MobileMenu({ isOpen, onClose, menuItems }: MobileMenuPro
 
   return (
     <div 
-      className={`fixed inset-0 bg-primary z-50 transform ${
+      className={`fixed inset-0 bg-gradient-to-b from-indigo-900 to-indigo-500 z-50 transform ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       } transition-transform duration-333 md:hidden`}
     >
