@@ -25,8 +25,15 @@ import {
 import { PhoneInput } from "@/components/ui/phone-input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { ShieldCheck } from "lucide-react";
+import {
+  Callout,
+  CalloutActions,
+  CalloutDescription,
+  CalloutTitle,
+} from "@/components/ui/callout";
+import { FieldError } from "@/components/form/field-error";
+import { Spinner } from "@/components/ui/spinner";
 
-// Status da validação do token
 type ValidationStatus = "loading" | "valid" | "invalid" | "error";
 
 export default function Confirmacao() {
@@ -53,7 +60,6 @@ export default function Confirmacao() {
     },
   });
 
-  // Validar o token no backend quando a página carrega
   useEffect(() => {
     const emailParam = searchParams.get("email");
     const tokenParam = searchParams.get("token");
@@ -61,7 +67,6 @@ export default function Confirmacao() {
     if (emailParam) setEmail(emailParam);
     if (tokenParam) setToken(tokenParam);
 
-    // Se temos email e token, validamos no backend
     const validateToken = async () => {
       if (!emailParam || !tokenParam) {
         setValidationStatus("invalid");
@@ -83,7 +88,6 @@ export default function Confirmacao() {
     validateToken();
   }, [searchParams]);
 
-  // Função para enviar o formulário completo
   const onSubmit = async (data: CompleteRegisterFormData) => {
     setErrorMessage("");
 
@@ -100,7 +104,6 @@ export default function Confirmacao() {
       setErrorMessage(
         "Erro ao processar sua solicitação. Tente novamente mais tarde."
       );
-    } finally {
     }
   };
 
@@ -110,7 +113,7 @@ export default function Confirmacao() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5" />
+              <ShieldCheck width={20} height={20} />
               Completar Cadastro
             </CardTitle>
             <CardDescription>
@@ -118,11 +121,10 @@ export default function Confirmacao() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Campo de email visível e token oculto */}
             <div className="w-full mb-6">
               <div className="flex flex-col w-full mb-4">
-                <p className="text-sm font-medium">E-mail:</p>
-                <p className="p-2 bg-gray-100 dark:bg-gray-600 rounded-sm border border-gray-400">
+                <p className="text-sm font-medium text-foreground">E-mail:</p>
+                <p className="p-2 bg-muted text-foreground rounded-(--radius) border border-border">
                   {email}
                 </p>
               </div>
@@ -130,52 +132,56 @@ export default function Confirmacao() {
             </div>
 
             {validationStatus === "loading" && (
-              <div className="w-full flex justify-center items-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <p className="ml-2">Validando dados...</p>
+              <div className="w-full flex items-center justify-center gap-3 py-8">
+                <Spinner size="md" />
+                <p className="text-sm text-muted-foreground">
+                  Validando dados...
+                </p>
               </div>
             )}
 
             {validationStatus === "invalid" && (
-              <div className="w-full bg-red-100 p-4 rounded-md text-red-700 mb-4">
-                <p className="text-center font-medium">Cadastro inválido</p>
-                <p className="text-center text-sm">{errorMessage}</p>
-              </div>
+              <Callout variant="destructive" className="mb-4">
+                <CalloutTitle>Cadastro inválido</CalloutTitle>
+                <CalloutDescription>{errorMessage}</CalloutDescription>
+              </Callout>
             )}
 
             {validationStatus === "error" && (
-              <div className="w-full bg-red-100 p-4 rounded-md text-red-700 mb-4">
-                <p className="text-center font-medium">Erro de comunicação</p>
-                <p className="text-center text-sm">{errorMessage}</p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="w-full mt-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md"
-                >
-                  Tentar novamente
-                </button>
-              </div>
+              <Callout variant="destructive" className="mb-4">
+                <CalloutTitle>Erro de comunicação</CalloutTitle>
+                <CalloutDescription>{errorMessage}</CalloutDescription>
+                <CalloutActions>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => window.location.reload()}
+                  >
+                    Tentar novamente
+                  </Button>
+                </CalloutActions>
+              </Callout>
             )}
 
             {validationStatus === "valid" && (
               <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="w-full space-y-4"
+                className="w-full flex flex-col gap-4"
               >
                 <div className="grid gap-1">
-                  <Label htmlFor="name">Nome Completo</Label>
+                  <Label htmlFor="name">Nome completo</Label>
                   <Input
                     id="name"
                     type="text"
-                    placeholder="Seu Nome Completo"
+                    placeholder="Seu nome completo"
                     disabled={isSubmitting}
+                    aria-invalid={!!errors.name}
+                    aria-describedby={errors.name ? "name-error" : undefined}
                     {...register("name")}
-                    className={errors.name ? "border-red-500" : ""}
                   />
-                  {errors.name && (
-                    <span className="text-xs text-red-400 mt-1">
-                      {errors.name.message}
-                    </span>
-                  )}
+                  <FieldError id="name-error">
+                    {errors.name?.message}
+                  </FieldError>
                 </div>
 
                 <div className="grid gap-1">
@@ -192,11 +198,9 @@ export default function Confirmacao() {
                       />
                     )}
                   />
-                  {errors.phone && (
-                    <span className="text-xs text-red-400 mt-1">
-                      {errors.phone.message}
-                    </span>
-                  )}
+                  <FieldError id="phone-error">
+                    {errors.phone?.message}
+                  </FieldError>
                 </div>
 
                 <div className="grid gap-1">
@@ -216,15 +220,13 @@ export default function Confirmacao() {
                       />
                     )}
                   />
-                  {errors.password && (
-                    <span className="text-xs text-red-400 mt-1">
-                      {errors.password.message}
-                    </span>
-                  )}
+                  <FieldError id="password-error">
+                    {errors.password?.message}
+                  </FieldError>
                 </div>
 
                 <div className="grid gap-1">
-                  <Label htmlFor="passwordConfirm">Confirmar Senha</Label>
+                  <Label htmlFor="passwordConfirm">Confirmar senha</Label>
                   <Controller
                     name="passwordConfirm"
                     control={control}
@@ -239,18 +241,17 @@ export default function Confirmacao() {
                       />
                     )}
                   />
-                  {errors.passwordConfirm && (
-                    <span className="text-xs text-red-400 mt-1">
-                      {errors.passwordConfirm.message}
-                    </span>
-                  )}
+                  <FieldError id="passwordConfirm-error">
+                    {errors.passwordConfirm?.message}
+                  </FieldError>
                 </div>
 
                 {errorMessage && (
-                  <div className="bg-red-100 p-3 rounded-md text-red-700">
-                    <p className="text-sm">{errorMessage}</p>
-                  </div>
+                  <Callout variant="destructive">
+                    <CalloutDescription>{errorMessage}</CalloutDescription>
+                  </Callout>
                 )}
+
                 <div className="flex flex-col pt-4">
                   <Button
                     type="submit"

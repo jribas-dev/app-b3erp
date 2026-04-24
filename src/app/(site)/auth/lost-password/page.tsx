@@ -21,6 +21,8 @@ import {
   LostPasswordFormSchema,
 } from "@/lib/validations/lost-password.form";
 import Link from "next/link";
+import { Callout, CalloutDescription } from "@/components/ui/callout";
+import { FieldError } from "@/components/form/field-error";
 
 export default function LostPasswordPage() {
   const router = useRouter();
@@ -60,20 +62,23 @@ export default function LostPasswordPage() {
       <div className="flex items-center justify-center min-h-full p-6">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <Mail className="h-6 w-6 text-green-600" />
+            <div
+              aria-hidden="true"
+              className="mx-auto w-12 h-12 bg-success/10 text-success rounded-full flex items-center justify-center mb-4"
+            >
+              <Mail width={24} height={24} />
             </div>
-            <CardTitle className="text-green-800">Email Enviado!</CardTitle>
+            <CardTitle>Email enviado!</CardTitle>
             <CardDescription>
               Verifique sua caixa de entrada e siga as instruções para redefinir
               sua senha.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <div className="bg-green-50 p-4 rounded-lg mb-4">
-              <p className="text-sm text-green-700">{successMessage}</p>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <Callout variant="success" className="mb-4">
+              <CalloutDescription>{successMessage}</CalloutDescription>
+            </Callout>
+            <p className="text-sm text-muted-foreground mb-4">
               Você será redirecionado automaticamente em alguns segundos...
             </p>
             <Button
@@ -111,23 +116,22 @@ export default function LostPasswordPage() {
                   type="email"
                   placeholder="seu@email.com"
                   disabled={isLoading}
-                  {...form.register("email")}
-                  className={
-                    form.formState.errors.email ? "border-red-500" : ""
+                  aria-invalid={!!form.formState.errors.email}
+                  aria-describedby={
+                    form.formState.errors.email ? "email-error" : undefined
                   }
+                  {...form.register("email")}
                   onChange={handleChange}
                 />
-                {form.formState.errors.email && (
-                  <span className="text-xs text-red-400 mt-1">
-                    {form.formState.errors.email.message}
-                  </span>
-                )}
+                <FieldError id="email-error">
+                  {form.formState.errors.email?.message}
+                </FieldError>
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 p-3 rounded-md">
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
+                <Callout variant="destructive">
+                  <CalloutDescription>{error}</CalloutDescription>
+                </Callout>
               )}
 
               <Button
@@ -144,9 +148,9 @@ export default function LostPasswordPage() {
           <div className="mt-6 text-center">
             <Link
               href="/auth/login"
-              className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft aria-hidden="true" width={16} height={16} />
               Voltar para o login
             </Link>
           </div>

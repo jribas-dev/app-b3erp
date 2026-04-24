@@ -9,7 +9,7 @@ export default function HomePage() {
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
             Impulsione sua empresa
           </h1>
-          <p className="mb-8 text-blue-600 text-xl font-bold md:text-2xl">
+          <p className="mb-8 text-accent text-xl font-bold md:text-2xl">
             Utilizando nossas ferramentas de gestão, administração e automação.
           </p>
           <p className="mb-4 text-sm md:text-lg md:text-justify">

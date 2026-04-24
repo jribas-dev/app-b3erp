@@ -13,6 +13,14 @@ import {
 import { DashboardMenu } from "@/components/home/dashboard-menu";
 import { DatabaseZap, GitCommitHorizontal } from "lucide-react";
 import { LoadingFallbackLarge } from "@/components/home/loading-fallback";
+import { Button } from "@/components/ui/button";
+import {
+  Callout,
+  CalloutActions,
+  CalloutDescription,
+  CalloutTitle,
+} from "@/components/ui/callout";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function HomePage() {
   const {
@@ -139,34 +147,28 @@ export default function HomePage() {
   // Componente de erro
   if (error || !session) {
     return (
-      <div className="min-h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-destructive/10 border border-destructive/20 rounded-md p-4">
-            <h3 className="text-destructive-foreground font-medium">
-              Erro ao carregar dados
-            </h3>
-            <p className="text-destructive text-sm mt-1">{error}</p>
-            <div className="mt-3 space-x-2">
-              <button
-                onClick={() => {
-                  refetchSession();
-                  if (session?.userId) {
-                    fetchUserInstances(session.userId);
-                  }
-                }}
-                className="bg-destructive hover:bg-destructive/90 text-white px-4 py-2 rounded-md text-sm font-medium"
-              >
-                Tentar novamente
-              </button>
-              <button
-                onClick={handleLogout}
-                className="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-md text-sm font-medium"
-              >
-                Sair
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-full flex items-center justify-center p-4">
+        <Callout variant="destructive" className="max-w-md">
+          <CalloutTitle>Erro ao carregar dados</CalloutTitle>
+          {error && <CalloutDescription>{error}</CalloutDescription>}
+          <CalloutActions>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                refetchSession();
+                if (session?.userId) {
+                  fetchUserInstances(session.userId);
+                }
+              }}
+            >
+              Tentar novamente
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              Sair
+            </Button>
+          </CalloutActions>
+        </Callout>
       </div>
     );
   }
@@ -174,25 +176,24 @@ export default function HomePage() {
   // Situação: usuário sem instâncias
   if (hasLoadedInstances && !isLoadingInstances && instances.length === 0) {
     return (
-      <div className="min-h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-md p-6">
-            <h3 className="text-yellow-800 dark:text-yellow-300 font-medium text-lg mb-2">
-              Nenhuma instância disponível
-            </h3>
-            <p className="text-yellow-600 dark:text-yellow-400 text-sm mb-4">
-              Você não possui acesso a nenhuma instância ativa. Entre em contato
-              com o administrador.
-            </p>
-            <button
+      <div className="min-h-full flex items-center justify-center p-4">
+        <Callout variant="warning" className="max-w-md">
+          <CalloutTitle>Nenhuma instância disponível</CalloutTitle>
+          <CalloutDescription>
+            Você não possui acesso a nenhuma instância ativa. Entre em contato
+            com o administrador.
+          </CalloutDescription>
+          <CalloutActions>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleLogout}
               disabled={isPending}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? "Saindo..." : "Sair"}
-            </button>
-          </div>
-        </div>
+            </Button>
+          </CalloutActions>
+        </Callout>
       </div>
     );
   }
@@ -212,16 +213,25 @@ export default function HomePage() {
             {/* Seção da Instância - alinhada à direita em telas maiores */}
             <div className="flex items-center gap-4">
               {session.instanceName && !showInstanceSelector && (
-                <div className="flex items-center gap-3 bg-secondary/20 text-secondary-foreground p-2 rounded-lg">
-                  <DatabaseZap className="h-5 w-5 text-destructive" />
+                <div className="flex items-center gap-3 bg-secondary/40 text-secondary-foreground px-3 py-2 rounded-(--radius) border border-border">
+                  <DatabaseZap
+                    aria-hidden="true"
+                    width={18}
+                    height={18}
+                    className="text-primary"
+                  />
                   <p className="text-foreground text-xs font-semibold">
                     {session.instanceName}
                   </p>
                   {instances.length > 1 && (
                     <button
+                      type="button"
                       onClick={handleShowInstanceSelector}
-                      className="text-xs font-medium text-destructive hover:underline focus:outline-none focus:ring-2 focus:ring-primary rounded"
-                      title="Trocar instância"
+                      className="text-xs font-medium text-accent hover:underline
+                                 focus-visible:outline-none focus-visible:ring-2
+                                 focus-visible:ring-primary focus-visible:ring-offset-1
+                                 rounded"
+                      aria-label="Trocar instância"
                     >
                       Trocar
                     </button>
@@ -258,8 +268,8 @@ export default function HomePage() {
                         <GitCommitHorizontal className="h-4 w-4 text-muted-foreground" />
                         <span>{instance.instanceName}</span>
                         {selectedInstanceId === instance.dbId && (
-                          <span className="ml-auto text-primary text-xs flex items-center gap-1">
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+                          <span className="ml-auto text-primary text-xs flex items-center gap-1.5">
+                            <Spinner size="sm" />
                             Abrindo...
                           </span>
                         )}
@@ -269,9 +279,9 @@ export default function HomePage() {
                 </Select>
 
                 {instanceError && (
-                  <div className="mt-2 text-center bg-destructive/10 border border-destructive/20 rounded-md p-3">
-                    <p className="text-destructive text-sm">{instanceError}</p>
-                  </div>
+                  <Callout variant="destructive" className="mt-3">
+                    <CalloutDescription>{instanceError}</CalloutDescription>
+                  </Callout>
                 )}
               </div>
             </div>

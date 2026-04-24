@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Lock, CheckCircle, XCircle, Loader2, ArrowLeft } from "lucide-react";
+import { Lock, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
 import { useResetPassword } from "@/hooks/useLostPassword.hook";
 import {
   ResetPasswordFormData,
@@ -22,6 +22,9 @@ import {
 } from "@/lib/validations/reset-password.form";
 import { PasswordInput } from "@/components/ui/password-input";
 import Link from "next/link";
+import { Callout, CalloutDescription } from "@/components/ui/callout";
+import { FieldError } from "@/components/form/field-error";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -30,7 +33,6 @@ export default function ResetPasswordPage() {
   const token = searchParams.get("token");
   const email = searchParams.get("email");
 
-  // Flag para evitar múltiplas validações
   const hasValidated = useRef(false);
 
   const {
@@ -53,7 +55,6 @@ export default function ResetPasswordPage() {
     },
   });
 
-  // Valida o token quando a página carrega (apenas uma vez)
   useEffect(() => {
     if (token && email && !hasValidated.current) {
       hasValidated.current = true;
@@ -61,7 +62,6 @@ export default function ResetPasswordPage() {
     }
   }, [token, email, validateToken]);
 
-  // Redireciona após 3 segundos quando há sucesso
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => {
@@ -83,26 +83,28 @@ export default function ResetPasswordPage() {
     }
   };
 
-  // Se os parâmetros não existem
   if (!token || !email) {
     return (
       <div className="flex items-center justify-center min-h-full p-6">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-              <XCircle className="h-6 w-6 text-red-600" />
+            <div
+              aria-hidden="true"
+              className="mx-auto w-12 h-12 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mb-4"
+            >
+              <XCircle width={24} height={24} />
             </div>
-            <CardTitle className="text-red-800">Link Inválido</CardTitle>
+            <CardTitle>Link inválido</CardTitle>
             <CardDescription>
               Este link de recuperação de senha é inválido ou está malformado.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <div className="bg-red-50 border border-red-200 p-3 rounded-md mb-4">
-              <p className="text-sm text-red-700">
-                Parâmetros necessários não encontrados na URL
-              </p>
-            </div>
+            <Callout variant="destructive" className="mb-4">
+              <CalloutDescription>
+                Parâmetros necessários não encontrados na URL.
+              </CalloutDescription>
+            </Callout>
             <Link href="/auth/lost-password">
               <Button variant="outline" className="w-full cursor-pointer">
                 Solicitar novo link
@@ -114,41 +116,44 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // Se está validando o token OU ainda não validou
   if (isValidating || isTokenValid === null) {
     return (
       <div className="flex items-center justify-center min-h-full p-6">
         <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-600" />
-            <p className="text-gray-600">Validando link de recuperação...</p>
+          <CardContent className="p-6 flex flex-col items-center gap-4 text-center">
+            <Spinner size="md" />
+            <p className="text-sm text-muted-foreground">
+              Validando link de recuperação...
+            </p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  // Se o token é inválido
   if (isTokenValid === false) {
     return (
       <div className="flex items-center justify-center min-h-full p-6">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-              <XCircle className="h-6 w-6 text-red-600" />
+            <div
+              aria-hidden="true"
+              className="mx-auto w-12 h-12 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mb-4"
+            >
+              <XCircle width={24} height={24} />
             </div>
-            <CardTitle className="text-red-800">Link Inválido</CardTitle>
+            <CardTitle>Link inválido</CardTitle>
             <CardDescription>
               Este link de recuperação de senha é inválido ou já expirou.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
             {error && (
-              <div className="bg-red-50 border border-red-200 p-3 rounded-md mb-4">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
+              <Callout variant="destructive" className="mb-4">
+                <CalloutDescription>{error}</CalloutDescription>
+              </Callout>
             )}
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <Link href="/auth/lost-password">
                 <Button variant="outline" className="w-full cursor-pointer">
                   Solicitar novo link
@@ -156,7 +161,7 @@ export default function ResetPasswordPage() {
               </Link>
               <Link href="/auth/login">
                 <Button variant="ghost" className="w-full cursor-pointer">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <ArrowLeft width={16} height={16} className="mr-2" />
                   Voltar ao login
                 </Button>
               </Link>
@@ -167,26 +172,28 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // Se há mensagem de sucesso
   if (successMessage) {
     return (
       <div className="flex items-center justify-center min-h-full p-6">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+            <div
+              aria-hidden="true"
+              className="mx-auto w-12 h-12 bg-success/10 text-success rounded-full flex items-center justify-center mb-4"
+            >
+              <CheckCircle width={24} height={24} />
             </div>
-            <CardTitle className="text-green-800">Senha Alterada!</CardTitle>
+            <CardTitle>Senha alterada!</CardTitle>
             <CardDescription>
               Sua senha foi alterada com sucesso. Você já pode fazer login com
               sua nova senha.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <div className="bg-green-50 p-4 rounded-lg mb-4">
-              <p className="text-sm text-green-700">{successMessage}</p>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <Callout variant="success" className="mb-4">
+              <CalloutDescription>{successMessage}</CalloutDescription>
+            </Callout>
+            <p className="text-sm text-muted-foreground mb-4">
               Você será redirecionado para o login em alguns segundos...
             </p>
             <Button
@@ -201,14 +208,13 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // Formulário principal
   return (
     <div className="flex items-center justify-center min-h-full p-6">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
-            Redefinir Senha
+            <Lock width={20} height={20} />
+            Redefinir senha
           </CardTitle>
           <CardDescription>
             {userInfo?.name && (
@@ -222,7 +228,6 @@ export default function ResetPasswordPage() {
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-6">
-              {/* Email (visível mas desabilitado) */}
               <div className="grid gap-1">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -230,11 +235,10 @@ export default function ResetPasswordPage() {
                   type="email"
                   value={userInfo?.email || email}
                   disabled
-                  className="bg-gray-50 text-gray-600"
+                  readOnly
                 />
               </div>
 
-              {/* Nova senha */}
               <div className="grid gap-1">
                 <Label htmlFor="password">Nova senha</Label>
                 <Controller
@@ -252,14 +256,11 @@ export default function ResetPasswordPage() {
                     />
                   )}
                 />
-                {form.formState.errors.password && (
-                  <span className="text-xs text-red-400 mt-1">
-                    {form.formState.errors.password.message}
-                  </span>
-                )}
+                <FieldError id="password-error">
+                  {form.formState.errors.password?.message}
+                </FieldError>
               </div>
 
-              {/* Confirmar senha */}
               <div className="grid gap-1">
                 <Label htmlFor="passwordConfirm">Confirmar nova senha</Label>
                 <Controller
@@ -276,17 +277,15 @@ export default function ResetPasswordPage() {
                     />
                   )}
                 />
-                {form.formState.errors.passwordConfirm && (
-                  <span className="text-xs text-red-400 mt-1">
-                    {form.formState.errors.passwordConfirm.message}
-                  </span>
-                )}
+                <FieldError id="passwordConfirm-error">
+                  {form.formState.errors.passwordConfirm?.message}
+                </FieldError>
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 p-3 rounded-md">
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
+                <Callout variant="destructive">
+                  <CalloutDescription>{error}</CalloutDescription>
+                </Callout>
               )}
 
               <Button
@@ -296,12 +295,12 @@ export default function ResetPasswordPage() {
               >
                 {isUpdating ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Spinner size="sm" tone="current" />
                     Alterando senha...
                   </>
                 ) : (
                   <>
-                    <Lock className="h-4 w-4" />
+                    <Lock width={16} height={16} />
                     Alterar senha
                   </>
                 )}
@@ -312,9 +311,9 @@ export default function ResetPasswordPage() {
           <div className="mt-6 text-center">
             <Link
               href="/auth/login"
-              className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft aria-hidden="true" width={16} height={16} />
               Voltar para o login
             </Link>
           </div>

@@ -22,6 +22,8 @@ import { checkPreRegisterToken } from "@/lib/user-pre.service";
 import { useState } from "react";
 import { ArrowLeft, TicketCheck } from "lucide-react";
 import Link from "next/link";
+import { Callout, CalloutDescription } from "@/components/ui/callout";
+import { FieldError } from "@/components/form/field-error";
 
 export default function UserPre() {
   const router = useRouter();
@@ -79,42 +81,36 @@ export default function UserPre() {
                     type="email"
                     placeholder="Seu e-mail"
                     disabled={isSubmitting}
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? "email-error" : undefined}
                     {...register("email")}
-                    className={errors.email ? "border-red-500" : ""}
                     onChange={handleChange}
                   />
-                  {errors.email && (
-                    <span className="text-xs text-red-400 mt-1">
-                      {errors.email.message}
-                    </span>
-                  )}
+                  <FieldError id="email-error">
+                    {errors.email?.message}
+                  </FieldError>
                 </div>
-                {/* Campo Token */}
                 <div className="grid gap-1">
-                  <div className="flex items-center">
-                    <Label htmlFor="token">Token</Label>
-                  </div>
+                  <Label htmlFor="token">Token</Label>
                   <Textarea
                     id="token"
                     placeholder="Digite seu token"
                     {...register("token")}
-                    className={
-                      errors.token ? "border-red-500 font-mono" : "font-mono"
-                    }
+                    className="font-mono"
+                    aria-invalid={!!errors.token}
+                    aria-describedby={errors.token ? "token-error" : undefined}
                     disabled={isSubmitting}
                     rows={3}
                     onChange={handleChange}
                   />
-                  {errors.token && (
-                    <span className="text-xs text-red-400 mt-1">
-                      {errors.token.message}
-                    </span>
-                  )}
+                  <FieldError id="token-error">
+                    {errors.token?.message}
+                  </FieldError>
                 </div>
                 {errorMessage && (
-                  <div className="bg-red-100 p-3 rounded-md text-red-700">
-                    <p className="text-sm">{errorMessage}</p>
-                  </div>
+                  <Callout variant="destructive">
+                    <CalloutDescription>{errorMessage}</CalloutDescription>
+                  </Callout>
                 )}
                 <div className="flex flex-col gap-3">
                   <Button
@@ -131,9 +127,9 @@ export default function UserPre() {
             <div className="mt-6 text-center">
               <Link
                 href="/auth/login"
-                className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft aria-hidden="true" width={16} height={16} />
                 Voltar para o login
               </Link>
             </div>

@@ -25,6 +25,8 @@ import {
 import { LoadingFallbackLarge } from "@/components/home/loading-fallback";
 import { PasswordInput } from "@/components/ui/password-input";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { Callout, CalloutDescription } from "@/components/ui/callout";
+import { FieldError } from "@/components/form/field-error";
 
 export default function UserEditPage() {
   const { session, isLoading: isLoadingSession } = useSession();
@@ -138,11 +140,11 @@ export default function UserEditPage() {
   if (!session?.userId || !userData) {
     return (
       <div className="flex items-center justify-center p-6 md:p-10">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <p className="text-red-600">Erro ao carregar dados do usuário</p>
-          </CardContent>
-        </Card>
+        <Callout variant="destructive" className="max-w-md">
+          <CalloutDescription>
+            Erro ao carregar dados do usuário.
+          </CalloutDescription>
+        </Callout>
       </div>
     );
   }
@@ -168,16 +170,15 @@ export default function UserEditPage() {
                   type="text"
                   placeholder="Seu nome completo"
                   disabled={isUpdatingUser}
-                  {...userForm.register("name")}
-                  className={
-                    userForm.formState.errors.name ? "border-red-500" : ""
+                  aria-invalid={!!userForm.formState.errors.name}
+                  aria-describedby={
+                    userForm.formState.errors.name ? "name-error" : undefined
                   }
+                  {...userForm.register("name")}
                 />
-                {userForm.formState.errors.name && (
-                  <span className="text-xs text-red-400 mt-1">
-                    {userForm.formState.errors.name.message}
-                  </span>
-                )}
+                <FieldError id="name-error">
+                  {userForm.formState.errors.name?.message}
+                </FieldError>
               </div>
 
               <div className="grid gap-1">
@@ -187,16 +188,15 @@ export default function UserEditPage() {
                   type="email"
                   placeholder="seu@email.com"
                   disabled={isUpdatingUser}
-                  {...userForm.register("email")}
-                  className={
-                    userForm.formState.errors.email ? "border-red-500" : ""
+                  aria-invalid={!!userForm.formState.errors.email}
+                  aria-describedby={
+                    userForm.formState.errors.email ? "email-error" : undefined
                   }
+                  {...userForm.register("email")}
                 />
-                {userForm.formState.errors.email && (
-                  <span className="text-xs text-red-400 mt-1">
-                    {userForm.formState.errors.email.message}
-                  </span>
-                )}
+                <FieldError id="email-error">
+                  {userForm.formState.errors.email?.message}
+                </FieldError>
               </div>
 
               <div className="grid gap-1">
@@ -213,23 +213,23 @@ export default function UserEditPage() {
                     />
                   )}
                 />
-                {userForm.formState.errors.phone && (
-                  <span className="text-xs text-red-400 mt-1">
-                    {userForm.formState.errors.phone.message}
-                  </span>
-                )}
+                <FieldError id="phone-error">
+                  {userForm.formState.errors.phone?.message}
+                </FieldError>
               </div>
 
               {userError && (
-                <div className="bg-red-100 p-3 rounded-md text-red-700">
-                  <p className="text-sm">{userError}</p>
-                </div>
+                <Callout variant="destructive">
+                  <CalloutDescription>{userError}</CalloutDescription>
+                </Callout>
               )}
 
               {userUpdateSuccess && (
-                <div className="bg-green-100 p-3 rounded-md text-green-700">
-                  <p className="text-sm">Dados atualizados com sucesso!</p>
-                </div>
+                <Callout variant="success">
+                  <CalloutDescription>
+                    Dados atualizados com sucesso!
+                  </CalloutDescription>
+                </Callout>
               )}
 
               <Button
@@ -285,11 +285,9 @@ export default function UserEditPage() {
                       />
                     )}
                   />
-                  {passwordForm.formState.errors.newPassword && (
-                    <span className="text-xs text-red-400 mt-1">
-                      {passwordForm.formState.errors.newPassword.message}
-                    </span>
-                  )}
+                  <FieldError id="newPassword-error">
+                    {passwordForm.formState.errors.newPassword?.message}
+                  </FieldError>
                 </div>
 
                 <div className="grid gap-1">
@@ -308,97 +306,23 @@ export default function UserEditPage() {
                       />
                     )}
                   />
-                  {passwordForm.formState.errors.confirmPassword && (
-                    <span className="text-xs text-red-400 mt-1">
-                      {passwordForm.formState.errors.confirmPassword.message}
-                    </span>
-                  )}
+                  <FieldError id="confirmPassword-error">
+                    {passwordForm.formState.errors.confirmPassword?.message}
+                  </FieldError>
                 </div>
-
-                {/* <div className="grid gap-1">
-                  <Label htmlFor="newPassword">Nova senha</Label>
-                  <div className="relative">
-                    <Input
-                      id="newPassword"
-                      type={showNewPassword ? "text" : "password"}
-                      placeholder="Digite sua nova senha"
-                      disabled={isUpdatingPassword}
-                      {...passwordForm.register("newPassword")}
-                      className={`pr-10 ${
-                        passwordForm.formState.errors.newPassword
-                          ? "border-red-500"
-                          : ""
-                      }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors cursor-pointer"
-                      disabled={isUpdatingPassword}
-                      tabIndex={-1}
-                    >
-                      {showNewPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                  {passwordForm.formState.errors.newPassword && (
-                    <span className="text-xs text-red-400 mt-1">
-                      {passwordForm.formState.errors.newPassword.message}
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid gap-1">
-                  <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirme sua nova senha"
-                      disabled={isUpdatingPassword}
-                      {...passwordForm.register("confirmPassword")}
-                      className={`pr-10 ${
-                        passwordForm.formState.errors.confirmPassword
-                          ? "border-red-500"
-                          : ""
-                      }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors cursor-pointer"
-                      disabled={isUpdatingPassword}
-                      tabIndex={-1}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                  {passwordForm.formState.errors.confirmPassword && (
-                    <span className="text-xs text-red-400 mt-1">
-                      {passwordForm.formState.errors.confirmPassword.message}
-                    </span>
-                  )}
-                </div> */}
 
                 {passwordError && (
-                  <div className="bg-red-100 p-3 rounded-md text-red-700">
-                    <p className="text-sm">{passwordError}</p>
-                  </div>
+                  <Callout variant="destructive">
+                    <CalloutDescription>{passwordError}</CalloutDescription>
+                  </Callout>
                 )}
 
                 {passwordUpdateSuccess && (
-                  <div className="bg-green-100 p-3 rounded-md text-green-700">
-                    <p className="text-sm">Senha alterada com sucesso!</p>
-                  </div>
+                  <Callout variant="success">
+                    <CalloutDescription>
+                      Senha alterada com sucesso!
+                    </CalloutDescription>
+                  </Callout>
                 )}
 
                 <div className="flex gap-3">

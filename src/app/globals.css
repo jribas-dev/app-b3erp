@@ -21,6 +21,10 @@
   --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.5505 0.2155 19.8095);
   --destructive-foreground: oklch(1 0 0);
+  --success: oklch(0.625 0.1772 140.4448);
+  --success-foreground: oklch(1 0 0);
+  --warning: oklch(0.692 0.2041 42.4293);
+  --warning-foreground: oklch(1 0 0);
   --border: oklch(0.8083 0.0174 271.1982);
   --input: oklch(0.8575 0.0145 268.4756);
   --ring: oklch(0.5547 0.2503 297.0156);
@@ -73,6 +77,10 @@
   --accent-foreground: oklch(0.2429 0.0304 283.911);
   --destructive: oklch(0.7556 0.1297 2.7642);
   --destructive-foreground: oklch(0.2429 0.0304 283.911);
+  --success: oklch(0.8577 0.1092 142.7153);
+  --success-foreground: oklch(0.2429 0.0304 283.911);
+  --warning: oklch(0.8237 0.1015 52.6294);
+  --warning-foreground: oklch(0.2429 0.0304 283.911);
   --border: oklch(0.324 0.0319 281.9784);
   --input: oklch(0.324 0.0319 281.9784);
   --ring: oklch(0.7871 0.1187 304.7693);
@@ -125,6 +133,10 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -163,20 +175,17 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-purple-700 text-white py-3 px-8 rounded-md font-medium hover:bg-purple-800 transition;
+    @apply bg-primary text-primary-foreground py-3 px-8 rounded-md font-medium hover:bg-primary/90 transition-colors duration-200;
   }
   .nav-link {
     position: relative;
-    color: #333;
+    color: var(--foreground);
     font-weight: 500;
     padding: 0.5rem 0.75rem;
-    transition: all 0.2s ease;
-    .dark & {
-      color: #e9e9e9;
-    }
+    transition: color 200ms ease;
   }
   .nav-link:hover {
-    color: #0070f3;
+    color: var(--accent);
   }
   .nav-link::after {
     content: "";
@@ -185,29 +194,42 @@
     height: 2px;
     bottom: -4px;
     left: 50%;
-    background-color: #0070f3;
-    transition: all 0.3s ease;
+    background-color: var(--accent);
+    transition: width 200ms ease;
     transform: translateX(-50%);
   }
   .nav-link:hover::after {
     width: 70%;
   }
   .submenu-dropdown {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    border-radius: 0.375rem;
-    border: 1px solid #f3f4f6;
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background-color: var(--popover);
   }
   .submenu-item {
-    transition: background-color 0.2s ease;
+    transition: background-color 200ms ease;
   }
   .submenu-item:first-child {
-    border-top-left-radius: 0.375rem;
-    border-top-right-radius: 0.375rem;
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
   }
   .submenu-item:last-child {
-    border-bottom-left-radius: 0.375rem;
-    border-bottom-right-radius: 0.375rem;
+    border-bottom-left-radius: var(--radius);
+    border-bottom-right-radius: var(--radius);
+  }
+}
+
+@layer base {
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 

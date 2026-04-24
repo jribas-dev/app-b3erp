@@ -310,8 +310,8 @@ export default function TermsOfService() {
                   </li>
                 </ul>
 
-                <div className="bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-400 dark:border-amber-600 p-4 mt-4">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                <div className="bg-warning/10 border-l-4 border-warning p-4 mt-4 rounded-(--radius)">
+                  <p className="text-sm text-foreground">
                     <strong>Importante:</strong> O sistema deve ser utilizado
                     apenas para finalidades lícitas. O usuário é integralmente
                     responsável pelo cumprimento da legislação aplicável ao seu
@@ -330,11 +330,11 @@ export default function TermsOfService() {
                   Os valores devem ser pagos nas datas estabelecidas no contrato
                   de licenciamento.
                 </p>
-                <div className="bg-red-50 dark:bg-red-950/20 border-l-4 border-red-400 dark:border-red-600 p-4">
-                  <h4 className="font-semibold text-red-700 dark:text-red-300 mb-2">
+                <div className="bg-destructive/10 border-l-4 border-destructive p-4 rounded-(--radius)">
+                  <h4 className="font-semibold text-destructive mb-2">
                     Consequências do Atraso:
                   </h4>
-                  <ul className="text-sm space-y-1 text-red-600 dark:text-red-400">
+                  <ul className="text-sm space-y-1 text-foreground">
                     <li>• Juros de 0,33% ao dia</li>
                     <li>• Multa de 10% referente a bonificação concedida</li>
                     <li>• Suspensão dos serviços após 30 dias de atraso</li>

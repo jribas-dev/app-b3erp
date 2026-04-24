@@ -16,7 +16,10 @@ import { SignInFormData, SignInFormSchema } from "@/lib/validations/sign-in.form
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth.hook";
-import { Eye, EyeOff, KeyRound } from "lucide-react";
+import { KeyRound } from "lucide-react";
+import { Callout, CalloutDescription } from "@/components/ui/callout";
+import { FieldError } from "@/components/form/field-error";
+import { PasswordToggleButton } from "@/components/form/password-toggle-button";
 
 export default function LoginPage() {
   const { login, isPending } = useAuth();
@@ -79,49 +82,38 @@ export default function LoginPage() {
                     placeholder="mail@example.com"
                     autoComplete="username"
                     disabled={isSubmitting || isPending}
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? "email-error" : undefined}
                     {...register("email")}
-                    className={errors.email ? "border-red-500" : ""}
                   />
-                  {errors.email && (
-                    <span className="text-xs text-red-400 mt-1">
-                      {errors.email.message}
-                    </span>
-                  )}
+                  <FieldError id="email-error">{errors.email?.message}</FieldError>
                 </div>
                 <div className="grid gap-1">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                  </div>
+                  <Label htmlFor="password">Senha</Label>
                   <div className="relative">
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
                       disabled={isSubmitting || isPending}
+                      aria-invalid={!!errors.password}
+                      aria-describedby={
+                        errors.password ? "password-error" : undefined
+                      }
+                      className="pr-10"
                       {...register("password")}
-                      className={`pr-10 ${
-                        errors.password ? "border-red-500" : ""
-                      }`}
                     />
-                    <button
-                      type="button"
-                      onClick={togglePasswordVisibility}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors cursor-pointer"
+                    <PasswordToggleButton
+                      visible={showPassword}
+                      onToggle={togglePasswordVisibility}
                       disabled={isSubmitting || isPending}
                       tabIndex={-1}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
+                      className="absolute inset-y-0 right-0 flex items-center px-3"
+                    />
                   </div>
-                  {errors.password && (
-                    <span className="text-xs text-red-400 mt-1">
-                      {errors.password.message}
-                    </span>
-                  )}
+                  <FieldError id="password-error">
+                    {errors.password?.message}
+                  </FieldError>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -130,21 +122,21 @@ export default function LoginPage() {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 rounded border-border text-primary accent-primary focus-visible:ring-2 focus-visible:ring-primary"
                     />
                     <Label htmlFor="remember">Permanecer conectado</Label>
                   </div>
                   <Link
                     href="/auth/lost-password"
-                    className="text-sm text-blue-600 hover:underline"
+                    className="text-sm text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
                   >
                     Esqueceu sua senha?
                   </Link>
                 </div>
                 {error && (
-                  <div className="bg-red-100 p-3 rounded-md text-red-700">
-                    <p className="text-sm">{error}</p>
-                  </div>
+                  <Callout variant="destructive">
+                    <CalloutDescription>{error}</CalloutDescription>
+                  </Callout>
                 )}
                 <div className="flex flex-col gap-3">
                   <Button

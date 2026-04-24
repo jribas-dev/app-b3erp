@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { RiArrowDownSLine } from "react-icons/ri";
+import { ChevronDown } from "lucide-react";
 
 // Interface para os subitens do menu
 interface SubMenuItem {
@@ -103,8 +103,11 @@ const DesktopMenuItem = ({ item }: { item: MenuItem }) => {
           onClick={toggleSubmenu}
         >
           <span>{item.name}</span>
-          <RiArrowDownSLine
-            className={`transition-transform ${
+          <ChevronDown
+            aria-hidden="true"
+            width={16}
+            height={16}
+            className={`transition-transform duration-200 ${
               isSubmenuOpen ? "rotate-180" : ""
             }`}
           />

@@ -1,5 +1,6 @@
-import { DashItem } from "@/types/dash-item";
 import Link from "next/link";
+
+import { DashItem } from "@/types/dash-item";
 
 interface MenuItemProps {
   item: DashItem;
@@ -11,40 +12,30 @@ export const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
   return (
     <Link
       href={item.routePath}
-      className="group relative bg-card rounded-lg shadow-md hover:border 
-                 hover:shadow-md hover:border-blue-300 transition-all duration-200 
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
-                 md:aspect-square sm:aspect-[4/1] p-4 sm:p-6 md:flex items-center justify-center 
-                 hover:scale-[0.98] active:scale-[1.02] block"
+      aria-label={`Abrir módulo ${item.name}`}
+      className="group flex flex-col items-center justify-center gap-3 text-center
+                 bg-card text-card-foreground border border-border
+                 rounded-[calc(var(--radius)*3)]
+                 p-5 min-h-28 shadow-sm
+                 transition-all duration-200
+                 hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary
+                 focus-visible:ring-offset-2 focus-visible:ring-offset-background
+                 active:translate-y-0 active:shadow-sm
+                 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
-      <div
-        className="flex sm:flex-col md:flex-col items-center justify-start sm:justify-center 
-                      space-x-4 sm:space-x-0 sm:space-y-3 md:space-y-3 w-full"
+      <span
+        aria-hidden="true"
+        className="flex items-center justify-center w-11 h-11 rounded-full
+                   bg-primary/10 text-primary
+                   transition-colors duration-200
+                   group-hover:bg-primary/15"
       >
-        <div
-          className="flex-shrink-0 p-2 sm:p-3 rounded-full bg-gradient-to-br from-blue-100 to-indigo-300 
-                         dark:from-indigo-600 dark:to-indigo-800 
-                        group-hover:from-blue-200 group-hover:to-indigo-400 
-                        dark:group-hover:from-indigo-500 dark:group-hover:to-indigo-700 
-                        transition-colors duration-200"
-        >
-          <IconComponent />
-        </div>
-        <span
-          className="text-md font-medium text-gray-800 dark:text-white text-left sm:text-center leading-tight
-                         group-hover:text-gray-900 transition-colors duration-200
-                         max-w-full break-words flex-1 sm:flex-none"
-        >
-          {item.name}
-        </span>
-      </div>
-
-      {/* Subtle gradient overlay on hover */}
-      <div
-        className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/0 to-indigo-500/0 
-                      group-hover:from-blue-500/5 group-hover:to-indigo-500/5 
-                      transition-all duration-200 pointer-events-none"
-      />
+        <IconComponent width={20} height={20} />
+      </span>
+      <span className="text-sm font-medium text-foreground leading-tight text-pretty">
+        {item.name}
+      </span>
     </Link>
   );
 };

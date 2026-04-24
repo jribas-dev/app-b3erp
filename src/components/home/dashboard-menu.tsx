@@ -1,4 +1,15 @@
+import { useMemo } from "react";
+
+import { Callout, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
 import { dashItemsPrivate } from "@/mocks/dash-items-private";
+import {
+  DASH_SECTION_LABELS,
+  DASH_SECTION_ORDER,
+  DashItem,
+  DashSection,
+} from "@/types/dash-item";
+import { cn } from "@/lib/utils";
+
 import { MenuItem } from "./menu-item";
 
 interface DashboardMenuProps {
@@ -6,33 +17,69 @@ interface DashboardMenuProps {
   className?: string;
 }
 
-export const DashboardMenu: React.FC<DashboardMenuProps> = ({ 
-  userRole = "saler", 
-  className = ""
+export const DashboardMenu: React.FC<DashboardMenuProps> = ({
+  userRole,
+  className,
 }) => {
-  // Filter items based on user role
-  const filteredItems = dashItemsPrivate.filter(item => 
-    item.roles.includes(userRole)
-  );
+  const grouped = useMemo(() => {
+    const map = new Map<DashSection, DashItem[]>();
+    if (!userRole) return map;
+    for (const item of dashItemsPrivate) {
+      if (!item.roles.includes(userRole)) continue;
+      const bucket = map.get(item.section) ?? [];
+      bucket.push(item);
+      map.set(item.section, bucket);
+    }
+    return map;
+  }, [userRole]);
+
+  const hasAny = useMemo(() => {
+    for (const items of grouped.values()) {
+      if (items.length > 0) return true;
+    }
+    return false;
+  }, [grouped]);
+
+  if (!hasAny) {
+    return (
+      <div className={cn("w-full max-w-lg mx-auto px-4", className)}>
+        <Callout variant="warning">
+          <CalloutTitle>Sem módulos disponíveis</CalloutTitle>
+          <CalloutDescription>
+            Nenhuma ação liberada para o seu perfil. Entre em contato com o
+            administrador.
+          </CalloutDescription>
+        </Callout>
+      </div>
+    );
+  }
 
   return (
-    <div className={`w-full md:max-w-4xl lg:max-w-6xl mx-auto px-4 ${className}`}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-        {filteredItems.map((item, index) => (
-          <MenuItem
-            key={`${item.routePath}-${index}`}
-            item={item}
-          />
-        ))}
-      </div>
-      
-      {filteredItems.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">
-            Nenhuma ação liberada para o seu perfil
-          </p>
-        </div>
+    <div
+      className={cn(
+        "w-full max-w-6xl mx-auto px-4 flex flex-col gap-8",
+        className
       )}
+    >
+      {DASH_SECTION_ORDER.map((section) => {
+        const items = grouped.get(section);
+        if (!items?.length) return null;
+        return (
+          <section key={section} aria-labelledby={`dash-section-${section}`}>
+            <h2
+              id={`dash-section-${section}`}
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 px-1"
+            >
+              {DASH_SECTION_LABELS[section]}
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+              {items.map((item) => (
+                <MenuItem key={item.routePath} item={item} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 };

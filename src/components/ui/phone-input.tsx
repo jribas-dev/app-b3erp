@@ -55,7 +55,7 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
         onChange={handleInputChange}
         placeholder="(99) 99999-9999"
         maxLength={15}
-        className={error ? "border-red-500" : props.className}
+        aria-invalid={error || undefined}
       />
     );
   }
