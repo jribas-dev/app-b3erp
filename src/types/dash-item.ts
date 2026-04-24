@@ -1,4 +1,4 @@
-export type DashSection = "sales" | "management" | "purchasing" | "account";
+export type DashSection = "sales" | "management" | "purchasing" | "inventory";
 
 export interface DashItem {
   name: string;
@@ -12,12 +12,12 @@ export const DASH_SECTION_ORDER: DashSection[] = [
   "sales",
   "management",
   "purchasing",
-  "account",
+  "inventory",
 ];
 
 export const DASH_SECTION_LABELS: Record<DashSection, string> = {
-  sales: "Vendas",
-  management: "Gestão da Equipe",
-  purchasing: "Compras",
-  account: "Minha Conta",
+  sales: "Gestão de Vendas",
+  management: "Administrativo",
+  purchasing: "Setor de Compras",
+  inventory: "Gestão de Estoque",
 };

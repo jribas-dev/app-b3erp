@@ -204,7 +204,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-1 py-3">
             {/* Saudação ao usuário - agora com um destaque maior */}
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <h1 className="text-lg font-medium text-foreground">
                 Bem-vindo, <span className="font-bold">{session.email}</span>
               </h1>
