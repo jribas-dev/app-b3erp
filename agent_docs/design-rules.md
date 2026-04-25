@@ -190,5 +190,76 @@ src/
 
 ---
 
+## 11. Mobile First & Espaçamento Padrão
+
+> **Esta aplicação é mobile first.** O alvo primário é o celular em modo retrato (portrait), largura mínima de 360px. Use breakpoints `sm:` apenas como progressive enhancement — nunca como estilo base.
+
+### Container padrão de página (dash)
+
+```tsx
+// CORRETO — nunca use p-6 ou max-w-3xl em páginas dash
+<div className="container mx-auto max-w-xl px-3 py-4 space-y-4">
+```
+
+- `px-3` (12px) horizontal + `py-4` (16px) vertical — aproveitamento máximo em tela estreita
+- `max-w-xl` (576px) — adequado para mobile e tablet; não usar `max-w-2xl` ou `max-w-3xl`
+- `space-y-4` entre cards/blocos — não usar `space-y-5` ou `space-y-6`
+
+### Listas de itens (pedidos, clientes, produtos)
+
+Layout obrigatório de **3 linhas** por item — garante que nenhuma informação seja cortada:
+
+```tsx
+<li className="px-3 py-2.5 hover:bg-muted/30 transition-colors">
+  {/* Linha 1: identificador (esq) + metadado como data (dir) */}
+  <div className="flex items-baseline justify-between gap-1 mb-0.5">
+    <span className="font-mono text-sm font-semibold text-foreground">#id</span>
+    <span className="font-mono text-xs text-muted-foreground">data</span>
+  </div>
+  {/* Linha 2: nome completo — NUNCA truncar razão social / nome de cliente */}
+  <p className="text-sm font-medium text-foreground leading-snug mb-1.5">
+    {nome}
+  </p>
+  {/* Linha 3: valor (esq) + botão de ação (dir) */}
+  <div className="flex items-center justify-between gap-2">
+    <span className="font-mono text-sm font-semibold">{valor}</span>
+    <Button size="sm" variant="outline" className="gap-1 h-7 px-2.5 text-xs shrink-0">
+      Ação
+    </Button>
+  </div>
+</li>
+```
+
+- **Nunca usar `truncate`** em nomes de clientes, razão social ou produtos — reflowear o layout
+- Botões em lista: `size="sm" className="h-7 px-2.5 text-xs shrink-0"`
+
+### Formulários em CardContent
+
+```tsx
+<CardContent className="space-y-4">
+  <div className="grid gap-1.5">
+    <Label>Campo</Label>
+    <Input ... />
+  </div>
+</CardContent>
+```
+
+- `space-y-4` dentro de `CardContent` — não usar `space-y-5`, `space-y-6` ou `gap-6`
+- Labels sempre acima do campo, `gap-1.5` entre label e input
+
+### Tabela de referência rápida
+
+| Contexto | Classe |
+|----------|--------|
+| Container de página (dash) | `px-3 py-4` |
+| Linha de lista | `px-3 py-2.5` |
+| Padding interno de card | `p-3` ou `p-4` |
+| Espaço entre seções/cards | `space-y-4` |
+| Gap em formulário (entre campos) | `gap-4` (label→input: `gap-1.5`) |
+| Botão em linha de lista | `h-7 px-2.5 text-xs shrink-0` |
+| Largura máxima de página dash | `max-w-xl` |
+
+---
+
 *Gerado a partir do codebase `jribas-dev/app-b3erp` · Abril 2026*
 *Ver documentação completa em `BRAND.md`*

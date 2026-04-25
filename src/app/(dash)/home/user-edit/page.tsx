@@ -139,7 +139,7 @@ export default function UserEditPage() {
 
   if (!session?.userId || !userData) {
     return (
-      <div className="flex items-center justify-center p-6 md:p-10">
+      <div className="flex items-center justify-center px-3 py-4">
         <Callout variant="destructive" className="max-w-md">
           <CalloutDescription>
             Erro ao carregar dados do usuário.
@@ -150,7 +150,7 @@ export default function UserEditPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6 md:p-10 max-w-2xl mx-auto">
+    <div className="flex flex-col gap-4 px-3 py-4 max-w-xl mx-auto">
       {/* Card principal - Dados do usuário */}
       <Card>
         <CardHeader>
@@ -162,7 +162,7 @@ export default function UserEditPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={userForm.handleSubmit(onSubmitUserData)}>
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
               <div className="grid gap-1">
                 <Label htmlFor="name">Nome completo</Label>
                 <Input
@@ -267,7 +267,7 @@ export default function UserEditPage() {
             </Button>
           ) : (
             <form onSubmit={passwordForm.handleSubmit(onSubmitPassword)}>
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-4">
                 <div className="grid gap-1">
                   <Label htmlFor="password">Senha</Label>
                   <Controller

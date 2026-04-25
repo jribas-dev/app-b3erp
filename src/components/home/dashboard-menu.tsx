@@ -46,7 +46,7 @@ export const DashboardMenu: React.FC<DashboardMenuProps> = ({
         <Callout variant="warning">
           <CalloutTitle>Sem módulos disponíveis</CalloutTitle>
           <CalloutDescription>
-            Nenhuma ação liberada para o seu perfil. Entre em contato com o
+            Nenhuma ação liberada para o seu perfil.<br />Entre em contato com o
             administrador.
           </CalloutDescription>
         </Callout>

@@ -104,6 +104,7 @@ Note the middleware re-implements `getSession` / `refreshAccessToken` rather tha
 
 ## Project conventions
 
+- **Mobile First — Portrait priority.** The app runs on phones in portrait mode. Every page and component must work at ≥360px wide first. Use `sm:` breakpoints only as progressive enhancement. Test all new UI at 360×780px before larger screens. Never use `truncate` to hide content that the user needs — reflow the layout instead.
 - **All UI copy is Portuguese (pt-BR).** CTAs use imperative verbs ("Salvar", "Lançar Pedido"). Error messages describe the corrective action, not the HTTP code.
 - **Design tokens only** — never inline hex values; use `var(--primary)`, `var(--card)`, etc. from [src/app/globals.css](src/app/globals.css). All components must work under `.dark`.
 - **Icons:** Lucide React only (`size={20}` default, `size={16}` inline).
