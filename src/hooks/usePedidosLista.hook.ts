@@ -31,11 +31,10 @@ export function usePedidosLista() {
     setEditaveis([]);
     setFechados([]);
 
-    const [resEdit, resFech] = await Promise.all([
-      getPedidosEditaveisAction(idemp),
-      getPedidosFechadosAction(idemp),
-    ]);
-
+    // Sequencial e não Promise.all: o refresh-token é uso único com rotação,
+    // duas server actions paralelas com token expirado disputam o mesmo refresh
+    // e a perdedora retorna 401 — race que pode invalidar a sessão.
+    const resEdit = await getPedidosEditaveisAction(idemp);
     if (resEdit.success && resEdit.data) {
       setEditaveis([...resEdit.data].sort((a, b) => b.id - a.id));
     } else {
@@ -43,6 +42,7 @@ export function usePedidosLista() {
     }
     setIsLoadingEditaveis(false);
 
+    const resFech = await getPedidosFechadosAction(idemp);
     if (resFech.success && resFech.data) {
       setFechados([...resFech.data].sort((a, b) => b.id - a.id));
     } else {

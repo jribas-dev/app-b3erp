@@ -1,42 +1,19 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { UserEditFormData } from "@/lib/validations/user-edit.form";
 import {
   UserData,
   UserUpdateResponse,
   PasswordUpdateResponse,
 } from "@/types/user-edit";
-
-async function getAuthTokens() {
-  const cookieStore = await cookies();
-  return {
-    accessToken: cookieStore.get("accessToken")?.value,
-  };
-}
+import { fetchWithAuth } from "./api-client";
 
 export async function getUserDataAction(
   userId: string
 ): Promise<UserData | null> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) {
-      console.error("URL da API não configurada");
-      return null;
-    }
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) {
-      console.error("Token de acesso não encontrado");
-      return null;
-    }
-
-    const response = await fetch(`${apiUrl}/users/${userId}`, {
+    const response = await fetchWithAuth(`/users/${userId}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       cache: "no-store",
     });
 
@@ -57,22 +34,8 @@ export async function updateUserDataAction(
   userData: UserEditFormData
 ): Promise<UserUpdateResponse> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) {
-      return { success: false, error: "URL da API não configurada" };
-    }
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) {
-      return { success: false, error: "Token de acesso não encontrado" };
-    }
-
-    const response = await fetch(`${apiUrl}/users/${userId}`, {
+    const response = await fetchWithAuth(`/users/${userId}`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       body: JSON.stringify(userData),
     });
 
@@ -101,22 +64,8 @@ export async function updateUserPasswordAction(
   newPassword: string
 ): Promise<PasswordUpdateResponse> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) {
-      return { success: false, error: "URL da API não configurada" };
-    }
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) {
-      return { success: false, error: "Token de acesso não encontrado" };
-    }
-
-    const response = await fetch(`${apiUrl}/users/${userId}`, {
+    const response = await fetchWithAuth(`/users/${userId}`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       body: JSON.stringify({ password: newPassword }),
     });
 

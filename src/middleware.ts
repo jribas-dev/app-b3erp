@@ -74,12 +74,6 @@ function setSecureCookies(
   }
 }
 
-function clearAuthCookies(response: NextResponse) {
-  response.cookies.delete("accessToken");
-  response.cookies.delete("refreshToken");
-  response.cookies.delete("rememberMe");
-}
-
 function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some(
     (route) =>
@@ -168,11 +162,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Se ainda não há sessão válida, limpar cookies e redirecionar
+  // Se ainda não há sessão válida, redirecionar para login.
+  // Não limpamos cookies aqui: o refresh-token é uso único com rotação automática,
+  // e múltiplas server actions em paralelo (Promise.all) disputam o mesmo refresh.
+  // Apagar cookies na requisição perdedora destrói a sessão v2 que a vencedora
+  // já renovou, fazendo o usuário perder o login no próximo navigate (ex.: voltar).
+  // O logout explícito (logoutAction) continua limpando cookies no auth.service.
   if (!session) {
-    const response = NextResponse.redirect(new URL("/auth/login", request.url));
-    clearAuthCookies(response);
-    return response;
+    return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
   // Verificar se é rota /home e se usuário precisa escolher instância
@@ -208,5 +205,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: [
+    {
+      source: "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)",
+      missing: [{ type: "header", key: "next-action" }],
+    },
+  ],
 };

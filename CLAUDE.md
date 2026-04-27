@@ -94,13 +94,15 @@ Server-side actions ("use server") in [src/lib/auth.service.ts](src/lib/auth.ser
 
 ### Middleware = the gatekeeper
 
-[src/middleware.ts](src/middleware.ts) runs on every non-static path and is the **single source of truth for routing rules**:
+[src/middleware.ts](src/middleware.ts) runs on every non-static path **except Server Action POSTs** (requests with `next-action` header are excluded from the matcher — redirecting a Server Action POST breaks Next.js's action reducer):
 - Reads `accessToken` and verifies it via `GET /backend/session`. On 401 it tries `POST /auth/refresh` and re-issues cookies inline on the `NextResponse`.
 - Public-vs-protected is decided against `PUBLIC_ROUTES` / `PROTECTED_ROUTES` in [src/mocks/routes-permission.ts](src/mocks/routes-permission.ts) — **edit that file when adding a new top-level route, not the middleware.**
 - `/home` is special: accessible to any authenticated user even without a tenant; all other `(dash)` routes require `session.instanceName` and redirect to `/home` if missing.
 - Role gating is enforced by `session.roleFront` ∈ `PROTECTED_ROUTES[route]`. Active roles: `supervisor`, `saler`, `buyer`, `notallow` (`ROLES` const in same file). Future roles (`inventory`) will require adding to that file.
 
 Note the middleware re-implements `getSession` / `refreshAccessToken` rather than importing from `auth.service.ts`, because middleware runs in the Edge runtime and can't use `next/headers` `cookies()`. Keep these two paths in sync when changing the auth contract.
+
+Server Actions handle token refresh independently via `fetchWithAuth` (see [src/lib/api-client.ts](src/lib/api-client.ts)).
 
 ## Project conventions
 
@@ -109,7 +111,7 @@ Note the middleware re-implements `getSession` / `refreshAccessToken` rather tha
 - **Design tokens only** — never inline hex values; use `var(--primary)`, `var(--card)`, etc. from [src/app/globals.css](src/app/globals.css). All components must work under `.dark`.
 - **Icons:** Lucide React only (`size={20}` default, `size={16}` inline).
 - **shadcn primitives in [src/components/ui/](src/components/ui/) are generated — do not hand-edit.** Build new components in sibling folders (`header/`, `footer/`, `home/`) that compose them.
-- **Server Actions for backend calls** — service files in [src/lib/](src/lib/) start with `"use server"` and are the only place cookies are mutated. Don't fetch the backend directly from client components; go through a hook.
+- **Server Actions for backend calls** — service files in [src/lib/](src/lib/) start with `"use server"` and are the only place cookies are mutated. Don't fetch the backend directly from client components; go through a hook. All authenticated calls must use `fetchWithAuth` from [src/lib/api-client.ts](src/lib/api-client.ts) — it handles token refresh + cookie rotation automatically. Never roll `getAuthTokens()` + manual `fetch(..., { headers: { Authorization } })` in new actions; that pattern is gone.
 - Module names shown in the dashboard come from [src/mocks/dash-items-private.ts](src/mocks/dash-items-private.ts) — match those strings exactly when referencing them in copy.
 
 Full design contract for AI-generated UI: [agent_docs/design-rules.md](agent_docs/design-rules.md). Brand reference: [BRAND.md](BRAND.md).

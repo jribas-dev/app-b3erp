@@ -1,6 +1,5 @@
 "use server";
 
-import { cookies } from "next/headers";
 import type {
   Emitente,
   Operacao,
@@ -18,14 +17,10 @@ import type {
   FormaPagamento,
   CondicaoPagamento,
   FecharPedidoPayload,
+  ClienteRedeSP,
+  ItemTabelaPrecos,
 } from "@/types/vendas.types";
-
-async function getAuthTokens() {
-  const cookieStore = await cookies();
-  return {
-    accessToken: cookieStore.get("accessToken")?.value,
-  };
-}
+import { fetchWithAuth } from "./api-client";
 
 export async function getEmitentesAction(): Promise<{
   success: boolean;
@@ -33,18 +28,8 @@ export async function getEmitentesAction(): Promise<{
   error?: string;
 }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(`${apiUrl}/tenant/emitentes`, {
+    const response = await fetchWithAuth("/tenant/emitentes", {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       cache: "no-store",
     });
 
@@ -67,18 +52,8 @@ export async function getOperacoesAction(idemp: number): Promise<{
   error?: string;
 }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(`${apiUrl}/b3vendas/operacoes?idemp=${idemp}`, {
+    const response = await fetchWithAuth(`/b3vendas/operacoes?idemp=${idemp}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       cache: "no-store",
     });
 
@@ -101,20 +76,10 @@ export async function getTenantCfgAction(param: string): Promise<{
   error?: string;
 }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(
-      `${apiUrl}/tenant/cfg?param=${encodeURIComponent(param)}`,
+    const response = await fetchWithAuth(
+      `/tenant/cfg?param=${encodeURIComponent(param)}`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
         cache: "no-store",
       }
     );
@@ -142,25 +107,13 @@ export async function buscarClientesAction(q: string): Promise<{
   error?: string;
 }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(
-      `${apiUrl}/b3vendas/clientes/buscar?q=${encodeURIComponent(q)}`,
+    const response = await fetchWithAuth(
+      `/b3vendas/clientes/buscar?q=${encodeURIComponent(q)}`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
         cache: "no-store",
       }
     );
-
-    console.log("Resposta da API de busca de clientes:", response);
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
@@ -181,18 +134,8 @@ export async function getClienteAction(id: number): Promise<{
   error?: string;
 }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(`${apiUrl}/b3vendas/clientes/${id}`, {
+    const response = await fetchWithAuth(`/b3vendas/clientes/${id}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       cache: "no-store",
     });
 
@@ -215,18 +158,8 @@ export async function criarPedidoAction(payload: NovoPedidoPayload): Promise<{
   error?: string;
 }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(`${apiUrl}/b3vendas/pedidos`, {
+    const response = await fetchWithAuth("/b3vendas/pedidos", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       body: JSON.stringify(payload),
     });
 
@@ -250,18 +183,8 @@ export async function getPedidoAction(id: number): Promise<{
   status?: number;
 }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado", status: 401 };
-
-    const response = await fetch(`${apiUrl}/b3vendas/pedidos/${id}`, {
+    const response = await fetchWithAuth(`/b3vendas/pedidos/${id}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       cache: "no-store",
     });
 
@@ -288,20 +211,10 @@ export async function buscarProdutosAction(q: string): Promise<{
   error?: string;
 }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(
-      `${apiUrl}/b3vendas/produtos/buscar?q=${encodeURIComponent(q)}`,
+    const response = await fetchWithAuth(
+      `/b3vendas/produtos/buscar?q=${encodeURIComponent(q)}`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
         cache: "no-store",
       },
     );
@@ -325,20 +238,10 @@ export async function getProdutoPrecoAction(
   idOper: number,
 ): Promise<{ success: boolean; data?: ProdutoPreco; error?: string }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(
-      `${apiUrl}/b3vendas/produtos/${idProd}/preco?idCli=${idCli}&idOper=${idOper}`,
+    const response = await fetchWithAuth(
+      `/b3vendas/produtos/${idProd}/preco?idCli=${idCli}&idOper=${idOper}`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
         cache: "no-store",
       },
     );
@@ -362,18 +265,8 @@ export async function calcImpostoAction(
   idOper: number,
 ): Promise<{ success: boolean; data?: ImpostoCalculado; error?: string }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(`${apiUrl}/b3vendas/produtos/${idProd}/calc-imposto`, {
+    const response = await fetchWithAuth(`/b3vendas/produtos/${idProd}/calc-imposto`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       body: JSON.stringify({ subtotal, idOper }),
     });
 
@@ -395,18 +288,8 @@ export async function adicionarItemAction(
   payload: AdicionarItemPayload,
 ): Promise<{ success: boolean; data?: PedidoDetalhe; error?: string }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(`${apiUrl}/b3vendas/pedidos/${idPedido}/itens`, {
+    const response = await fetchWithAuth(`/b3vendas/pedidos/${idPedido}/itens`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       body: JSON.stringify(payload),
     });
 
@@ -428,17 +311,8 @@ export async function removerItemAction(
   seq: number,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(`${apiUrl}/b3vendas/pedidos/${idPedido}/itens/${seq}`, {
+    const response = await fetchWithAuth(`/b3vendas/pedidos/${idPedido}/itens/${seq}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
     });
 
     if (!response.ok && response.status !== 204) {
@@ -457,20 +331,10 @@ export async function getFormasPagamentoAction(
   idPedido: number,
 ): Promise<{ success: boolean; data?: FormaPagamento[]; error?: string }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(
-      `${apiUrl}/b3vendas/pedidos/${idPedido}/formas-disponiveis`,
+    const response = await fetchWithAuth(
+      `/b3vendas/pedidos/${idPedido}/formas-disponiveis`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
         cache: "no-store",
       },
     );
@@ -492,20 +356,10 @@ export async function getCondicoesPagamentoAction(
   idPedido: number,
 ): Promise<{ success: boolean; data?: CondicaoPagamento[]; error?: string }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(
-      `${apiUrl}/b3vendas/pedidos/${idPedido}/condicoes-disponiveis`,
+    const response = await fetchWithAuth(
+      `/b3vendas/pedidos/${idPedido}/condicoes-disponiveis`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
         cache: "no-store",
       },
     );
@@ -529,18 +383,8 @@ export async function getPedidosEditaveisAction(idemp: number): Promise<{
   error?: string;
 }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(`${apiUrl}/b3vendas/pedidos/editaveis?idemp=${idemp}`, {
+    const response = await fetchWithAuth(`/b3vendas/pedidos/editaveis?idemp=${idemp}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       cache: "no-store",
     });
 
@@ -563,18 +407,8 @@ export async function getPedidosFechadosAction(idemp: number): Promise<{
   error?: string;
 }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(`${apiUrl}/b3vendas/pedidos/fechados?idemp=${idemp}`, {
+    const response = await fetchWithAuth(`/b3vendas/pedidos/fechados?idemp=${idemp}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       cache: "no-store",
     });
 
@@ -596,18 +430,8 @@ export async function fecharPedidoAction(
   payload: FecharPedidoPayload,
 ): Promise<{ success: boolean; data?: PedidoDetalhe; error?: string }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) throw new Error("URL da API não configurada");
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) return { success: false, error: "Token de acesso não encontrado" };
-
-    const response = await fetch(`${apiUrl}/b3vendas/pedidos/${idPedido}/fechar`, {
+    const response = await fetchWithAuth(`/b3vendas/pedidos/${idPedido}/fechar`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       body: JSON.stringify(payload),
     });
 
@@ -620,6 +444,56 @@ export async function fecharPedidoAction(
     return { success: true, data };
   } catch (error) {
     console.error("Erro ao fechar pedido:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
+export async function getClientesRedeSPAction(): Promise<{
+  success: boolean;
+  data?: ClienteRedeSP[];
+  error?: string;
+}> {
+  try {
+    const response = await fetchWithAuth("/b3vendas/clientes/rede-sp", {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      return { success: false, error: error.message || "Erro ao buscar clientes da rede SP" };
+    }
+
+    const data: ClienteRedeSP[] = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao buscar clientes rede SP:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
+export async function getTabelaPrecosAction(
+  idOper: number,
+  idCli: number,
+): Promise<{ success: boolean; data?: ItemTabelaPrecos[]; error?: string }> {
+  try {
+    const response = await fetchWithAuth(
+      `/b3vendas/clientes/tabela?idOper=${idOper}&idCli=${idCli}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      return { success: false, error: error.message || "Erro ao buscar tabela de preços" };
+    }
+
+    const data: ItemTabelaPrecos[] = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao buscar tabela de preços:", error);
     return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
   }
 }

@@ -6,6 +6,7 @@ import { type SessionData } from "@/types/session-data";
 import { UserInstanceList, UserInstanceListResponse } from "@/types/user-instance-list";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { fetchWithAuth } from "./api-client";
 
 // Configurações de cookies seguros
 const COOKIE_OPTIONS = {
@@ -147,24 +148,9 @@ export async function selectInstanceAction(
 
 export async function getSessionAction(): Promise<SessionData | null> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) {
-      console.error("URL da API não configurada");
-      return null;
-    }
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) {
-      return null;
-    }
-
-    const response = await fetch(`${apiUrl}/backend/session`, {
+    const response = await fetchWithAuth("/backend/session", {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      cache: "no-store", // Evita cache para sempre pegar dados atualizados
+      cache: "no-store",
     });
 
     if (!response.ok) {
@@ -242,22 +228,8 @@ export async function getUserInstancesAction(
   userId: string
 ): Promise<UserInstanceListResponse> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) {
-      return { success: false, error: "URL da API não configurada" };
-    }
-
-    const { accessToken } = await getAuthTokens();
-    if (!accessToken) {
-      return { success: false, error: "Token de acesso não encontrado" };
-    }
-
-    const response = await fetch(`${apiUrl}/user-instances/user/${userId}`, {
+    const response = await fetchWithAuth(`/user-instances/user/${userId}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       cache: "no-store",
     });
 
