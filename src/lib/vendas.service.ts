@@ -661,6 +661,66 @@ export async function atualizarClienteAction(
   }
 }
 
+export async function getEquipeSemEquipeAction(): Promise<{
+  success: boolean;
+  data?: MembroEquipe[];
+  error?: string;
+}> {
+  try {
+    const response = await fetchWithAuth("/b3vendas/equipe/sem-equipe", {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      return { success: false, error: error.message || "Erro ao buscar vendedores disponíveis" };
+    }
+    const data: MembroEquipe[] = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao buscar equipe sem equipe:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
+export async function adicionarMembroEquipeAction(idcntliderado: number): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const response = await fetchWithAuth("/b3vendas/equipe", {
+      method: "POST",
+      body: JSON.stringify({ idcntliderado }),
+    });
+    if (response.status === 201) return { success: true };
+    const error = await response.json().catch(() => ({}));
+    if (response.status === 409) return { success: false, error: "Vendedor já pertence a esta equipe" };
+    if (response.status === 400) return { success: false, error: error.message || "Operação inválida" };
+    return { success: false, error: error.message || "Erro ao adicionar membro" };
+  } catch (error) {
+    console.error("Erro ao adicionar membro à equipe:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
+export async function removerMembroEquipeAction(id: number): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const response = await fetchWithAuth(`/b3vendas/equipe/${id}`, {
+      method: "DELETE",
+    });
+    if (response.status === 204 || response.ok) return { success: true };
+    if (response.status === 404) return { success: false, error: "Vínculo não encontrado nesta equipe" };
+    const error = await response.json().catch(() => ({}));
+    return { success: false, error: error.message || "Erro ao remover membro" };
+  } catch (error) {
+    console.error("Erro ao remover membro da equipe:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
 export async function buscarCepAction(
   cep: string,
 ): Promise<{ success: boolean; data?: ViaCepData; error?: string }> {
