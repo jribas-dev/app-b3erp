@@ -26,20 +26,57 @@ export interface ClienteBusca {
 export interface ClienteDetalhe {
   id: number;
   razao: string;
+  fantasia?: string | null;
   docfed: string | null;
   docformatado: string | null;
+  docest?: string | null;
   fone: string | null;
+  fone2?: string | null;
   cel: string | null;
   endereco: string | null;
   nroend: string | null;
   bairro: string | null;
   cidade: string | null;
   uf: string | null;
+  cep?: string | null;
   obsvenda: string | null;
   idoper: number | null;
   email: string | null;
   emailnfe: string | null;
   emailcob: string | null;
+  site?: string | null;
+  idvende?: number | null;
+}
+
+export interface ClienteFormPayload {
+  razao: string;
+  fantasia?: string;
+  docfed?: string;
+  docest?: string;
+  email?: string;
+  emailnfe?: string;
+  emailcob?: string;
+  site?: string;
+  cep?: string;
+  endereco?: string;
+  nroend?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
+  fone?: string;
+  fone2?: string;
+  cel?: string;
+  obsvenda?: string;
+  idoper?: number;
+  idvende?: number;
+}
+
+export interface ViaCepData {
+  logradouro: string;
+  bairro: string;
+  localidade: string;
+  uf: string;
+  erro?: boolean;
 }
 
 export interface NovoPedidoPayload {
@@ -174,4 +211,36 @@ export interface ItemTabelaPrecos {
   vicmsst: number;
   ipisaliq: number;
   vipi: number;
+}
+
+export interface MembroEquipe {
+  id: number;
+  razao: string;
+  cel: string | null;
+  fax: string | null;
+  liderado: number;
+}
+
+export interface ChartSeries {
+  name: string;
+  data: number[];
+}
+
+export interface MetricaChartResponse {
+  chartType: "line" | "bar_h";
+  labels: string[];
+  series: ChartSeries[];
+}
+
+export interface ClienteInativo {
+  id: number;
+  nome: string;
+  docfed: string | null;
+  email: string | null;
+  fone: string | null;
+  cel: string | null;
+  cidade: string | null;
+  uf: string | null;
+  ultimaVenda: string | null;
+  idvende: number;
 }

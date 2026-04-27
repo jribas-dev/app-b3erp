@@ -19,6 +19,11 @@ import type {
   FecharPedidoPayload,
   ClienteRedeSP,
   ItemTabelaPrecos,
+  MembroEquipe,
+  MetricaChartResponse,
+  ClienteInativo,
+  ClienteFormPayload,
+  ViaCepData,
 } from "@/types/vendas.types";
 import { fetchWithAuth } from "./api-client";
 
@@ -472,6 +477,116 @@ export async function getClientesRedeSPAction(): Promise<{
   }
 }
 
+export async function getEquipeAction(): Promise<{
+  success: boolean;
+  data?: MembroEquipe[];
+  error?: string;
+}> {
+  try {
+    const response = await fetchWithAuth("/b3vendas/equipe", {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      return { success: false, error: error.message || "Erro ao buscar equipe" };
+    }
+    const data: MembroEquipe[] = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao buscar equipe:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
+export async function getVendasSemanaisAction(): Promise<{
+  success: boolean;
+  data?: MetricaChartResponse;
+  error?: string;
+}> {
+  try {
+    const response = await fetchWithAuth("/b3vendas/metricas/vendas-semanais", {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      return { success: false, error: error.message || "Erro ao buscar vendas semanais" };
+    }
+    const data: MetricaChartResponse = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao buscar vendas semanais:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
+export async function getVendasMensaisAction(): Promise<{
+  success: boolean;
+  data?: MetricaChartResponse;
+  error?: string;
+}> {
+  try {
+    const response = await fetchWithAuth("/b3vendas/metricas/vendas-mensais", {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      return { success: false, error: error.message || "Erro ao buscar vendas mensais" };
+    }
+    const data: MetricaChartResponse = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao buscar vendas mensais:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
+export async function getTopClientesAtivosAction(): Promise<{
+  success: boolean;
+  data?: MetricaChartResponse;
+  error?: string;
+}> {
+  try {
+    const response = await fetchWithAuth("/b3vendas/metricas/top-clientes-ativos", {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      return { success: false, error: error.message || "Erro ao buscar top clientes" };
+    }
+    const data: MetricaChartResponse = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao buscar top clientes:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
+export async function getClientesInativosAction(): Promise<{
+  success: boolean;
+  data?: ClienteInativo[];
+  error?: string;
+}> {
+  try {
+    const response = await fetchWithAuth("/b3vendas/metricas/clientes-inativos", {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      return { success: false, error: error.message || "Erro ao buscar clientes inativos" };
+    }
+    const data: ClienteInativo[] = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao buscar clientes inativos:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
 export async function getTabelaPrecosAction(
   idOper: number,
   idCli: number,
@@ -495,5 +610,77 @@ export async function getTabelaPrecosAction(
   } catch (error) {
     console.error("Erro ao buscar tabela de preços:", error);
     return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
+export async function criarClienteAction(
+  payload: ClienteFormPayload,
+): Promise<{ success: boolean; data?: ClienteDetalhe; error?: string }> {
+  try {
+    const response = await fetchWithAuth("/b3vendas/clientes", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      return { success: false, error: error.message || "Erro ao criar cliente" };
+    }
+
+    const data: ClienteDetalhe = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao criar cliente:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
+export async function atualizarClienteAction(
+  id: number,
+  payload: Partial<ClienteFormPayload>,
+): Promise<{ success: boolean; data?: ClienteDetalhe; error?: string }> {
+  try {
+    const response = await fetchWithAuth(`/b3vendas/clientes/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      if (response.status === 403) {
+        return { success: false, error: "Sem permissão para alterar este cliente" };
+      }
+      return { success: false, error: error.message || "Erro ao atualizar cliente" };
+    }
+
+    const data: ClienteDetalhe = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao atualizar cliente:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Erro interno do servidor" };
+  }
+}
+
+export async function buscarCepAction(
+  cep: string,
+): Promise<{ success: boolean; data?: ViaCepData; error?: string }> {
+  try {
+    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return { success: false, error: "CEP não encontrado" };
+    }
+
+    const data: ViaCepData = await response.json();
+    if (data.erro) {
+      return { success: false, error: "CEP não encontrado" };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao buscar CEP:", error);
+    return { success: false, error: "Erro ao consultar CEP" };
   }
 }
