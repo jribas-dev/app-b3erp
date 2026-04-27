@@ -286,32 +286,21 @@ function ViewOrderContent() {
                 const impItem = (item.vIPI ?? 0) + (item.vST ?? 0);
                 const totalLinha = item.total + impItem;
                 return (
-                  <li
-                    key={item.seq}
-                    className="grid grid-cols-[auto_1fr_auto] gap-3 py-3"
-                  >
-                    <div className="flex items-start justify-center pt-0.5">
-                      <span className="font-mono text-xs text-muted-foreground">
+                  <li key={item.seq} className="py-3">
+                    <div className="flex items-start gap-2">
+                      <span className="font-mono text-xs text-muted-foreground pt-0.5 w-12 shrink-0">
                         #{item.idprod}
                       </span>
-                    </div>
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium">
+                      <span className="text-sm font-medium flex-1 leading-snug">
                         {item.nomeProduto}
-                      </div>
-                      <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-xs text-muted-foreground">
-                        <span>
-                          {qtyFmt(item.qtde)} × {currency(item.unitario)}
-                        </span>
-                        {impItem > 0 && (
-                          <span>imp. {currency(impItem)}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-mono text-sm font-semibold">
+                      </span>
+                      <span className="font-mono text-sm font-semibold shrink-0">
                         {currency(totalLinha)}
-                      </div>
+                      </span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 pl-14 font-mono text-xs text-muted-foreground">
+                      <span>{qtyFmt(item.qtde)} × {currency(item.unitario)}</span>
+                      {impItem > 0 && <span>imp. {currency(impItem)}</span>}
                     </div>
                   </li>
                 );

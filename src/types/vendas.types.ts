@@ -148,3 +148,30 @@ export interface PedidoLista {
   tipo: string;
   vlrtotal: number;
 }
+
+export interface ClienteRedeSP {
+  id: number;
+  nome: string;
+  docfed: string | null;
+  email: string | null;
+  fone: string | null;
+  cel: string | null;
+  cidade: string | null;
+}
+
+export interface ItemTabelaPrecos {
+  operacao: string;
+  nometab: string;
+  ufbase: string;
+  id: number;
+  codigo: string | null;
+  ref: string | null;
+  barras: string | null;
+  nome: string;
+  unidade: string | null;
+  venda: number;
+  ivast: number;
+  vicmsst: number;
+  ipisaliq: number;
+  vipi: number;
+}

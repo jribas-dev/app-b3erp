@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -13,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { User, Lock, Save, KeyRound } from "lucide-react";
+import { ArrowLeft, User, Lock, Save, KeyRound } from "lucide-react";
 import { useSession } from "@/hooks/useSession.hook";
 import { useUserEdit } from "@/hooks/useUserEdit.hook";
 import {
@@ -29,6 +30,7 @@ import { Callout, CalloutDescription } from "@/components/ui/callout";
 import { FieldError } from "@/components/form/field-error";
 
 export default function UserEditPage() {
+  const router = useRouter();
   const { session, isLoading: isLoadingSession } = useSession();
   const {
     userData,
@@ -151,6 +153,13 @@ export default function UserEditPage() {
 
   return (
     <div className="flex flex-col gap-4 px-3 py-4 max-w-xl mx-auto">
+      <div>
+        <Button variant="outline" size="sm" onClick={() => router.push("/home")} className="gap-2">
+          <ArrowLeft size={16} />
+          Cancelar
+        </Button>
+      </div>
+
       {/* Card principal - Dados do usuário */}
       <Card>
         <CardHeader>

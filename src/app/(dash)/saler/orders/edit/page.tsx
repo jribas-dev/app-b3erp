@@ -620,46 +620,39 @@ function EditOrderContent() {
                 const impItem = (item.vIPI ?? 0) + (item.vST ?? 0);
                 const totalLinha = item.total + impItem;
                 return (
-                  <li
-                    key={item.seq}
-                    className="py-3 grid gap-1 grid-cols-[auto_1fr_auto]"
-                  >
-                    <div className="flex items-start justify-center pt-0.5">
-                      <span className="text-xs font-mono text-muted-foreground">
+                  <li key={item.seq} className="py-3">
+                    <div className="flex items-start gap-2">
+                      <span className="text-xs font-mono text-muted-foreground pt-0.5 w-12 shrink-0">
                         #{item.idprod}
                       </span>
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium truncate">
+                      <span className="text-sm font-medium flex-1 leading-snug">
                         {item.nomeProduto}
-                      </div>
-                      <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 font-mono">
-                        <span>{qtyFmt(item.qtde)} × {currency(item.unitario)}</span>
-                        {impItem > 0 && <span>imp. {currency(impItem)}</span>}
+                      </span>
+                      <div className="flex items-start gap-1 shrink-0">
+                        <span className="font-mono text-sm font-semibold">
+                          {currency(totalLinha)}
+                        </span>
+                        {isAberto && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 -mt-0.5 text-muted-foreground hover:text-destructive"
+                            disabled={removingSeq === item.seq}
+                            onClick={() => onRemoverItem(item.seq)}
+                            aria-label={`Remover ${item.nomeProduto}`}
+                          >
+                            {removingSeq === item.seq ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={14} />
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <div className="text-right">
-                        <div className="font-mono text-sm font-semibold">
-                          {currency(totalLinha)}
-                        </div>
-                      </div>
-                      {isAberto && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          disabled={removingSeq === item.seq}
-                          onClick={() => onRemoverItem(item.seq)}
-                          aria-label={`Remover ${item.nomeProduto}`}
-                        >
-                          {removingSeq === item.seq ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <Trash2 size={16} />
-                          )}
-                        </Button>
-                      )}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 pl-14 text-xs font-mono text-muted-foreground">
+                      <span>{qtyFmt(item.qtde)} × {currency(item.unitario)}</span>
+                      {impItem > 0 && <span>imp. {currency(impItem)}</span>}
                     </div>
                   </li>
                 );
