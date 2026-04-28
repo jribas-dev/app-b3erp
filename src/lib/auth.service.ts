@@ -4,86 +4,27 @@ import { SignInFormData } from "./validations/sign-in.form";
 import { type AuthResponse } from "@/types/auth-response";
 import { type SessionData } from "@/types/session-data";
 import { UserInstanceList, UserInstanceListResponse } from "@/types/user-instance-list";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { fetchWithAuth } from "./api-client";
-
-// Configurações de cookies seguros
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  path: "/",
-};
-
-const ACCESS_TOKEN_FIRST_MAX_AGE = 15 * 60; // 15 minutos
-const ACCESS_TOKEN_SECOND_MAX_AGE = 3 * 60 * 60; // 3 horas
-const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60; // 7 dias
-
-async function setAuthCookies(
-  accessToken: string,
-  refreshToken?: string,
-  rememberMe: boolean = false
-) {
-  const cookieStore = await cookies();
-  const accessTokenMaxAge = refreshToken
-    ? ACCESS_TOKEN_SECOND_MAX_AGE
-    : ACCESS_TOKEN_FIRST_MAX_AGE;
-
-  cookieStore.set("accessToken", accessToken, {
-    ...COOKIE_OPTIONS,
-    maxAge: accessTokenMaxAge,
-  });
-
-  if (refreshToken) {
-    cookieStore.set("refreshToken", refreshToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: REFRESH_TOKEN_MAX_AGE,
-    });
-  }
-  
-  cookieStore.set("rememberMe", rememberMe ? "true" : "false", {
-    ...COOKIE_OPTIONS,
-    maxAge: rememberMe ? REFRESH_TOKEN_MAX_AGE : 0,
-  });
-}
-
-async function clearAuthCookies() {
-  const cookieStore = await cookies();
-  cookieStore.delete("accessToken");
-  cookieStore.delete("refreshToken");
-  cookieStore.delete("rememberMe");
-}
-
-async function getAuthTokens() {
-  const cookieStore = await cookies();
-  return {
-    accessToken: cookieStore.get("accessToken")?.value,
-    refreshToken: cookieStore.get("refreshToken")?.value,
-    rememberMe: cookieStore.get("rememberMe")?.value === "true",
-  };
-}
+import { fetchPublic, fetchWithAuth } from "./api-client";
+import {
+  clearAuthCookies,
+  getAuthTokens,
+  setAuthCookies,
+} from "./auth/cookies";
+import { logError } from "./observability/log";
 
 export async function loginAction(
   credentials: SignInFormData,
   rememberMe: boolean = false
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) {
-      throw new Error("URL da API não configurada");
-    }
-
-    const response = await fetch(`${apiUrl}/auth/login`, {
+    const response = await fetchPublic("/auth/login", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(credentials),
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json().catch(() => ({}));
       return { success: false, error: error.message || "Erro ao fazer login" };
     }
 
@@ -91,7 +32,7 @@ export async function loginAction(
     await setAuthCookies(data.accessToken, undefined, rememberMe);
     return { success: true };
   } catch (error) {
-    console.error("Erro no login:", error);
+    logError("login", error);
     return {
       success: false,
       error:
@@ -104,27 +45,18 @@ export async function selectInstanceAction(
   dbId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) {
-      throw new Error("URL da API não configurada");
-    }
-
     const { accessToken, rememberMe } = await getAuthTokens();
     if (!accessToken) {
       return { success: false, error: "Token de acesso não encontrado" };
     }
 
-    const response = await fetch(`${apiUrl}/auth/instance`, {
+    const response = await fetchWithAuth("/auth/instance", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
       body: JSON.stringify({ dbId }),
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json().catch(() => ({}));
       return {
         success: false,
         error: error.message || "Erro ao selecionar instância",
@@ -133,11 +65,9 @@ export async function selectInstanceAction(
 
     const data: AuthResponse = await response.json();
     await setAuthCookies(data.accessToken, data.refreshToken, rememberMe);
-
-    // Retorna sucesso e deixa o componente gerenciar a atualização da UI
     return { success: true };
   } catch (error) {
-    console.error("Erro na seleção de instância:", error);
+    logError("selectInstance", error, { dbId });
     return {
       success: false,
       error:
@@ -159,7 +89,7 @@ export async function getSessionAction(): Promise<SessionData | null> {
 
     return response.json();
   } catch (error) {
-    console.error("Erro ao obter sessão:", error);
+    logError("getSession", error);
     return null;
   }
 }
@@ -169,21 +99,13 @@ export async function refreshTokenAction(): Promise<{
   error?: string;
 }> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
-    if (!apiUrl) {
-      return { success: false, error: "URL da API não configurada" };
-    }
-
     const { refreshToken } = await getAuthTokens();
     if (!refreshToken) {
       return { success: false, error: "Refresh token não encontrado" };
     }
 
-    const response = await fetch(`${apiUrl}/auth/refresh`, {
+    const response = await fetchPublic("/auth/refresh", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ refreshToken }),
     });
 
@@ -195,7 +117,7 @@ export async function refreshTokenAction(): Promise<{
     await setAuthCookies(data.accessToken, data.refreshToken);
     return { success: true };
   } catch (error) {
-    console.error("Erro ao renovar token:", error);
+    logError("refreshToken", error);
     return {
       success: false,
       error:
@@ -206,21 +128,14 @@ export async function refreshTokenAction(): Promise<{
 
 export async function logoutAction(): Promise<void> {
   try {
-    const apiUrl = process.env.BACKEND_URL;
     const { accessToken } = await getAuthTokens();
-    if (apiUrl && accessToken) {
-      await fetch(`${apiUrl}/auth/logout`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      });
+    if (accessToken) {
+      await fetchWithAuth("/auth/logout", { method: "POST" });
     }
   } catch (error) {
-    console.error("Erro ao notificar logout no backend:", error);
+    logError("logout", error);
   } finally {
-    await clearAuthCookies(); // Adiciona await aqui
+    await clearAuthCookies();
   }
 }
 
@@ -248,7 +163,7 @@ export async function getUserInstancesAction(
     const data: UserInstanceList[] = await response.json();
     return { success: true, data };
   } catch (error) {
-    console.error("Erro ao buscar instâncias do usuário:", error);
+    logError("getUserInstances", error, { userId });
     return {
       success: false,
       error:

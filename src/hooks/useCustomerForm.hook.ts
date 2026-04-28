@@ -10,8 +10,10 @@ import {
   criarClienteAction,
   atualizarClienteAction,
   buscarCepAction,
-} from "@/lib/vendas.service";
+} from "@/lib/vendas";
 import { getSessionAction } from "@/lib/auth.service";
+import { maskCep, maskDocfed } from "@/lib/format/document";
+import { validateDocfed } from "@/lib/validation/docfed";
 import type {
   ClienteBusca,
   MembroEquipe,
@@ -19,67 +21,6 @@ import type {
   Operacao,
   ClienteFormPayload,
 } from "@/types/vendas.types";
-
-// ── masks ──────────────────────────────────────────────────────────────────────
-
-export function maskDocfed(v: string): string {
-  const d = v.replace(/\D/g, "");
-  if (d.length <= 11) {
-    if (d.length <= 3) return d;
-    if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
-    if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
-    return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9, 11)}`;
-  }
-  const n = d.slice(0, 14);
-  if (n.length <= 2) return n;
-  if (n.length <= 5) return `${n.slice(0, 2)}.${n.slice(2)}`;
-  if (n.length <= 8) return `${n.slice(0, 2)}.${n.slice(2, 5)}.${n.slice(5)}`;
-  if (n.length <= 12) return `${n.slice(0, 2)}.${n.slice(2, 5)}.${n.slice(5, 8)}/${n.slice(8)}`;
-  return `${n.slice(0, 2)}.${n.slice(2, 5)}.${n.slice(5, 8)}/${n.slice(8, 12)}-${n.slice(12, 14)}`;
-}
-
-export function maskCep(v: string): string {
-  const d = v.replace(/\D/g, "").slice(0, 8);
-  if (d.length <= 5) return d;
-  return `${d.slice(0, 5)}-${d.slice(5)}`;
-}
-
-// ── validators ─────────────────────────────────────────────────────────────────
-
-function checkCPF(d: string): boolean {
-  if (/^(.)\1+$/.test(d)) return false;
-  let sum = 0;
-  for (let i = 0; i < 9; i++) sum += parseInt(d[i]) * (10 - i);
-  let rem = (sum * 10) % 11;
-  if (rem >= 10) rem = 0;
-  if (rem !== parseInt(d[9])) return false;
-  sum = 0;
-  for (let i = 0; i < 10; i++) sum += parseInt(d[i]) * (11 - i);
-  rem = (sum * 10) % 11;
-  if (rem >= 10) rem = 0;
-  return rem === parseInt(d[10]);
-}
-
-function checkCNPJ(d: string): boolean {
-  if (/^(.)\1+$/.test(d)) return false;
-  const w1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-  const w2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-  let sum = w1.reduce((s, w, i) => s + parseInt(d[i]) * w, 0);
-  let rem = sum % 11;
-  if ((rem < 2 ? 0 : 11 - rem) !== parseInt(d[12])) return false;
-  sum = w2.reduce((s, w, i) => s + parseInt(d[i]) * w, 0);
-  rem = sum % 11;
-  return (rem < 2 ? 0 : 11 - rem) === parseInt(d[13]);
-}
-
-export function validateDocfed(v: string): string | null {
-  const d = v.replace(/\D/g, "");
-  if (d.length === 0) return null;
-  if (d.length !== 11 && d.length !== 14)
-    return "Informe um CPF (11 dígitos) ou CNPJ (14 dígitos)";
-  if (d.length === 11) return checkCPF(d) ? null : "CPF inválido";
-  return checkCNPJ(d) ? null : "CNPJ inválido";
-}
 
 // ── types ──────────────────────────────────────────────────────────────────────
 
@@ -178,13 +119,16 @@ export function useCustomerForm() {
     async function init() {
       setIsLoadingInit(true);
       try {
-        // Sequential to avoid refresh-token race condition on parallel server actions
-        const session = await getSessionAction();
+        const [session, equipeRes, emitentesRes] = await Promise.all([
+          getSessionAction(),
+          getEquipeAction(),
+          getEmitentesAction(),
+        ]);
+
         const isSup = session?.roleFront === "supervisor";
         setIsSupervisor(isSup);
 
-        const equipeRes = await getEquipeAction();
-        if (equipeRes.success && equipeRes.data) {
+        if (equipeRes.success) {
           setEquipe(equipeRes.data);
           const self = equipeRes.data.find((m) => m.liderado === 0);
           if (self) {
@@ -195,14 +139,13 @@ export function useCustomerForm() {
           }
         }
 
-        const emitentesRes = await getEmitentesAction();
-        if (emitentesRes.success && emitentesRes.data && emitentesRes.data.length > 0) {
+        if (emitentesRes.success && emitentesRes.data.length > 0) {
           setEmitentes(emitentesRes.data);
           const firstId = emitentesRes.data[0].id;
           setSelectedIdemp(firstId);
 
           const opsRes = await getOperacoesAction(firstId);
-          if (opsRes.success && opsRes.data) {
+          if (opsRes.success) {
             setOperacoes(opsRes.data);
           }
         }
@@ -267,7 +210,7 @@ export function useCustomerForm() {
     setSubmitSuccess(false);
     try {
       const res = await getClienteAction(id);
-      if (res.success && res.data) {
+      if (res.success) {
         const c = res.data;
         setClienteId(c.id);
         setMode("edit");
@@ -404,7 +347,7 @@ export function useCustomerForm() {
       res = await atualizarClienteAction(clienteId, payload);
     } else {
       res = await criarClienteAction(payload);
-      if (res.success && res.data) {
+      if (res.success) {
         setClienteId(res.data.id);
         setMode("edit");
       }

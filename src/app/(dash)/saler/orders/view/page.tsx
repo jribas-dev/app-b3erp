@@ -11,7 +11,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 
-import { getPedidoAction } from "@/lib/vendas.service";
+import { getPedidoAction } from "@/lib/vendas";
 import type { PedidoDetalhe } from "@/types/vendas.types";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -27,25 +27,9 @@ import {
   CalloutTitle,
 } from "@/components/ui/callout";
 
-const currency = (n: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-    n ?? 0,
-  );
-
-const dateFmt = (iso: string) => {
-  const d = new Date(iso);
-  return d.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
-
-const qtyFmt = (n: number) =>
-  new Intl.NumberFormat("pt-BR", {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
-  }).format(n ?? 0);
+import { formatBRL } from "@/lib/format/currency";
+import { formatDate } from "@/lib/format/date";
+import { formatQty } from "@/lib/format/number";
 
 const STATUS: Record<string, { label: string; className: string }> = {
   O: {
@@ -99,7 +83,7 @@ function ViewOrderContent() {
     setIsLoading(true);
     getPedidoAction(idPedido).then((result) => {
       if (cancelled) return;
-      if (result.success && result.data) {
+      if (result.success) {
         setPedido(result.data);
       } else {
         setLoadError(result.error ?? "Erro ao carregar pedido.");
@@ -165,7 +149,7 @@ function ViewOrderContent() {
           <div className="flex items-center gap-2 shrink-0">
             {pedido.dthremissao && (
               <span className="font-mono text-xs text-muted-foreground">
-                {dateFmt(pedido.dthremissao)}
+                {formatDate(pedido.dthremissao)}
               </span>
             )}
             <StatusBadge tipo={pedido.tipo} />
@@ -218,34 +202,34 @@ function ViewOrderContent() {
           <div className="grid gap-2 rounded-(--radius) border border-border bg-muted/20 p-4">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Valor bruto</span>
-              <span className="font-mono">{currency(pedido.vlrbruto)}</span>
+              <span className="font-mono">{formatBRL(pedido.vlrbruto)}</span>
             </div>
             {pedido.desconto > 0 && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Desconto</span>
                 <span className="font-mono text-destructive">
-                  -{currency(pedido.desconto)}
+                  -{formatBRL(pedido.desconto)}
                 </span>
               </div>
             )}
             {pedido.acrescimo > 0 && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Acréscimo</span>
-                <span className="font-mono">+{currency(pedido.acrescimo)}</span>
+                <span className="font-mono">+{formatBRL(pedido.acrescimo)}</span>
               </div>
             )}
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">ICMS-ST</span>
-              <span className="font-mono">{currency(pedido.st)}</span>
+              <span className="font-mono">{formatBRL(pedido.st)}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">IPI</span>
-              <span className="font-mono">{currency(pedido.ipi)}</span>
+              <span className="font-mono">{formatBRL(pedido.ipi)}</span>
             </div>
             <div className="mt-1 flex items-center justify-between border-t border-border pt-2">
               <span className="text-sm font-semibold">Total</span>
               <span className="font-mono text-lg font-bold text-primary">
-                {currency(pedido.vlrtotal)}
+                {formatBRL(pedido.vlrtotal)}
               </span>
             </div>
           </div>
@@ -295,12 +279,12 @@ function ViewOrderContent() {
                         {item.nomeProduto}
                       </span>
                       <span className="font-mono text-sm font-semibold shrink-0">
-                        {currency(totalLinha)}
+                        {formatBRL(totalLinha)}
                       </span>
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 pl-14 font-mono text-xs text-muted-foreground">
-                      <span>{qtyFmt(item.qtde)} × {currency(item.unitario)}</span>
-                      {impItem > 0 && <span>imp. {currency(impItem)}</span>}
+                      <span>{formatQty(item.qtde)} × {formatBRL(item.unitario)}</span>
+                      {impItem > 0 && <span>imp. {formatBRL(impItem)}</span>}
                     </div>
                   </li>
                 );

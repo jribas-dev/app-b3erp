@@ -7,6 +7,7 @@ import {
   PasswordUpdateResponse,
 } from "@/types/user-edit";
 import { fetchWithAuth } from "./api-client";
+import { logError } from "./observability/log";
 
 export async function getUserDataAction(
   userId: string
@@ -18,13 +19,13 @@ export async function getUserDataAction(
     });
 
     if (!response.ok) {
-      console.error("Erro ao buscar dados do usuário:", response.status);
+      logError("getUserData", new Error(`HTTP ${response.status}`), { userId });
       return null;
     }
 
     return response.json();
   } catch (error) {
-    console.error("Erro ao buscar dados do usuário:", error);
+    logError("getUserData", error, { userId });
     return null;
   }
 }
@@ -50,7 +51,7 @@ export async function updateUserDataAction(
     const data: UserData = await response.json();
     return { success: true, data };
   } catch (error) {
-    console.error("Erro ao atualizar dados do usuário:", error);
+    logError("updateUserData", error, { userId });
     return {
       success: false,
       error:
@@ -79,7 +80,7 @@ export async function updateUserPasswordAction(
 
     return { success: true };
   } catch (error) {
-    console.error("Erro ao alterar senha:", error);
+    logError("updateUserPassword", error, { userId });
     return {
       success: false,
       error:

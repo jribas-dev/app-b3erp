@@ -6,7 +6,7 @@ import {
   getEquipeSemEquipeAction,
   adicionarMembroEquipeAction,
   removerMembroEquipeAction,
-} from "@/lib/vendas.service";
+} from "@/lib/vendas";
 import { getSessionAction } from "@/lib/auth.service";
 import type { MembroEquipe } from "@/types/vendas.types";
 
@@ -29,12 +29,15 @@ export function useEquipe() {
     setSelectedDisponivel(null);
 
     try {
-      // Sequential to avoid refresh-token race condition on parallel server actions
-      const session = await getSessionAction();
+      const [session, equipeRes, semEquipeRes] = await Promise.all([
+        getSessionAction(),
+        getEquipeAction(),
+        getEquipeSemEquipeAction(),
+      ]);
+
       if (session) setIsSupervisor(session.roleFront === "supervisor");
 
-      const equipeRes = await getEquipeAction();
-      if (equipeRes.success && equipeRes.data) {
+      if (equipeRes.success) {
         const supervisor = equipeRes.data.find((m) => Number(m.liderado) === 0);
         setSupervisorNome(supervisor?.razao ?? "");
         setMembros(equipeRes.data.filter((m) => Number(m.liderado) === 1));
@@ -42,8 +45,7 @@ export function useEquipe() {
         setError(equipeRes.error ?? "Erro ao carregar equipe");
       }
 
-      const semEquipeRes = await getEquipeSemEquipeAction();
-      if (semEquipeRes.success && semEquipeRes.data) {
+      if (semEquipeRes.success) {
         setDisponiveis(semEquipeRes.data);
       }
     } finally {

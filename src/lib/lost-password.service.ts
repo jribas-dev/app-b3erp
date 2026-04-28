@@ -2,6 +2,7 @@
 
 import { LostPasswordFormData } from "@/lib/validations/lost-password.form";
 import { ResetPasswordFormData } from "@/lib/validations/reset-password.form";
+import { logError } from "@/lib/observability/log";
 
 export interface LostPasswordResponse {
   success: boolean;
@@ -66,7 +67,7 @@ export async function lostPasswordAction(
       error: errorData.message || "Erro inesperado. Tente novamente",
     };
   } catch (error) {
-    console.error("Erro ao solicitar recuperação de senha:", error);
+    logError("lostPassword", error);
     return {
       success: false,
       error:
@@ -106,7 +107,7 @@ export async function checkLostPasswordAction(
 
     return { isValid: false };
   } catch (error) {
-    console.error("Erro ao validar token de recuperação:", error);
+    logError("checkLostPassword", error);
     return { isValid: false };
   }
 }
@@ -141,7 +142,7 @@ export async function updateLostPasswordAction(
 
     return { passwordUpdated: false };
   } catch (error) {
-    console.error("Erro ao atualizar senha:", error);
+    logError("updateLostPassword", error);
     return { passwordUpdated: false };
   }
 }

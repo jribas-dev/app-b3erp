@@ -57,17 +57,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const currency = (n: number) =>
-  new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(n ?? 0);
-
-const qtyFmt = (n: number) =>
-  new Intl.NumberFormat("pt-BR", {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
-  }).format(n ?? 0);
+import { formatBRL } from "@/lib/format/currency";
+import { formatQty } from "@/lib/format/number";
 
 function BackButton({ onClick }: { onClick: () => void }) {
   return (
@@ -266,13 +257,13 @@ function EditOrderContent() {
               <div className="grid gap-2 rounded-(--radius) border border-border bg-muted/20 p-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Valor bruto</span>
-                  <span className="font-mono">{currency(pedido.vlrbruto)}</span>
+                  <span className="font-mono">{formatBRL(pedido.vlrbruto)}</span>
                 </div>
                 {pedido.desconto > 0 && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Desconto</span>
                     <span className="font-mono text-destructive">
-                      -{currency(pedido.desconto)}
+                      -{formatBRL(pedido.desconto)}
                     </span>
                   </div>
                 )}
@@ -280,22 +271,22 @@ function EditOrderContent() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Acréscimo</span>
                     <span className="font-mono">
-                      +{currency(pedido.acrescimo)}
+                      +{formatBRL(pedido.acrescimo)}
                     </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">ICMS-ST</span>
-                  <span className="font-mono">{currency(pedido.st)}</span>
+                  <span className="font-mono">{formatBRL(pedido.st)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">IPI</span>
-                  <span className="font-mono">{currency(pedido.ipi)}</span>
+                  <span className="font-mono">{formatBRL(pedido.ipi)}</span>
                 </div>
                 <div className="mt-1 pt-2 border-t border-border flex items-center justify-between">
                   <span className="text-sm font-semibold">Total</span>
                   <span className="font-mono text-lg font-bold text-primary">
-                    {currency(pedido.vlrtotal)}
+                    {formatBRL(pedido.vlrtotal)}
                   </span>
                 </div>
               </div>
@@ -505,7 +496,7 @@ function EditOrderContent() {
                   <div className="grid gap-1.5">
                     <Label>Preço unit.</Label>
                     <div className="h-9 px-3 rounded-(--radius) border border-border bg-muted/40 flex items-center font-mono text-sm">
-                      {currency(preco.vunit)}
+                      {formatBRL(preco.vunit)}
                     </div>
                   </div>
                 </div>
@@ -514,7 +505,7 @@ function EditOrderContent() {
                 <div className="rounded-(--radius) border border-border bg-muted/20 p-3 space-y-1.5">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-mono">{currency(subtotal)}</span>
+                    <span className="font-mono">{formatBRL(subtotal)}</span>
                   </div>
 
                   {isFiscal ? (
@@ -528,13 +519,13 @@ function EditOrderContent() {
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">IPI</span>
                           <span className="font-mono">
-                            {currency(impostos.ipi)}
+                            {formatBRL(impostos.ipi)}
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">ICMS-ST</span>
                           <span className="font-mono">
-                            {currency(impostos.st)}
+                            {formatBRL(impostos.st)}
                           </span>
                         </div>
                       </>
@@ -548,7 +539,7 @@ function EditOrderContent() {
                   <div className="pt-1.5 mt-1 border-t border-border flex items-center justify-between">
                     <span className="text-sm font-semibold">Total do item</span>
                     <span className="font-mono font-bold text-primary">
-                      {currency(subtotal + (impostos?.total ?? 0))}
+                      {formatBRL(subtotal + (impostos?.total ?? 0))}
                     </span>
                   </div>
 
@@ -630,7 +621,7 @@ function EditOrderContent() {
                       </span>
                       <div className="flex items-start gap-1 shrink-0">
                         <span className="font-mono text-sm font-semibold">
-                          {currency(totalLinha)}
+                          {formatBRL(totalLinha)}
                         </span>
                         {isAberto && (
                           <Button
@@ -651,8 +642,8 @@ function EditOrderContent() {
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 pl-14 text-xs font-mono text-muted-foreground">
-                      <span>{qtyFmt(item.qtde)} × {currency(item.unitario)}</span>
-                      {impItem > 0 && <span>imp. {currency(impItem)}</span>}
+                      <span>{formatQty(item.qtde)} × {formatBRL(item.unitario)}</span>
+                      {impItem > 0 && <span>imp. {formatBRL(impItem)}</span>}
                     </div>
                   </li>
                 );

@@ -8,10 +8,10 @@ export const ROLES = {
 export type UserRole = (typeof ROLES)[keyof typeof ROLES];
 
 export const PROTECTED_ROUTES = {
+  "/admin": ["supervisor"],
+  "/buyer": ["buyer"],
   "/home": ["saler", "supervisor", "buyer"],
   "/saler": ["saler", "supervisor"],
-  "/buyer": ["buyer"],
-  "/super": ["supervisor"],
   "/notallow": ["notallow"],
 } as const;
 

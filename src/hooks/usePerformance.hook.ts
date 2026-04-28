@@ -7,7 +7,7 @@ import {
   getVendasMensaisAction,
   getTopClientesAtivosAction,
   getClientesInativosAction,
-} from "@/lib/vendas.service";
+} from "@/lib/vendas";
 import { getSessionAction } from "@/lib/auth.service";
 import type { MembroEquipe, MetricaChartResponse, ClienteInativo } from "@/types/vendas.types";
 
@@ -44,7 +44,7 @@ export function usePerformance() {
       else if (tab === "top-clientes") result = await getTopClientesAtivosAction();
       else result = await getClientesInativosAction();
 
-      if (result.success && result.data) {
+      if (result.success) {
         setMetricaData(result.data as MetricaData);
       } else {
         setMetricaError(result.error || "Erro ao carregar dados");
@@ -72,13 +72,14 @@ export function usePerformance() {
     async function init() {
       setIsLoadingInit(true);
       try {
-        // Sequential to avoid refresh-token race condition on parallel server actions
-        const session = await getSessionAction();
+        const [session, equipeResult] = await Promise.all([
+          getSessionAction(),
+          getEquipeAction(),
+        ]);
         if (session) {
           setIsSupervisor(session.roleFront === "supervisor");
         }
-        const equipeResult = await getEquipeAction();
-        if (equipeResult.success && equipeResult.data && equipeResult.data.length > 0) {
+        if (equipeResult.success && equipeResult.data.length > 0) {
           setEquipe(equipeResult.data);
           setSelectedVendedor(equipeResult.data[0]);
         }

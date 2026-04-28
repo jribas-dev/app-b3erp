@@ -5,7 +5,7 @@ import {
   getEmitentesAction,
   getPedidosEditaveisAction,
   getPedidosFechadosAction,
-} from "@/lib/vendas.service";
+} from "@/lib/vendas";
 import type { Emitente, PedidoLista } from "@/types/vendas.types";
 
 export function usePedidosLista() {
@@ -31,19 +31,19 @@ export function usePedidosLista() {
     setEditaveis([]);
     setFechados([]);
 
-    // Sequencial e não Promise.all: o refresh-token é uso único com rotação,
-    // duas server actions paralelas com token expirado disputam o mesmo refresh
-    // e a perdedora retorna 401 — race que pode invalidar a sessão.
-    const resEdit = await getPedidosEditaveisAction(idemp);
-    if (resEdit.success && resEdit.data) {
+    const [resEdit, resFech] = await Promise.all([
+      getPedidosEditaveisAction(idemp),
+      getPedidosFechadosAction(idemp),
+    ]);
+
+    if (resEdit.success) {
       setEditaveis([...resEdit.data].sort((a, b) => b.id - a.id));
     } else {
       setEditaveisError(resEdit.error ?? "Erro ao buscar pedidos em aberto");
     }
     setIsLoadingEditaveis(false);
 
-    const resFech = await getPedidosFechadosAction(idemp);
-    if (resFech.success && resFech.data) {
+    if (resFech.success) {
       setFechados([...resFech.data].sort((a, b) => b.id - a.id));
     } else {
       setFechadosError(resFech.error ?? "Erro ao buscar histórico");

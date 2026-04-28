@@ -28,15 +28,12 @@ import { Label } from "@/components/ui/label";
 import { usePerformance, type MetricaTab, type MetricaData } from "@/hooks/usePerformance.hook";
 import type { MetricaChartResponse, ClienteInativo } from "@/types/vendas.types";
 
+import { formatBRL } from "@/lib/format/currency";
+import { formatDate } from "@/lib/format/date";
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-const fmtBRL = (n: number) =>
-  `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-const fmtDate = (iso: string | null) => {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-};
+const fmtDate = (iso: string | null) => (iso ? formatDate(iso) : "—");
 
 function transformLineData(res: MetricaChartResponse) {
   return res.labels.map((label, i) => {
@@ -77,7 +74,7 @@ function ChartTooltip({
         <p key={p.name} className="text-muted-foreground">
           {p.name}:{" "}
           <span className="font-medium text-foreground">
-            {currency ? fmtBRL(p.value) : p.value}
+            {currency ? formatBRL(p.value) : p.value}
           </span>
         </p>
       ))}

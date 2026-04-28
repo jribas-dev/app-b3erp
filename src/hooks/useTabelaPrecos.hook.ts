@@ -5,7 +5,7 @@ import {
   getTenantCfgAction,
   getClientesRedeSPAction,
   getTabelaPrecosAction,
-} from "@/lib/vendas.service";
+} from "@/lib/vendas";
 import type { ClienteRedeSP, ItemTabelaPrecos } from "@/types/vendas.types";
 
 export function useTabelaPrecos() {
@@ -31,16 +31,15 @@ export function useTabelaPrecos() {
     async function init() {
       setIsLoadingInit(true);
       try {
-        // Sequencial e não Promise.all: o refresh-token é uso único com rotação,
-        // duas server actions paralelas com token expirado disputam o mesmo refresh
-        // e a perdedora retorna 401 — race que pode invalidar a sessão.
-        const cfgResult = await getTenantCfgAction("VOPERPADRAO");
-        if (cfgResult.success && cfgResult.data) {
+        const [cfgResult, clientesResult] = await Promise.all([
+          getTenantCfgAction("VOPERPADRAO"),
+          getClientesRedeSPAction(),
+        ]);
+        if (cfgResult.success) {
           const n = Number(cfgResult.data.valor);
           if (Number.isFinite(n)) setIdOper(n);
         }
-        const clientesResult = await getClientesRedeSPAction();
-        if (clientesResult.success && clientesResult.data) {
+        if (clientesResult.success) {
           setClientes(clientesResult.data);
         }
       } finally {
@@ -93,7 +92,7 @@ export function useTabelaPrecos() {
       setIsLoadingTabela(true);
       try {
         const result = await getTabelaPrecosAction(idOper, cliente.id);
-        if (result.success && result.data) {
+        if (result.success) {
           setTabela(result.data);
           setTimeout(() => filtroInputRef.current?.focus(), 100);
         } else {

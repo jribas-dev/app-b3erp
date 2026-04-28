@@ -8,13 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Callout, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
 import { useTabelaPrecos } from "@/hooks/useTabelaPrecos.hook";
-
-const fmtBRL = (n: number) =>
-  `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const fmtPct = (n: number) =>
-  `${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
-const fmtNum = (n: number) =>
-  n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+import { formatBRL } from "@/lib/format/currency";
+import { formatDecimal, formatPct } from "@/lib/format/number";
 
 export default function PriceTablePage() {
   const router = useRouter();
@@ -221,13 +216,13 @@ export default function PriceTablePage() {
                     </div>
                     <div className="flex items-center justify-between mt-1.5 pl-14 gap-2">
                       <span className="text-sm font-semibold text-primary">
-                        {fmtBRL(item.venda)}
+                        {formatBRL(item.venda)}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        ST {fmtNum(item.vicmsst)}
+                        ST {formatDecimal(item.vicmsst)}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        IPI {fmtNum(item.vipi)}
+                        IPI {formatDecimal(item.vipi)}
                       </span>
                     </div>
                   </div>
@@ -288,19 +283,19 @@ export default function PriceTablePage() {
                           {item.barras ?? "—"}
                         </td>
                         <td className="py-2 px-3 text-right font-semibold text-primary">
-                          {fmtBRL(item.venda)}
+                          {formatBRL(item.venda)}
                         </td>
                         <td className="py-2 px-3 text-right text-muted-foreground">
-                          {fmtPct(item.ivast)}
+                          {formatPct(item.ivast)}
                         </td>
                         <td className="py-2 px-3 text-right text-muted-foreground">
-                          {fmtNum(item.vicmsst)}
+                          {formatDecimal(item.vicmsst)}
                         </td>
                         <td className="py-2 px-3 text-right text-muted-foreground">
-                          {fmtPct(item.ipisaliq)}
+                          {formatPct(item.ipisaliq)}
                         </td>
                         <td className="py-2 px-3 text-right text-muted-foreground">
-                          {fmtNum(item.vipi)}
+                          {formatDecimal(item.vipi)}
                         </td>
                       </tr>
                     ))}

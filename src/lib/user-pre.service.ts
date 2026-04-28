@@ -2,6 +2,7 @@
 
 import { ApiResponse } from "@/types/api-response";
 import { CompleteRegisterFormData } from "./validations/register.form";
+import { logError } from "./observability/log";
 
 /**
  * Verifica o token de pré-cadastro
@@ -41,7 +42,7 @@ export async function checkPreRegisterToken(
       };
     }
   } catch (error) {
-    console.log("Erro Verificação /pre-user/check:", error);
+    logError("checkPreRegister", error);
     return {
       success: false,
       status: 500,
@@ -96,7 +97,7 @@ export async function completeUserRegistration(
       };
     }
   } catch (error) {
-    console.error("Erro ao completar cadastro:", error);
+    logError("completeUserRegistration", error);
     return {
       success: false,
       status: 500,

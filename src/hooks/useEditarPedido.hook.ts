@@ -12,7 +12,8 @@ import {
   getFormasPagamentoAction,
   getCondicoesPagamentoAction,
   fecharPedidoAction,
-} from "@/lib/vendas.service";
+} from "@/lib/vendas";
+import { roundPrice } from "@/lib/business/preco";
 import type {
   PedidoDetalhe,
   ProdutoBusca,
@@ -26,20 +27,6 @@ const SEARCH_MIN_CHARS = 2;
 const SEARCH_DEBOUNCE_MS = 300;
 
 type LoadError = { status?: number; message: string } | null;
-
-// Arredonda para 2 casas decimais seguindo regra de negócio:
-// 3º dígito decimal > 5 → arredonda para cima; caso contrário (≤ 5) → para baixo.
-function roundPrice(v: number): number {
-  if (!Number.isFinite(v) || v < 0) return 0;
-  const stable = Math.round(v * 10000) / 10000;
-  const str = stable.toFixed(4);
-  const [intPart, decPart = "0000"] = str.split(".");
-  const d1 = decPart[0] ?? "0";
-  const d2 = decPart[1] ?? "0";
-  const d3 = parseInt(decPart[2] ?? "0", 10);
-  const base = parseFloat(`${intPart}.${d1}${d2}`);
-  return d3 > 5 ? Math.round((base + 0.01) * 100) / 100 : base;
-}
 
 export function useEditarPedido(idPedido: number | null) {
   const [pedido, setPedido] = useState<PedidoDetalhe | null>(null);
@@ -86,7 +73,7 @@ export function useEditarPedido(idPedido: number | null) {
     setIsLoading(true);
     setLoadError(null);
     const result = await getPedidoAction(idPedido);
-    if (result.success && result.data) {
+    if (result.success) {
       setPedido({ ...result.data, itens: result.data.itens ?? [] });
       setObsInter(result.data.obsinter ?? "");
       setIdForma(result.data.idForma);
@@ -112,8 +99,8 @@ export function useEditarPedido(idPedido: number | null) {
         getFormasPagamentoAction(idPedido),
         getCondicoesPagamentoAction(idPedido),
       ]);
-      if (fr.success && fr.data) setFormas(fr.data);
-      if (cr.success && cr.data) setCondicoes(cr.data);
+      if (fr.success) setFormas(fr.data);
+      if (cr.success) setCondicoes(cr.data);
     } finally {
       setIsLoadingFormas(false);
     }
@@ -126,7 +113,7 @@ export function useEditarPedido(idPedido: number | null) {
     try {
       const result = await buscarProdutosAction(q);
       if (seq !== searchSeqRef.current) return;
-      setProdutoResults(result.success && result.data ? result.data : []);
+      setProdutoResults(result.success ? result.data : []);
     } finally {
       if (seq === searchSeqRef.current) setIsSearching(false);
     }
@@ -171,7 +158,7 @@ export function useEditarPedido(idPedido: number | null) {
       setIsLoadingPreco(true);
       try {
         const result = await getProdutoPrecoAction(p.id, pedido.idcli, pedido.idoper);
-        if (result.success && result.data) {
+        if (result.success) {
           setPreco({
             cfop: result.data.cfop,
             custo: roundPrice(result.data.custo),
@@ -213,7 +200,7 @@ export function useEditarPedido(idPedido: number | null) {
       try {
         const result = await calcImpostoAction(selectedProduto.id, subtotal, pedido.idoper);
         if (seq !== impostoSeqRef.current) return;
-        if (result.success && result.data) {
+        if (result.success) {
           setImpostos(result.data);
         } else {
           setImpostos(null);
@@ -265,7 +252,7 @@ export function useEditarPedido(idPedido: number | null) {
       });
       if (result.success) {
         const reload = await getPedidoAction(pedido.id);
-        if (reload.success && reload.data) {
+        if (reload.success) {
           setPedido({ ...reload.data, itens: reload.data.itens ?? [] });
         }
         resetProdutoForm();
@@ -285,7 +272,7 @@ export function useEditarPedido(idPedido: number | null) {
         const result = await removerItemAction(pedido.id, seq);
         if (result.success) {
           const reload = await getPedidoAction(pedido.id);
-          if (reload.success && reload.data) {
+          if (reload.success) {
             setPedido({ ...reload.data, itens: reload.data.itens ?? [] });
           }
         } else {
@@ -308,7 +295,7 @@ export function useEditarPedido(idPedido: number | null) {
         idCond,
         obsInter: obsInter.trim() || undefined,
       });
-      if (result.success && result.data) {
+      if (result.success) {
         setPedido(result.data);
         setFechouOk(true);
       } else {

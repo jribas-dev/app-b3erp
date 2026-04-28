@@ -9,7 +9,7 @@ import {
   buscarClientesAction,
   getClienteAction,
   criarPedidoAction,
-} from "@/lib/vendas.service";
+} from "@/lib/vendas";
 import type { Emitente, Operacao, ClienteBusca, ClienteDetalhe } from "@/types/vendas.types";
 
 const SEARCH_MIN_CHARS = 3;
@@ -199,7 +199,7 @@ export function useNovoPedido() {
         idemp: selectedIdemp,
       });
 
-      if (result.success && result.data) {
+      if (result.success) {
         router.push(`/saler/orders/edit?id=${result.data.id}`);
       } else {
         setSubmitError(result.error || "Erro ao criar pedido");

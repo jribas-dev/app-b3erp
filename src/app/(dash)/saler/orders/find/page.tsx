@@ -34,18 +34,8 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import type { PedidoLista } from "@/types/vendas.types";
-
-const currency = (n: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(n ?? 0);
-
-const dateFmt = (iso: string) => {
-  const d = new Date(iso);
-  return d.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
+import { formatBRL } from "@/lib/format/currency";
+import { formatDate } from "@/lib/format/date";
 
 const STATUS: Record<string, { label: string; className: string }> = {
   O: {
@@ -100,7 +90,7 @@ function PedidoRow({
           #{pedido.id}
         </span>
         <span className="font-mono text-xs text-muted-foreground">
-          {dateFmt(pedido.dthremissao)}
+          {formatDate(pedido.dthremissao)}
         </span>
       </div>
       <p className="text-sm font-medium text-foreground leading-snug mb-1.5">
@@ -108,7 +98,7 @@ function PedidoRow({
       </p>
       <div className="flex items-center justify-between gap-2">
         <span className="font-mono text-sm font-semibold">
-          {currency(pedido.vlrtotal)}
+          {formatBRL(pedido.vlrtotal)}
         </span>
         {action}
       </div>
@@ -130,7 +120,7 @@ function FechadoRow({
           #{pedido.id}
         </span>
         <span className="font-mono text-xs text-muted-foreground">
-          {dateFmt(pedido.dthremissao)}
+          {formatDate(pedido.dthremissao)}
         </span>
       </div>
       <p className="text-sm font-medium text-foreground leading-snug mb-1.5">
@@ -140,7 +130,7 @@ function FechadoRow({
         <div className="flex items-center gap-2 min-w-0">
           <StatusBadge tipo={pedido.tipo} />
           <span className="font-mono text-sm font-semibold">
-            {currency(pedido.vlrtotal)}
+            {formatBRL(pedido.vlrtotal)}
           </span>
         </div>
         <Button
