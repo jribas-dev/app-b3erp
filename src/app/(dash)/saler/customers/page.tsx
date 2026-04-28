@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,11 +44,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { FieldError } from "@/components/form/field-error";
 import {
   useCustomerForm,
   type CustomerMode,
 } from "@/hooks/useCustomerForm.hook";
-import type { ClienteBusca, MembroEquipe, Operacao, Emitente } from "@/types/vendas.types";
+import type {
+  ClienteBusca,
+  MembroEquipe,
+  Operacao,
+  Emitente,
+} from "@/types/vendas.types";
 
 // ── search dialog ──────────────────────────────────────────────────────────────
 
@@ -100,7 +107,9 @@ function SearchDialog({
             </div>
           ) : results.length === 0 && query.length >= 2 ? (
             <div className="flex items-center justify-center py-8">
-              <p className="text-sm text-muted-foreground">Nenhum cliente encontrado</p>
+              <p className="text-sm text-muted-foreground">
+                Nenhum cliente encontrado
+              </p>
             </div>
           ) : (
             results.map((c) => (
@@ -110,7 +119,9 @@ function SearchDialog({
                 className="w-full text-left px-3 py-2.5 rounded-(--radius) hover:bg-muted/60 transition-colors"
               >
                 <p className="text-sm font-medium leading-snug">{c.razao}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{c.display}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {c.display}
+                </p>
               </button>
             ))
           )}
@@ -166,8 +177,6 @@ export default function CustomersPage() {
     selectedIdemp,
     operacoes,
     form,
-    setField,
-    docfedError,
     onDocfedChange,
     onCepChange,
     onCepBlur,
@@ -186,11 +195,20 @@ export default function CustomersPage() {
     onSearchQueryChange,
     onSelectFromSearch,
     onNewCliente,
-    onSave,
+    onSubmit,
     onIdemandChange,
   } = useCustomerForm();
 
+  const {
+    register,
+    control,
+    setValue,
+    watch,
+    formState: { errors },
+  } = form;
+
   const showForm = mode !== "idle";
+  const watchedRazao = watch("razao");
 
   return (
     <div className="container mx-auto max-w-2xl px-3 py-4 space-y-4">
@@ -224,7 +242,7 @@ export default function CustomersPage() {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <CardTitle className="flex items-center gap-2 text-base">
-              <ModeBadge mode={mode} name={form.razao || undefined} />
+              <ModeBadge mode={mode} name={watchedRazao || undefined} />
               {mode === "idle" && (
                 <span className="text-muted-foreground text-sm font-normal">
                   Busque um cliente ou inicie um novo cadastro
@@ -272,8 +290,9 @@ export default function CustomersPage() {
             <div className="flex flex-col items-center gap-3 text-muted-foreground">
               <Users size={36} className="opacity-30" />
               <p className="text-sm text-center">
-                Clique em <strong>Buscar cliente</strong> para editar um cadastro
-                existente, ou em <strong>Novo</strong> para criar um novo.
+                Clique em <strong>Buscar cliente</strong> para editar um
+                cadastro existente, ou em <strong>Novo</strong> para criar um
+                novo.
               </p>
             </div>
           </CardContent>
@@ -281,381 +300,463 @@ export default function CustomersPage() {
 
         {/* Form */}
         {!isLoadingCliente && showForm && (
-          <CardContent className="space-y-5">
-            {/* Seção: Identificação */}
-            <SectionTitle>Identificação</SectionTitle>
+          <form onSubmit={onSubmit} noValidate>
+            <CardContent className="space-y-5">
+              {/* Seção: Identificação */}
+              <SectionTitle>Identificação</SectionTitle>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+              {/* Tipo de Pessoa */}
               <FieldRow>
-                <Label htmlFor="razao">
-                  Razão Social / Nome <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="razao"
-                  value={form.razao}
-                  onChange={(e) => setField("razao", e.target.value)}
-                  maxLength={100}
-                  placeholder="Nome completo ou razão social"
-                />
-              </FieldRow>
-
-              <FieldRow>
-                <Label htmlFor="fantasia">Nome Fantasia</Label>
-                <Input
-                  id="fantasia"
-                  value={form.fantasia}
-                  onChange={(e) => setField("fantasia", e.target.value)}
-                  maxLength={60}
-                  placeholder="Nome fantasia (opcional)"
-                />
-              </FieldRow>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FieldRow>
-                <Label htmlFor="docfed">CPF / CNPJ</Label>
-                <Input
-                  id="docfed"
-                  inputMode="numeric"
-                  value={form.docfedDisplay}
-                  onChange={(e) => onDocfedChange(e.target.value)}
-                  maxLength={18}
-                  placeholder="000.000.000-00 ou 00.000.000/0000-00"
-                  aria-invalid={!!docfedError}
-                />
-                {docfedError && (
-                  <p className="text-xs text-destructive">{docfedError}</p>
-                )}
-              </FieldRow>
-
-              <FieldRow>
-                <Label htmlFor="docest">Inscrição Estadual</Label>
-                <Input
-                  id="docest"
-                  value={form.docest}
-                  onChange={(e) => setField("docest", e.target.value)}
-                  maxLength={20}
-                  placeholder="IE (opcional)"
-                />
-              </FieldRow>
-            </div>
-
-            {/* Seção: Contato */}
-            <SectionTitle>Contato</SectionTitle>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FieldRow>
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setField("email", e.target.value)}
-                  placeholder="email@empresa.com.br"
-                />
-              </FieldRow>
-
-              <FieldRow>
-                <Label htmlFor="emailnfe">E-mail NF-e</Label>
-                <Input
-                  id="emailnfe"
-                  type="email"
-                  value={form.emailnfe}
-                  onChange={(e) => setField("emailnfe", e.target.value)}
-                  placeholder="Para envio de NF-e"
-                />
-              </FieldRow>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FieldRow>
-                <Label htmlFor="emailcob">E-mail Cobrança</Label>
-                <Input
-                  id="emailcob"
-                  type="email"
-                  value={form.emailcob}
-                  onChange={(e) => setField("emailcob", e.target.value)}
-                  placeholder="Para cobranças"
-                />
-              </FieldRow>
-
-              <FieldRow>
-                <Label htmlFor="site">Site</Label>
-                <Input
-                  id="site"
-                  value={form.site}
-                  onChange={(e) => setField("site", e.target.value)}
-                  maxLength={120}
-                  placeholder="www.empresa.com.br"
-                />
-              </FieldRow>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              <FieldRow>
-                <Label htmlFor="fone">Telefone</Label>
-                <PhoneInput
-                  id="fone"
-                  value={form.fone}
-                  onChange={(v) => setField("fone", v)}
-                />
-              </FieldRow>
-
-              <FieldRow>
-                <Label htmlFor="fone2">Telefone 2</Label>
-                <PhoneInput
-                  id="fone2"
-                  value={form.fone2}
-                  onChange={(v) => setField("fone2", v)}
-                />
-              </FieldRow>
-
-              <FieldRow>
-                <Label htmlFor="cel">Celular / WhatsApp</Label>
-                <PhoneInput
-                  id="cel"
-                  value={form.cel}
-                  onChange={(v) => setField("cel", v)}
-                />
-              </FieldRow>
-            </div>
-
-            {/* Seção: Endereço */}
-            <SectionTitle>Endereço</SectionTitle>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              <FieldRow>
-                <Label htmlFor="cep">CEP</Label>
-                <div className="relative">
-                  <Input
-                    id="cep"
-                    inputMode="numeric"
-                    value={form.cepDisplay}
-                    onChange={(e) => onCepChange(e.target.value)}
-                    onBlur={onCepBlur}
-                    maxLength={9}
-                    placeholder="00000-000"
-                  />
-                  {isCepLoading && (
-                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
-                      <Loader2 size={14} className="animate-spin text-muted-foreground" />
+                <Label>Tipo de Pessoa</Label>
+                <Controller
+                  control={control}
+                  name="tipopessoa"
+                  render={({ field }) => (
+                    <div
+                      role="radiogroup"
+                      aria-label="Tipo de Pessoa"
+                      className="grid grid-cols-4 gap-1.5"
+                    >
+                      {[
+                        { value: "F", label: "Física" },
+                        { value: "J", label: "Jurídica" },
+                        { value: "E", label: "Estatal" },
+                        { value: "R", label: "Rural" },
+                      ].map(({ value, label }) => {
+                        const active = field.value === value;
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            role="radio"
+                            aria-checked={active}
+                            onClick={() => field.onChange(value)}
+                            className={[
+                              "rounded-(--radius) border px-2 py-2 text-sm font-medium transition-colors",
+                              active
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-border bg-card text-foreground hover:bg-muted/60",
+                            ].join(" ")}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
-                </div>
-              </FieldRow>
-
-              <FieldRow>
-                <Label htmlFor="uf">UF</Label>
-                <Input
-                  id="uf"
-                  value={form.uf}
-                  onChange={(e) =>
-                    setField("uf", e.target.value.toUpperCase().slice(0, 2))
-                  }
-                  maxLength={2}
-                  placeholder="SP"
-                  className="uppercase"
                 />
               </FieldRow>
 
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FieldRow>
+                  <Label htmlFor="razao">
+                    Razão Social / Nome{" "}
+                    <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="razao"
+                    maxLength={100}
+                    placeholder="Nome completo ou razão social"
+                    aria-invalid={!!errors.razao}
+                    aria-describedby={errors.razao ? "razao-error" : undefined}
+                    {...register("razao")}
+                  />
+                  <FieldError id="razao-error">
+                    {errors.razao?.message}
+                  </FieldError>
+                </FieldRow>
+
+                <FieldRow>
+                  <Label htmlFor="fantasia">Nome Fantasia</Label>
+                  <Input
+                    id="fantasia"
+                    maxLength={60}
+                    placeholder="Nome fantasia (opcional)"
+                    {...register("fantasia")}
+                  />
+                </FieldRow>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FieldRow>
+                  <Label htmlFor="docfed">CNPJ / CPF</Label>
+                  <Input
+                    id="docfed"
+                    inputMode="numeric"
+                    value={watch("docfedDisplay")}
+                    onChange={(e) => onDocfedChange(e.target.value)}
+                    maxLength={18}
+                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                    aria-invalid={!!errors.docfedDisplay}
+                    aria-describedby={
+                      errors.docfedDisplay ? "docfed-error" : undefined
+                    }
+                  />
+                  <FieldError id="docfed-error">
+                    {errors.docfedDisplay?.message}
+                  </FieldError>
+                </FieldRow>
+
+                <FieldRow>
+                  <Label htmlFor="docest">IE / Identidade</Label>
+                  <Input
+                    id="docest"
+                    maxLength={20}
+                    placeholder="IE (opcional)"
+                    {...register("docest")}
+                  />
+                </FieldRow>
+              </div>
+
+              {/* Seção: Contato */}
+              <SectionTitle>Contato</SectionTitle>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FieldRow>
+                  <Label htmlFor="email">E-mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="email@empresa.com.br"
+                    {...register("email")}
+                  />
+                </FieldRow>
+
+                <FieldRow>
+                  <Label htmlFor="emailnfe">E-mail NF-e</Label>
+                  <Input
+                    id="emailnfe"
+                    type="email"
+                    placeholder="Para envio de NF-e"
+                    {...register("emailnfe")}
+                  />
+                </FieldRow>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FieldRow>
+                  <Label htmlFor="emailcob">E-mail Cobrança</Label>
+                  <Input
+                    id="emailcob"
+                    type="email"
+                    placeholder="Para cobranças"
+                    {...register("emailcob")}
+                  />
+                </FieldRow>
+
+                <FieldRow>
+                  <Label htmlFor="site">Site</Label>
+                  <Input
+                    id="site"
+                    maxLength={120}
+                    placeholder="www.empresa.com.br"
+                    {...register("site")}
+                  />
+                </FieldRow>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <FieldRow>
+                  <Label htmlFor="fone">Telefone</Label>
+                  <Controller
+                    control={control}
+                    name="fone"
+                    render={({ field }) => (
+                      <PhoneInput
+                        id="fone"
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                </FieldRow>
+
+                <FieldRow>
+                  <Label htmlFor="fone2">Telefone 2</Label>
+                  <Controller
+                    control={control}
+                    name="fone2"
+                    render={({ field }) => (
+                      <PhoneInput
+                        id="fone2"
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                </FieldRow>
+
+                <FieldRow>
+                  <Label htmlFor="cel">Celular / WhatsApp</Label>
+                  <Controller
+                    control={control}
+                    name="cel"
+                    render={({ field }) => (
+                      <PhoneInput
+                        id="cel"
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                </FieldRow>
+              </div>
+
+              {/* Seção: Endereço */}
+              <SectionTitle>Endereço</SectionTitle>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <FieldRow>
+                  <Label htmlFor="cep">CEP</Label>
+                  <div className="relative">
+                    <Input
+                      id="cep"
+                      inputMode="numeric"
+                      value={watch("cepDisplay")}
+                      onChange={(e) => onCepChange(e.target.value)}
+                      onBlur={onCepBlur}
+                      maxLength={9}
+                      placeholder="00000-000"
+                    />
+                    {isCepLoading && (
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                        <Loader2
+                          size={14}
+                          className="animate-spin text-muted-foreground"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </FieldRow>
+
+                <FieldRow>
+                  <Label htmlFor="uf">UF</Label>
+                  <Input
+                    id="uf"
+                    value={watch("uf")}
+                    onChange={(e) =>
+                      setValue(
+                        "uf",
+                        e.target.value.toUpperCase().slice(0, 2),
+                        { shouldValidate: true },
+                      )
+                    }
+                    maxLength={2}
+                    placeholder="SP"
+                    className="uppercase"
+                    aria-invalid={!!errors.uf}
+                    aria-describedby={errors.uf ? "uf-error" : undefined}
+                  />
+                  <FieldError id="uf-error">{errors.uf?.message}</FieldError>
+                </FieldRow>
+
+                <FieldRow>
+                  <Label htmlFor="nroend">Número</Label>
+                  <Input
+                    id="nroend"
+                    maxLength={10}
+                    placeholder="Nº"
+                    {...register("nroend")}
+                  />
+                </FieldRow>
+              </div>
+
               <FieldRow>
-                <Label htmlFor="nroend">Número</Label>
+                <Label htmlFor="endereco">
+                  <MapPin size={12} className="inline mr-1" />
+                  Logradouro
+                </Label>
                 <Input
-                  id="nroend"
-                  value={form.nroend}
-                  onChange={(e) => setField("nroend", e.target.value)}
-                  maxLength={10}
-                  placeholder="Nº"
+                  id="endereco"
+                  maxLength={120}
+                  placeholder="Rua, Av., Alameda…"
+                  {...register("endereco")}
                 />
               </FieldRow>
-            </div>
 
-            <FieldRow>
-              <Label htmlFor="endereco">
-                <MapPin size={12} className="inline mr-1" />
-                Logradouro
-              </Label>
-              <Input
-                id="endereco"
-                value={form.endereco}
-                onChange={(e) => setField("endereco", e.target.value)}
-                maxLength={120}
-                placeholder="Rua, Av., Alameda…"
-              />
-            </FieldRow>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FieldRow>
+                  <Label htmlFor="bairro">Bairro</Label>
+                  <Input
+                    id="bairro"
+                    maxLength={60}
+                    placeholder="Bairro"
+                    {...register("bairro")}
+                  />
+                </FieldRow>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+                <FieldRow>
+                  <Label htmlFor="cidade">Cidade</Label>
+                  <Input
+                    id="cidade"
+                    maxLength={60}
+                    placeholder="Cidade"
+                    {...register("cidade")}
+                  />
+                </FieldRow>
+              </div>
+
+              {/* Seção: Comercial */}
+              <SectionTitle>Comercial</SectionTitle>
+
+              {/* Emitente selector (needed to populate operacoes) */}
+              {emitentes.length > 1 && (
+                <FieldRow>
+                  <Label>Empresa (referência para operações)</Label>
+                  <Select
+                    value={selectedIdemp?.toString() ?? ""}
+                    onValueChange={(v) => onIdemandChange(Number(v))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a empresa" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {emitentes.map((e: Emitente) => (
+                        <SelectItem key={e.id} value={e.id.toString()}>
+                          {e.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FieldRow>
+              )}
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FieldRow>
+                  <Label>Operação Fiscal Padrão</Label>
+                  {isLoadingInit ? (
+                    <div className="flex items-center gap-2 h-10 px-3 border rounded-(--radius) bg-muted/40">
+                      <Spinner size="sm" tone="muted" />
+                      <span className="text-sm text-muted-foreground">
+                        Carregando…
+                      </span>
+                    </div>
+                  ) : (
+                    <Controller
+                      control={control}
+                      name="idoper"
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecionar operação" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {operacoes.map((o: Operacao) => (
+                              <SelectItem
+                                key={o.id}
+                                value={o.id.toString()}
+                              >
+                                {o.operacao}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  )}
+                </FieldRow>
+
+                {/* Vendedor responsável */}
+                <FieldRow>
+                  <Label>Vendedor Responsável</Label>
+                  {isLoadingInit ? (
+                    <div className="flex items-center gap-2 h-10 px-3 border rounded-(--radius) bg-muted/40">
+                      <Spinner size="sm" tone="muted" />
+                      <span className="text-sm text-muted-foreground">
+                        Carregando…
+                      </span>
+                    </div>
+                  ) : isSupervisor ? (
+                    <Controller
+                      control={control}
+                      name="idvende"
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecionar vendedor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {equipe.map((m: MembroEquipe) => (
+                              <SelectItem
+                                key={m.id}
+                                value={m.id.toString()}
+                              >
+                                {m.razao}
+                                {m.liderado === 0 ? " (você)" : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2 h-10 px-3 border rounded-(--radius) bg-muted/40">
+                      <span className="text-sm text-muted-foreground">
+                        {equipe.find((m) => m.liderado === 0)?.razao ?? "—"}
+                      </span>
+                    </div>
+                  )}
+                </FieldRow>
+              </div>
+
               <FieldRow>
-                <Label htmlFor="bairro">Bairro</Label>
-                <Input
-                  id="bairro"
-                  value={form.bairro}
-                  onChange={(e) => setField("bairro", e.target.value)}
-                  maxLength={60}
-                  placeholder="Bairro"
+                <Label htmlFor="obsvenda">Observação de Venda</Label>
+                <Textarea
+                  id="obsvenda"
+                  maxLength={255}
+                  rows={3}
+                  placeholder="Observação exibida ao criar pedidos para este cliente"
+                  {...register("obsvenda")}
                 />
               </FieldRow>
+            </CardContent>
 
-              <FieldRow>
-                <Label htmlFor="cidade">Cidade</Label>
-                <Input
-                  id="cidade"
-                  value={form.cidade}
-                  onChange={(e) => setField("cidade", e.target.value)}
-                  maxLength={60}
-                  placeholder="Cidade"
-                />
-              </FieldRow>
-            </div>
+            <CardFooter className="flex-col gap-3 pt-0">
+              {submitError && (
+                <Callout variant="destructive" className="w-full">
+                  <CalloutTitle>Erro ao salvar</CalloutTitle>
+                  <CalloutDescription>{submitError}</CalloutDescription>
+                </Callout>
+              )}
 
-            {/* Seção: Comercial */}
-            <SectionTitle>Comercial</SectionTitle>
+              {submitSuccess && (
+                <Callout variant="default" className="w-full">
+                  <CalloutDescription>
+                    Cliente salvo com sucesso.
+                  </CalloutDescription>
+                </Callout>
+              )}
 
-            {/* Emitente selector (needed to populate operacoes) */}
-            {emitentes.length > 1 && (
-              <FieldRow>
-                <Label>Empresa (referência para operações)</Label>
-                <Select
-                  value={selectedIdemp?.toString() ?? ""}
-                  onValueChange={(v) => onIdemandChange(Number(v))}
+              <div className="flex gap-2 w-full justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push("/saler/customers")}
+                  className="gap-1.5"
+                  disabled={isSubmitting}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a empresa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {emitentes.map((e: Emitente) => (
-                      <SelectItem key={e.id} value={e.id.toString()}>
-                        {e.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FieldRow>
-            )}
+                  <X size={14} />
+                  Cancelar
+                </Button>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FieldRow>
-                <Label>Operação Fiscal Padrão</Label>
-                {isLoadingInit ? (
-                  <div className="flex items-center gap-2 h-10 px-3 border rounded-(--radius) bg-muted/40">
-                    <Spinner size="sm" tone="muted" />
-                    <span className="text-sm text-muted-foreground">Carregando…</span>
-                  </div>
-                ) : (
-                  <Select
-                    value={form.idoper}
-                    onValueChange={(v) => setField("idoper", v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecionar operação" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {operacoes.map((o: Operacao) => (
-                        <SelectItem key={o.id} value={o.id.toString()}>
-                          {o.operacao}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </FieldRow>
-
-              {/* Vendedor responsável */}
-              <FieldRow>
-                <Label>Vendedor Responsável</Label>
-                {isLoadingInit ? (
-                  <div className="flex items-center gap-2 h-10 px-3 border rounded-(--radius) bg-muted/40">
-                    <Spinner size="sm" tone="muted" />
-                    <span className="text-sm text-muted-foreground">Carregando…</span>
-                  </div>
-                ) : isSupervisor ? (
-                  <Select
-                    value={form.idvende}
-                    onValueChange={(v) => setField("idvende", v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecionar vendedor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {equipe.map((m: MembroEquipe) => (
-                        <SelectItem key={m.id} value={m.id.toString()}>
-                          {m.razao}
-                          {m.liderado === 0 ? " (você)" : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div className="flex items-center gap-2 h-10 px-3 border rounded-(--radius) bg-muted/40">
-                    <span className="text-sm text-muted-foreground">
-                      {equipe.find((m) => m.liderado === 0)?.razao ?? "—"}
-                    </span>
-                  </div>
-                )}
-              </FieldRow>
-            </div>
-
-            <FieldRow>
-              <Label htmlFor="obsvenda">Observação de Venda</Label>
-              <Textarea
-                id="obsvenda"
-                value={form.obsvenda}
-                onChange={(e) => setField("obsvenda", e.target.value)}
-                maxLength={255}
-                rows={3}
-                placeholder="Observação exibida ao criar pedidos para este cliente"
-              />
-            </FieldRow>
-          </CardContent>
-        )}
-
-        {!isLoadingCliente && showForm && (
-          <CardFooter className="flex-col gap-3 pt-0">
-            {submitError && (
-              <Callout variant="destructive" className="w-full">
-                <CalloutTitle>Erro ao salvar</CalloutTitle>
-                <CalloutDescription>{submitError}</CalloutDescription>
-              </Callout>
-            )}
-
-            {submitSuccess && (
-              <Callout variant="default" className="w-full">
-                <CalloutDescription>
-                  Cliente salvo com sucesso.
-                </CalloutDescription>
-              </Callout>
-            )}
-
-            <div className="flex gap-2 w-full justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setField("razao", form.razao); // no-op to satisfy lint — resets via onNewCliente
-                  // Clear form back to idle
-                  router.push("/saler/customers");
-                }}
-                className="gap-1.5"
-                disabled={isSubmitting}
-              >
-                <X size={14} />
-                Cancelar
-              </Button>
-
-              <Button
-                onClick={onSave}
-                disabled={!canSave}
-                className="gap-2"
-              >
-                {isSubmitting ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <Save size={16} />
-                )}
-                Gravar
-              </Button>
-            </div>
-          </CardFooter>
+                <Button type="submit" disabled={!canSave} className="gap-2">
+                  {isSubmitting ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Save size={16} />
+                  )}
+                  Gravar
+                </Button>
+              </div>
+            </CardFooter>
+          </form>
         )}
       </Card>
     </div>

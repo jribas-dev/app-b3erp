@@ -58,6 +58,7 @@ export const ClienteFormPayloadSchema = z.object({
   obsvenda: z.string().optional(),
   idoper: idPositive.optional(),
   idvende: idPositive.optional(),
+  tipopessoa: z.string().optional(),
 });
 
 export const ClienteFormPayloadPartialSchema = ClienteFormPayloadSchema.partial();

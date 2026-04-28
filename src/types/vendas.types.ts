@@ -25,6 +25,7 @@ export interface ClienteBusca {
 
 export interface ClienteDetalhe {
   id: number;
+  tipopessoa?: string | null;
   razao: string;
   fantasia?: string | null;
   docfed: string | null;
@@ -50,6 +51,7 @@ export interface ClienteDetalhe {
 
 export interface ClienteFormPayload {
   razao: string;
+  tipopessoa?: string;
   fantasia?: string;
   docfed?: string;
   docest?: string;

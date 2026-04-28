@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   buscarClientesAction,
   getClienteAction,
@@ -13,66 +15,22 @@ import {
 } from "@/lib/vendas";
 import { getSessionAction } from "@/lib/auth.service";
 import { maskCep, maskDocfed } from "@/lib/format/document";
-import { validateDocfed } from "@/lib/validation/docfed";
+import { isValidCPF } from "@/lib/validation/cpf";
+import { isValidCNPJ } from "@/lib/validation/cnpj";
+import {
+  ClienteFormSchema,
+  EMPTY_CLIENTE_FORM,
+  toClienteFormPayload,
+  type ClienteFormValues,
+} from "@/lib/validations/cliente-form.form";
 import type {
   ClienteBusca,
   MembroEquipe,
   Emitente,
   Operacao,
-  ClienteFormPayload,
 } from "@/types/vendas.types";
 
-// ── types ──────────────────────────────────────────────────────────────────────
-
 export type CustomerMode = "idle" | "new" | "edit";
-
-export interface CustomerFormState {
-  razao: string;
-  fantasia: string;
-  docfedDisplay: string;
-  docest: string;
-  email: string;
-  emailnfe: string;
-  emailcob: string;
-  site: string;
-  cepDisplay: string;
-  endereco: string;
-  nroend: string;
-  bairro: string;
-  cidade: string;
-  uf: string;
-  fone: string;
-  fone2: string;
-  cel: string;
-  obsvenda: string;
-  idoper: string;
-  idvende: string;
-}
-
-const EMPTY_FORM: CustomerFormState = {
-  razao: "",
-  fantasia: "",
-  docfedDisplay: "",
-  docest: "",
-  email: "",
-  emailnfe: "",
-  emailcob: "",
-  site: "",
-  cepDisplay: "",
-  endereco: "",
-  nroend: "",
-  bairro: "",
-  cidade: "",
-  uf: "",
-  fone: "",
-  fone2: "",
-  cel: "",
-  obsvenda: "",
-  idoper: "",
-  idvende: "",
-};
-
-// ── hook ───────────────────────────────────────────────────────────────────────
 
 export function useCustomerForm() {
   const [mode, setMode] = useState<CustomerMode>("idle");
@@ -86,12 +44,8 @@ export function useCustomerForm() {
   const [operacoes, setOperacoes] = useState<Operacao[]>([]);
   const [isLoadingInit, setIsLoadingInit] = useState(true);
 
-  const [form, setForm] = useState<CustomerFormState>(EMPTY_FORM);
-  const [docfedError, setDocfedError] = useState<string | null>(null);
-
   const [isLoadingCliente, setIsLoadingCliente] = useState(false);
   const [isCepLoading, setIsCepLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
@@ -103,12 +57,19 @@ export function useCustomerForm() {
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initDoneRef = useRef(false);
 
-  const setField = useCallback(
-    <K extends keyof CustomerFormState>(key: K, val: CustomerFormState[K]) => {
-      setForm((prev) => ({ ...prev, [key]: val }));
-    },
-    [],
-  );
+  const form = useForm<ClienteFormValues>({
+    resolver: zodResolver(ClienteFormSchema),
+    defaultValues: EMPTY_CLIENTE_FORM,
+    mode: "onChange",
+  });
+
+  const {
+    handleSubmit,
+    setValue,
+    getValues,
+    reset,
+    formState: { isValid, isSubmitting },
+  } = form;
 
   // ── init ──────────────────────────────────────────────────────────────────
 
@@ -134,7 +95,7 @@ export function useCustomerForm() {
           if (self) {
             setSelfVendId(self.id);
             if (!isSup) {
-              setForm((f) => ({ ...f, idvende: String(self.id) }));
+              setValue("idvende", String(self.id));
             }
           }
         }
@@ -155,7 +116,7 @@ export function useCustomerForm() {
     }
 
     init();
-  }, []);
+  }, [setValue]);
 
   useEffect(() => {
     return () => {
@@ -165,14 +126,17 @@ export function useCustomerForm() {
 
   // ── emitente change ────────────────────────────────────────────────────────
 
-  const onIdemandChange = useCallback(async (id: number) => {
-    setSelectedIdemp(id);
-    const opsRes = await getOperacoesAction(id);
-    if (opsRes.success && opsRes.data) {
-      setOperacoes(opsRes.data);
-      setField("idoper", "");
-    }
-  }, [setField]);
+  const onIdemandChange = useCallback(
+    async (id: number) => {
+      setSelectedIdemp(id);
+      const opsRes = await getOperacoesAction(id);
+      if (opsRes.success && opsRes.data) {
+        setOperacoes(opsRes.data);
+        setValue("idoper", "");
+      }
+    },
+    [setValue],
+  );
 
   // ── search dialog ──────────────────────────────────────────────────────────
 
@@ -203,144 +167,117 @@ export function useCustomerForm() {
     }, 400);
   }, []);
 
-  const onSelectFromSearch = useCallback(async (id: number) => {
-    setSearchOpen(false);
-    setIsLoadingCliente(true);
-    setSubmitError(null);
-    setSubmitSuccess(false);
-    try {
-      const res = await getClienteAction(id);
-      if (res.success) {
-        const c = res.data;
-        setClienteId(c.id);
-        setMode("edit");
-        const rawDocfed = c.docfed ?? "";
-        setDocfedError(validateDocfed(rawDocfed));
-        setForm({
-          razao: c.razao ?? "",
-          fantasia: c.fantasia ?? "",
-          docfedDisplay: rawDocfed ? maskDocfed(rawDocfed) : "",
-          docest: c.docest ?? "",
-          email: c.email ?? "",
-          emailnfe: c.emailnfe ?? "",
-          emailcob: c.emailcob ?? "",
-          site: c.site ?? "",
-          cepDisplay: c.cep ? maskCep(c.cep) : "",
-          endereco: c.endereco ?? "",
-          nroend: c.nroend ?? "",
-          bairro: c.bairro ?? "",
-          cidade: c.cidade ?? "",
-          uf: c.uf ?? "",
-          fone: c.fone ?? "",
-          fone2: c.fone2 ?? "",
-          cel: c.cel ?? "",
-          obsvenda: c.obsvenda ?? "",
-          idoper: c.idoper ? String(c.idoper) : "",
-          idvende: c.idvende ? String(c.idvende) : "",
-        });
-      } else {
-        setSubmitError(res.error || "Erro ao carregar cliente");
+  const onSelectFromSearch = useCallback(
+    async (id: number) => {
+      setSearchOpen(false);
+      setIsLoadingCliente(true);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+      try {
+        const res = await getClienteAction(id);
+        if (res.success) {
+          const c = res.data;
+          setClienteId(c.id);
+          setMode("edit");
+          const rawDocfed = c.docfed ?? "";
+          reset({
+            tipopessoa: c.tipopessoa ?? "F",
+            razao: c.razao ?? "",
+            fantasia: c.fantasia ?? "",
+            docfedDisplay: rawDocfed ? maskDocfed(rawDocfed) : "",
+            docest: c.docest ?? "",
+            email: c.email ?? "",
+            emailnfe: c.emailnfe ?? "",
+            emailcob: c.emailcob ?? "",
+            site: c.site ?? "",
+            cepDisplay: c.cep ? maskCep(c.cep) : "",
+            endereco: c.endereco ?? "",
+            nroend: c.nroend ?? "",
+            bairro: c.bairro ?? "",
+            cidade: c.cidade ?? "",
+            uf: c.uf ?? "",
+            fone: c.fone ?? "",
+            fone2: c.fone2 ?? "",
+            cel: c.cel ?? "",
+            obsvenda: c.obsvenda ?? "",
+            idoper: c.idoper ? String(c.idoper) : "",
+            idvende: c.idvende ? String(c.idvende) : "",
+          });
+        } else {
+          setSubmitError(res.error || "Erro ao carregar cliente");
+        }
+      } finally {
+        setIsLoadingCliente(false);
       }
-    } finally {
-      setIsLoadingCliente(false);
-    }
-  }, []);
+    },
+    [reset],
+  );
 
   // ── new cliente ────────────────────────────────────────────────────────────
 
   const onNewCliente = useCallback(() => {
     setClienteId(null);
     setMode("new");
-    setDocfedError(null);
     setSubmitError(null);
     setSubmitSuccess(false);
-    setForm({
-      ...EMPTY_FORM,
+    reset({
+      ...EMPTY_CLIENTE_FORM,
       idvende: selfVendId ? String(selfVendId) : "",
     });
-  }, [selfVendId]);
+  }, [selfVendId, reset]);
 
-  // ── docfed field ───────────────────────────────────────────────────────────
+  // ── docfed field (masked) ──────────────────────────────────────────────────
 
   const onDocfedChange = useCallback(
     (v: string) => {
-      setField("docfedDisplay", maskDocfed(v));
-      setDocfedError(validateDocfed(v));
+      setValue("docfedDisplay", maskDocfed(v), { shouldValidate: true });
+      const raw = v.replace(/\D/g, "");
+      if (raw.length === 11 && isValidCPF(raw)) {
+        setValue("tipopessoa", "F");
+      } else if (raw.length === 14 && isValidCNPJ(raw)) {
+        if (getValues("tipopessoa") === "F") {
+          setValue("tipopessoa", "J");
+        }
+      }
     },
-    [setField],
+    [setValue, getValues],
   );
 
-  // ── cep field ──────────────────────────────────────────────────────────────
+  // ── cep field (masked + lookup) ────────────────────────────────────────────
 
   const onCepChange = useCallback(
     (v: string) => {
-      setField("cepDisplay", maskCep(v));
+      setValue("cepDisplay", maskCep(v), { shouldValidate: true });
     },
-    [setField],
+    [setValue],
   );
 
   const onCepBlur = useCallback(async () => {
-    const raw = form.cepDisplay.replace(/\D/g, "");
+    const cepDisplay = getValues("cepDisplay");
+    const raw = cepDisplay.replace(/\D/g, "");
     if (raw.length !== 8) return;
     setIsCepLoading(true);
     try {
       const res = await buscarCepAction(raw);
       if (res.success && res.data) {
         const d = res.data;
-        setForm((f) => ({
-          ...f,
-          endereco: d.logradouro || f.endereco,
-          bairro: d.bairro || f.bairro,
-          cidade: d.localidade || f.cidade,
-          uf: d.uf || f.uf,
-        }));
+        if (d.logradouro) setValue("endereco", d.logradouro);
+        if (d.bairro) setValue("bairro", d.bairro);
+        if (d.localidade) setValue("cidade", d.localidade);
+        if (d.uf) setValue("uf", d.uf);
       }
     } finally {
       setIsCepLoading(false);
     }
-  }, [form.cepDisplay]);
-
-  // ── can save ───────────────────────────────────────────────────────────────
-
-  const canSave =
-    mode !== "idle" &&
-    form.razao.trim().length >= 2 &&
-    !docfedError &&
-    !isSubmitting &&
-    !isLoadingCliente;
+  }, [getValues, setValue]);
 
   // ── submit ─────────────────────────────────────────────────────────────────
 
-  const onSave = useCallback(async () => {
-    if (!canSave) return;
-    setIsSubmitting(true);
+  const onSubmit = handleSubmit(async (values) => {
     setSubmitError(null);
     setSubmitSuccess(false);
 
-    const payload: ClienteFormPayload = {
-      razao: form.razao.trim(),
-      ...(form.fantasia.trim() && { fantasia: form.fantasia.trim() }),
-      ...(form.docfedDisplay && {
-        docfed: form.docfedDisplay.replace(/\D/g, ""),
-      }),
-      ...(form.docest.trim() && { docest: form.docest.trim() }),
-      ...(form.email.trim() && { email: form.email.trim() }),
-      ...(form.emailnfe.trim() && { emailnfe: form.emailnfe.trim() }),
-      ...(form.emailcob.trim() && { emailcob: form.emailcob.trim() }),
-      ...(form.site.trim() && { site: form.site.trim() }),
-      ...(form.cepDisplay && { cep: form.cepDisplay }),
-      ...(form.endereco.trim() && { endereco: form.endereco.trim() }),
-      ...(form.nroend.trim() && { nroend: form.nroend.trim() }),
-      ...(form.bairro.trim() && { bairro: form.bairro.trim() }),
-      ...(form.cidade.trim() && { cidade: form.cidade.trim() }),
-      ...(form.uf.trim() && { uf: form.uf.trim().toUpperCase().slice(0, 2) }),
-      ...(form.fone && { fone: form.fone }),
-      ...(form.fone2 && { fone2: form.fone2 }),
-      ...(form.cel && { cel: form.cel }),
-      ...(form.obsvenda.trim() && { obsvenda: form.obsvenda.trim() }),
-      ...(form.idoper && { idoper: parseInt(form.idoper) }),
-      ...(form.idvende && { idvende: parseInt(form.idvende) }),
-    };
+    const payload = toClienteFormPayload(values);
 
     let res;
     if (mode === "edit" && clienteId) {
@@ -358,9 +295,10 @@ export function useCustomerForm() {
     } else {
       setSubmitError(res.error || "Erro ao salvar cliente");
     }
+  });
 
-    setIsSubmitting(false);
-  }, [canSave, form, mode, clienteId]);
+  const canSave =
+    mode !== "idle" && isValid && !isSubmitting && !isLoadingCliente;
 
   return {
     mode,
@@ -372,8 +310,6 @@ export function useCustomerForm() {
     selectedIdemp,
     operacoes,
     form,
-    setField,
-    docfedError,
     onDocfedChange,
     onCepChange,
     onCepBlur,
@@ -392,7 +328,7 @@ export function useCustomerForm() {
     onSearchQueryChange,
     onSelectFromSearch,
     onNewCliente,
-    onSave,
+    onSubmit,
     onIdemandChange,
   };
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
   getPedidoAction,
@@ -14,6 +16,12 @@ import {
   fecharPedidoAction,
 } from "@/lib/vendas";
 import { roundPrice } from "@/lib/business/preco";
+import {
+  FechamentoFormSchema,
+  EMPTY_FECHAMENTO_FORM,
+  toFecharPedidoPayload,
+  type FechamentoFormValues,
+} from "@/lib/validations/fechamento.form";
 import type {
   PedidoDetalhe,
   ProdutoBusca,
@@ -50,12 +58,19 @@ export function useEditarPedido(idPedido: number | null) {
   const [formas, setFormas] = useState<FormaPagamento[]>([]);
   const [condicoes, setCondicoes] = useState<CondicaoPagamento[]>([]);
   const [isLoadingFormas, setIsLoadingFormas] = useState(false);
-  const [idForma, setIdForma] = useState<number | null>(null);
-  const [idCond, setIdCond] = useState<number | null>(null);
-  const [obsInter, setObsInter] = useState("");
-  const [isFechando, setIsFechando] = useState(false);
   const [fecharError, setFecharError] = useState<string | null>(null);
   const [fechouOk, setFechouOk] = useState(false);
+
+  const fechamentoForm = useForm<FechamentoFormValues>({
+    resolver: zodResolver(FechamentoFormSchema),
+    defaultValues: EMPTY_FECHAMENTO_FORM,
+    mode: "onChange",
+  });
+  const {
+    handleSubmit: handleFecharSubmit,
+    reset: resetFechamento,
+    formState: { isValid: isFechamentoValid, isSubmitting: isFechando },
+  } = fechamentoForm;
 
   const searchSeqRef = useRef(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -75,9 +90,11 @@ export function useEditarPedido(idPedido: number | null) {
     const result = await getPedidoAction(idPedido);
     if (result.success) {
       setPedido({ ...result.data, itens: result.data.itens ?? [] });
-      setObsInter(result.data.obsinter ?? "");
-      setIdForma(result.data.idForma);
-      setIdCond(result.data.idCond);
+      resetFechamento({
+        idForma: result.data.idForma ? String(result.data.idForma) : "",
+        idCond: result.data.idCond ? String(result.data.idCond) : "",
+        obsInter: result.data.obsinter ?? "",
+      });
     } else {
       setLoadError({
         status: result.status,
@@ -85,7 +102,7 @@ export function useEditarPedido(idPedido: number | null) {
       });
     }
     setIsLoading(false);
-  }, [idPedido]);
+  }, [idPedido, resetFechamento]);
 
   useEffect(() => {
     loadPedido();
@@ -285,28 +302,27 @@ export function useEditarPedido(idPedido: number | null) {
     [pedido],
   );
 
-  const onFechar = useCallback(async () => {
-    if (!pedido || !idForma || !idCond) return;
-    setIsFechando(true);
+  const onFechar = handleFecharSubmit(async (values) => {
+    if (!pedido) return;
     setFecharError(null);
-    try {
-      const result = await fecharPedidoAction(pedido.id, {
-        idForma,
-        idCond,
-        obsInter: obsInter.trim() || undefined,
-      });
-      if (result.success) {
-        setPedido(result.data);
-        setFechouOk(true);
-      } else {
-        setFecharError(result.error || "Erro ao fechar pedido");
-      }
-    } finally {
-      setIsFechando(false);
+    const result = await fecharPedidoAction(
+      pedido.id,
+      toFecharPedidoPayload(values),
+    );
+    if (result.success) {
+      setPedido(result.data);
+      setFechouOk(true);
+    } else {
+      setFecharError(result.error || "Erro ao fechar pedido");
     }
-  }, [pedido, idForma, idCond, obsInter]);
+  });
 
-  const canFechar = !!(pedido && isAberto && idForma && idCond && !isFechando);
+  const canFechar = !!(
+    pedido &&
+    isAberto &&
+    isFechamentoValid &&
+    !isFechando
+  );
 
   return {
     pedido,
@@ -345,12 +361,7 @@ export function useEditarPedido(idPedido: number | null) {
     isLoadingFormas,
     formas,
     condicoes,
-    idForma,
-    setIdForma,
-    idCond,
-    setIdCond,
-    obsInter,
-    setObsInter,
+    fechamentoForm,
     canFechar,
     isFechando,
     fecharError,

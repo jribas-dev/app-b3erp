@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef } from "react";
+import { Controller } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
@@ -57,6 +58,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import { FieldError } from "@/components/form/field-error";
 import { formatBRL } from "@/lib/format/currency";
 import { formatQty } from "@/lib/format/number";
 
@@ -108,12 +110,7 @@ function EditOrderContent() {
     isLoadingFormas,
     formas,
     condicoes,
-    idForma,
-    setIdForma,
-    idCond,
-    setIdCond,
-    obsInter,
-    setObsInter,
+    fechamentoForm,
     canFechar,
     isFechando,
     fecharError,
@@ -121,6 +118,14 @@ function EditOrderContent() {
     fechouOk,
     setFechouOk,
   } = pedidoHook;
+
+  const {
+    control: fechamentoControl,
+    register: registerFechamento,
+    watch: watchFechamento,
+    formState: { errors: fechamentoErrors },
+  } = fechamentoForm;
+  const obsInterValue = watchFechamento("obsInter");
 
   const qtdeInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -311,100 +316,115 @@ function EditOrderContent() {
                 </Callout>
               )}
 
-              <div className="grid gap-1.5">
-                <Label htmlFor="forma">Forma de pagamento</Label>
-                {isLoadingFormas ? (
-                  <div className="flex items-center gap-2 h-9 px-3 border rounded-(--radius) bg-muted/40">
-                    <Spinner size="sm" tone="muted" />
-                    <span className="text-sm text-muted-foreground">
-                      Carregando formas…
-                    </span>
-                  </div>
-                ) : (
-                  <Select
-                    value={idForma?.toString() ?? ""}
-                    onValueChange={(v) => setIdForma(Number(v))}
-                    disabled={!isAberto || formas.length === 0}
-                  >
-                    <SelectTrigger id="forma" className="w-full">
-                      <SelectValue placeholder="Selecione a forma" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {formas.map((f) => (
-                        <SelectItem key={f.id} value={f.id.toString()}>
-                          {f.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <form onSubmit={onFechar} noValidate className="space-y-4">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="forma">Forma de pagamento</Label>
+                  {isLoadingFormas ? (
+                    <div className="flex items-center gap-2 h-9 px-3 border rounded-(--radius) bg-muted/40">
+                      <Spinner size="sm" tone="muted" />
+                      <span className="text-sm text-muted-foreground">
+                        Carregando formas…
+                      </span>
+                    </div>
+                  ) : (
+                    <Controller
+                      control={fechamentoControl}
+                      name="idForma"
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={!isAberto || formas.length === 0}
+                        >
+                          <SelectTrigger id="forma" className="w-full">
+                            <SelectValue placeholder="Selecione a forma" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {formas.map((f) => (
+                              <SelectItem key={f.id} value={f.id.toString()}>
+                                {f.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  )}
+                  <FieldError>{fechamentoErrors.idForma?.message}</FieldError>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <Label htmlFor="cond">Condição de pagamento</Label>
+                  {isLoadingFormas ? (
+                    <div className="flex items-center gap-2 h-9 px-3 border rounded-(--radius) bg-muted/40">
+                      <Spinner size="sm" tone="muted" />
+                      <span className="text-sm text-muted-foreground">
+                        Carregando condições…
+                      </span>
+                    </div>
+                  ) : (
+                    <Controller
+                      control={fechamentoControl}
+                      name="idCond"
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={!isAberto || condicoes.length === 0}
+                        >
+                          <SelectTrigger id="cond" className="w-full">
+                            <SelectValue placeholder="Selecione a condição" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {condicoes.map((c) => (
+                              <SelectItem key={c.id} value={c.id.toString()}>
+                                {c.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  )}
+                  <FieldError>{fechamentoErrors.idCond?.message}</FieldError>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <Label htmlFor="obs">Observação interna</Label>
+                  <Textarea
+                    id="obs"
+                    maxLength={255}
+                    placeholder="Anotação interna (opcional)"
+                    disabled={!isAberto}
+                    {...registerFechamento("obsInter")}
+                  />
+                  <span className="text-xs text-muted-foreground text-right">
+                    {obsInterValue.length}/255
+                  </span>
+                </div>
+
+                {fecharError && (
+                  <Callout variant="destructive">
+                    <CalloutTitle>Erro ao fechar pedido</CalloutTitle>
+                    <CalloutDescription>{fecharError}</CalloutDescription>
+                  </Callout>
                 )}
-              </div>
 
-              <div className="grid gap-1.5">
-                <Label htmlFor="cond">Condição de pagamento</Label>
-                {isLoadingFormas ? (
-                  <div className="flex items-center gap-2 h-9 px-3 border rounded-(--radius) bg-muted/40">
-                    <Spinner size="sm" tone="muted" />
-                    <span className="text-sm text-muted-foreground">
-                      Carregando condições…
-                    </span>
-                  </div>
-                ) : (
-                  <Select
-                    value={idCond?.toString() ?? ""}
-                    onValueChange={(v) => setIdCond(Number(v))}
-                    disabled={!isAberto || condicoes.length === 0}
-                  >
-                    <SelectTrigger id="cond" className="w-full">
-                      <SelectValue placeholder="Selecione a condição" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {condicoes.map((c) => (
-                        <SelectItem key={c.id} value={c.id.toString()}>
-                          {c.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-
-              <div className="grid gap-1.5">
-                <Label htmlFor="obs">Observação interna</Label>
-                <Textarea
-                  id="obs"
-                  value={obsInter}
-                  onChange={(e) => setObsInter(e.target.value)}
-                  maxLength={255}
-                  placeholder="Anotação interna (opcional)"
-                  disabled={!isAberto}
-                />
-                <span className="text-xs text-muted-foreground text-right">
-                  {obsInter.length}/255
-                </span>
-              </div>
-
-              {fecharError && (
-                <Callout variant="destructive">
-                  <CalloutTitle>Erro ao fechar pedido</CalloutTitle>
-                  <CalloutDescription>{fecharError}</CalloutDescription>
-                </Callout>
-              )}
-
-              <Button
-                className="w-full"
-                disabled={!canFechar}
-                onClick={onFechar}
-              >
-                {isFechando ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin mr-2" />
-                    Gravando…
-                  </>
-                ) : (
-                  "Gravar Fechamento"
-                )}
-              </Button>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={!canFechar}
+                >
+                  {isFechando ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin mr-2" />
+                      Gravando…
+                    </>
+                  ) : (
+                    "Gravar Fechamento"
+                  )}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </TabsContent>
