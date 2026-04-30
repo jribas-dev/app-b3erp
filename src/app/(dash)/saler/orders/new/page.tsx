@@ -5,6 +5,7 @@ import {
   ShoppingCart,
   User,
   MapPin,
+  LocateFixed,
   Phone,
   Smartphone,
   FileText,
@@ -254,7 +255,7 @@ export default function OrderNewPage() {
                       selectedCliente.nroend ||
                       selectedCliente.bairro) && (
                       <div className="flex items-start gap-2 text-muted-foreground">
-                        <MapPin size={14} className="shrink-0 mt-0.5" />
+                        <LocateFixed size={14} className="shrink-0 mt-0.5" />
                         <span>
                           {[
                             selectedCliente.endereco,
