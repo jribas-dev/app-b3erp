@@ -34,9 +34,9 @@
 |---|---|---|
 | `JwtGuard` | Token JWT válido no header `Authorization` | `401 Unauthorized` |
 | `UserInstanceGuard` | Token de **etapa 2** (campo `dbId` no payload — usuário selecionou um tenant) | `403 Forbidden` |
-| `AdminGuard` | `isRoot = true` **OU** `roleBack ∈ {admin, supervisor}` **OU** `roleFront = supervisor` | `403 Forbidden` |
+| `AdminGuard` | `isRoot = true` **OU** `roleBack ∈ {admin, supervisor}` **OU** `roleFront` (array) contém `admin` | `403 Forbidden` |
 | `RootGuard` | `isRoot = true` (superadmin global) | `403 Forbidden` |
-| `RolesFrontGuard` | `roleFront` do token pertence ao conjunto exigido pelo endpoint | `403 Forbidden` |
+| `RolesFrontGuard` | alguma role em `roleFront` (array) pertence ao conjunto exigido pelo endpoint | `403 Forbidden` |
 | `RolesBackGuard` | `roleBack` do token pertence ao conjunto exigido | `403 Forbidden` |
 
 ---
@@ -120,7 +120,7 @@ Seleciona um tenant e retorna o token de etapa 2 com roles. Máximo 10 chamadas 
 | `dbId` | string | ID do tenant selecionado |
 | `instanceName` | string | Nome da instância |
 | `roleBack` | string | Role no BackOffice: `admin \| supervisor \| user \| notallow` |
-| `roleFront` | string | Role no Web App: `supervisor \| saler \| buyer \| notallow` |
+| `roleFront` | string[] | Roles no Web App (array — usuário pode acumular múltiplas): `admin \| supersaler \| saler \| buyer \| inventory \| notallow`. Exceção: `saler` e `supersaler` são mutuamente exclusivos. |
 
 **Erros comuns:**
 
@@ -265,7 +265,7 @@ Retorna os dados do usuário autenticado a partir do payload do JWT.
   "dbId": "cuid2string",         // null/undefined se token etapa 1
   "instanceName": "Empresa X",   // null/undefined se token etapa 1
   "roleBack": "user",            // null/undefined se token etapa 1
-  "roleFront": "saler"           // null/undefined se token etapa 1
+  "roleFront": ["saler"]         // array de roles; null/undefined se token etapa 1
 }
 ```
 
@@ -291,7 +291,7 @@ Retorna os valores possíveis de um enum da aplicação.
 ["admin", "supervisor", "user", "notallow"]
 
 // GET /backend/enums/rolefront
-["supervisor", "saler", "buyer", "notallow"]
+["admin", "supersaler", "saler", "buyer", "inventory", "notallow"]
 ```
 
 ---
@@ -493,7 +493,7 @@ Cria um vínculo entre usuário e tenant.
 | `userId` | string | ✅ | CUID2 do usuário |
 | `dbId` | string | ✅ | CUID2 da instância/tenant |
 | `roleback` | string | ✅ | Role no BackOffice: `admin \| supervisor \| user \| notallow` |
-| `rolefront` | string | ✅ | Role no Web App: `supervisor \| saler \| buyer \| notallow` |
+| `rolefront` | string | ✅ | Role no Web App: `admin \| supersaler \| saler \| buyer \| inventory \| notallow` |
 | `idBackendUser` | integer | ❌ | ID do usuário no sistema legado do tenant (BackOffice desktop) |
 
 **Resposta `201`:**

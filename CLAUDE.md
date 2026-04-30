@@ -35,7 +35,7 @@ Key points from the API:
 - Two-stage auth: `POST /auth/login` (stage 1) → `POST /auth/instance` (stage 2 with `dbId`). Stage 2 token required for all domain endpoints.
 - `idemp` (empresa/emitente ID) is **not in the token** — must be sent in each request. Fetch available companies via `GET /tenant/emitentes`.
 - All `/b3vendas/*` endpoints resolve the authenticated user to a **vendedor** in the tenant DB. Returns `403` if no vendedor link exists.
-- `roleFront` values: `supervisor | saler | buyer | notallow`. `roleBack` values: `admin | supervisor | user | notallow`.
+- `roleFront` is a **string array** (`string[]`) — usuários podem acumular múltiplas funções (ex.: o dono que é `admin` + `supersaler` + `saler`). Exceção: na área de vendas é mutuamente exclusivo — o usuário é `saler` **ou** `supersaler`, nunca os dois. Valores possíveis: `admin | supersaler | saler | buyer | inventory | notallow`. `roleBack` permanece string única: `admin | supervisor | user | notallow`.
 
 ## Actors & Role Matrix
 
@@ -44,11 +44,11 @@ The application has 6 distinct actors. Routes and UI are gated by `roleFront` (a
 | # | Actor | roleFront | roleBack | Status | Routes |
 |---|---|---|---|---|---|
 | 1 | **Root** (Administrador do Sistema) | any | `isRoot = true` | 🔜 Planned | `/root/*` (future) |
-| 2 | **Administrativo** (Dashboard, Faturamento, Financeiro) | `supervisor` | `admin` or `supervisor` | 🚧 In progress | `/super/*` |
-| 3 | **Gerente de Vendas** (Vendas + Equipe) | `supervisor` | any | 🚧 In progress | `/super/*` + `/saler/*` |
+| 2 | **Administrativo** (Dashboard, Faturamento, Financeiro) | `admin` | `admin` or `supervisor` | 🚧 In progress | `/admin/*` |
+| 3 | **Gerente de Vendas** (Vendas + Equipe) | `supersaler` | any | 🚧 In progress | `/saler/*` |
 | 4 | **Vendedor** | `saler` | any | 🚧 In progress | `/saler/*` |
 | 5 | **Comprador** (Pedidos de Compra) | `buyer` | any | 🔜 Planned | `/buyer/*` |
-| 6 | **Estoque** (Operações de Estoque) | `inventory` *(future)* | any | 🔜 Planned | `/inventory/*` (future) |
+| 6 | **Estoque** (Operações de Estoque) | `inventory` | any | 🔜 Planned | `/inventory/*` (future) |
 
 **Currently implemented (partial):** actors 2, 3, and 4.
 
@@ -58,10 +58,10 @@ The application has 6 distinct actors. Routes and UI are gated by `roleFront` (a
 - `/saler/orders-history` — Histórico de Pedidos → actors 3, 4
 - `/saler/price-table` — Tabela de Preços → actors 3, 4
 - `/saler/performance` — Analisar desempenho → actors 3, 4
-- `/super/customers` — Lista de Clientes → actor 2, 3
-- `/super/team` — Configurar Equipe → actor 3
-- `/super/team-route` — Configurar Rota → actor 3
-- `/super/team-performance` — Analisar Equipe → actor 3
+- `/saler/customers` — Lista de Clientes → actor 3
+- `/saler/team` — Configurar Equipe → actor 3
+- `/admin/graph` — Dashboard com Gráficos → actor 2
+- `/admin/grid` — Pesquisas em Grid → actor 2
 - `/buyer/edit` — Dados do Comprador → actor 5
 - `/buyer/orders` — Pedido de Compra → actor 5
 - `/buyer/orders-history` — Histórico de Pedidos (compra) → actor 5
@@ -73,9 +73,10 @@ The application has 6 distinct actors. Routes and UI are gated by `roleFront` (a
 - **`(site)/`** — public routes: `auth/{login,lost-password,reset-password}`, `privacy-policy`, `terms-of-service`, `user-pre`. Has its own [layout.tsx](src/app/(site)/layout.tsx).
 - **`(dash)/`** — authenticated routes wrapped by [src/app/(dash)/layout.tsx](src/app/(dash)/layout.tsx) (`HeaderPrivate` + `Footer`). Subdivided by role:
   - `home/` — landing after login; also where instance selection happens when `session.instanceName` is missing.
-  - `super/` — supervisor role: management (customers, team, team-performance, team-route) — actors 2 and 3.
-  - `saler/` — saler + supervisor roles: sales operations (orders, orders-history, performance, price-table) — actors 3 and 4.
+  - `admin/` — admin role only: management dashboards (graph, grid) — actor 2.
+  - `saler/` — saler + supersaler roles: sales operations (orders, orders-history, performance, price-table) plus customers/team for supersaler — actors 3 and 4.
   - `buyer/` — buyer role only: purchase orders (edit, orders, orders-history) — actor 5.
+  - `inventory/` *(future)* — inventory role only: stock operations — actor 6.
 
 ### Auth & session model
 
@@ -98,7 +99,7 @@ Server-side actions ("use server") in [src/lib/auth.service.ts](src/lib/auth.ser
 - Reads `accessToken` and verifies it via `GET /backend/session`. On 401 it tries `POST /auth/refresh` and re-issues cookies inline on the `NextResponse`.
 - Public-vs-protected is decided against `PUBLIC_ROUTES` / `PROTECTED_ROUTES` in [src/mocks/routes-permission.ts](src/mocks/routes-permission.ts) — **edit that file when adding a new top-level route, not the middleware.**
 - `/home` is special: accessible to any authenticated user even without a tenant; all other `(dash)` routes require `session.instanceName` and redirect to `/home` if missing.
-- Role gating is enforced by `session.roleFront` ∈ `PROTECTED_ROUTES[route]`. Active roles: `supervisor`, `saler`, `buyer`, `notallow` (`ROLES` const in same file). Future roles (`inventory`) will require adding to that file.
+- Role gating verifica se **alguma** role em `session.roleFront` (array) pertence a `PROTECTED_ROUTES[route]` — ver `hasRequiredRole` no middleware. Active roles: `admin`, `supersaler`, `saler`, `buyer`, `inventory`, `notallow` (`ROLES` const in same file). Note: `supersaler` (gerente de vendas) replaced the legacy `supervisor` value to follow the new API standard — the prior `supervisor` covered both administrativo and sales-manager actors, now split into `admin` and `supersaler`.
 
 Note the middleware re-implements `getSession` / `refreshAccessToken` rather than importing from `auth.service.ts`, because middleware runs in the Edge runtime and can't use `next/headers` `cookies()`. Keep these two paths in sync when changing the auth contract.
 

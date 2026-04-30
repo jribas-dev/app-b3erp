@@ -90,7 +90,7 @@ className="bg-destructive text-destructive-foreground px-4 py-2 rounded-(--radiu
 ### Badges
 ```tsx
 // Usar variantes semânticas — nunca cores avulsas
-<Badge variant="default">Supervisor</Badge>   // primário
+<Badge variant="default">Supersaler</Badge>   // primário
 <Badge variant="secondary">Saler</Badge>      // secundário
 <Badge variant="destructive">Cancelado</Badge> // erro
 ```
@@ -106,9 +106,11 @@ className="bg-destructive text-destructive-foreground px-4 py-2 rounded-(--radiu
 
 | Role | Rota base | Módulos |
 |------|-----------|---------|
-| `supervisor` | `/super/` + `/saler/` | Todos os módulos |
+| `admin` | `/admin/` | Dashboards e relatórios administrativos |
+| `supersaler` | `/saler/` | Todos os módulos de vendas + cadastro de clientes + equipe |
 | `saler` | `/saler/` | Pedidos, histórico, preços, desempenho |
 | `buyer` | `/buyer/` | Dados, pedido de compra, histórico |
+| `inventory` | `/inventory/` *(futuro)* | Operações de estoque |
 
 - Verificar roles sempre via `src/mocks/routes-permission.ts`
 - Nunca renderizar módulos fora da permissão do role atual

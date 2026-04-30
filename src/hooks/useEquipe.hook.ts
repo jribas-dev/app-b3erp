@@ -35,7 +35,7 @@ export function useEquipe() {
         getEquipeSemEquipeAction(),
       ]);
 
-      if (session) setIsSupervisor(session.roleFront === "supervisor");
+      if (session) setIsSupervisor(session.roleFront?.includes("supersaler") ?? false);
 
       if (equipeRes.success) {
         const supervisor = equipeRes.data.find((m) => Number(m.liderado) === 0);

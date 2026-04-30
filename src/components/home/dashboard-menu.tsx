@@ -13,25 +13,25 @@ import { cn } from "@/lib/utils";
 import { MenuItem } from "./menu-item";
 
 interface DashboardMenuProps {
-  userRole?: string;
+  userRoles?: string[];
   className?: string;
 }
 
 export const DashboardMenu: React.FC<DashboardMenuProps> = ({
-  userRole,
+  userRoles,
   className,
 }) => {
   const grouped = useMemo(() => {
     const map = new Map<DashSection, DashItem[]>();
-    if (!userRole) return map;
+    if (!userRoles || userRoles.length === 0) return map;
     for (const item of dashItemsPrivate) {
-      if (!item.roles.includes(userRole)) continue;
+      if (!item.roles.some((role) => userRoles.includes(role))) continue;
       const bucket = map.get(item.section) ?? [];
       bucket.push(item);
       map.set(item.section, bucket);
     }
     return map;
-  }, [userRole]);
+  }, [userRoles]);
 
   const hasAny = useMemo(() => {
     for (const items of grouped.values()) {

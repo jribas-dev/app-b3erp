@@ -12,7 +12,7 @@
 > Guards aplicados a toda a base:
 > - `JwtGuard` — token JWT válido
 > - `UserInstanceGuard` — token deve conter `dbId` (tenant selecionado)
-> - `RolesFrontGuard` — a maioria das rotas permite `supervisor` e `saler`
+> - `RolesFrontGuard` — a maioria das rotas permite `supersaler` e `saler`
 
 ---
 
@@ -171,7 +171,7 @@ Atualiza dados de um cliente. Todos os campos são opcionais.
 
 Remove um cliente.
 
-**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` com role `supervisor`
+**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` com role `supersaler`
 
 **Path params:** `id` (integer)
 
@@ -183,7 +183,7 @@ Remove um cliente.
 
 Lista os clientes do vendedor autenticado que são elegíveis para a rede SP: ativos, com UF = `SP` ou UF nula, e com tabela de preços configurada (`idtab IS NOT NULL`).
 
-**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (roles: `supervisor` ou `saler`)
+**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (roles: `supersaler` ou `saler`)
 
 **Resposta `200`:**
 
@@ -207,7 +207,7 @@ Lista os clientes do vendedor autenticado que são elegíveis para a rede SP: at
 
 Retorna o catálogo de produtos com preços e impostos pré-calculados (IPI e ICMS-ST) para um cliente e operação fiscal específicos. Usa a tabela de preços vinculada ao cliente (`cnt.idtab → prdtabvalor`). Retorna apenas produtos ativos, vendáveis e não-serviço.
 
-**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (roles: `supervisor` ou `saler`)
+**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (roles: `supersaler` ou `saler`)
 
 **Query params:**
 
@@ -249,10 +249,10 @@ Retorna o catálogo de produtos com preços e impostos pré-calculados (IPI e IC
 
 Lista a equipe de vendas visível para o usuário autenticado. O comportamento varia conforme a role:
 
-- **`supervisor`**: retorna o próprio supervisor + todos os vendedores subordinados (via tabela `cntequipe`).
+- **`supersaler`**: retorna o próprio supervisor de vendas + todos os vendedores subordinados (via tabela `cntequipe`).
 - **`saler`**: retorna apenas o próprio vendedor.
 
-**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (roles: `supervisor` ou `saler`)
+**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (roles: `supersaler` ou `saler`)
 
 **Resposta `200`:**
 
@@ -283,7 +283,7 @@ Lista a equipe de vendas visível para o usuário autenticado. O comportamento v
 
 Lista todos os vendedores (`cntclass.comissionado`) que **não pertencem a nenhuma equipe** (não aparecem como `idcntliderado` em `cntequipe`), excluindo o próprio usuário autenticado. Usado para selecionar quem adicionar à equipe.
 
-**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (role: `supervisor`)
+**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (role: `supersaler`)
 
 **Resposta `200`:**
 
@@ -305,9 +305,9 @@ Lista todos os vendedores (`cntclass.comissionado`) que **não pertencem a nenhu
 
 ### `POST /b3vendas/equipe`
 
-Adiciona um vendedor como subordinado do supervisor autenticado na tabela `cntequipe`. O supervisor autenticado torna-se `idcntlider`; o vendedor informado torna-se `idcntliderado`.
+Adiciona um vendedor como subordinado do supervisor de vendas autenticado na tabela `cntequipe`. O supervisor autenticado torna-se `idcntlider`; o vendedor informado torna-se `idcntliderado`.
 
-**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (role: `supervisor`)
+**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (role: `supersaler`)
 
 **Body (JSON):**
 
@@ -327,9 +327,9 @@ Adiciona um vendedor como subordinado do supervisor autenticado na tabela `cnteq
 
 ### `DELETE /b3vendas/equipe/:id`
 
-Remove um vendedor da equipe do supervisor autenticado. O parâmetro `:id` é o `cnt.id` do vendedor a ser removido (`idcntliderado`).
+Remove um vendedor da equipe do supervisor de vendas autenticado. O parâmetro `:id` é o `cnt.id` do vendedor a ser removido (`idcntliderado`).
 
-**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (role: `supervisor`)
+**Auth:** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (role: `supersaler`)
 
 **Path params:**
 
@@ -710,14 +710,14 @@ Lista as condições de pagamento disponíveis para um pedido específico.
 
 Base: `/b3vendas/metricas`
 
-Endpoints para acompanhamento do desempenho do vendedor autenticado. O escopo é resolvido pela `roleFront`:
+Endpoints para acompanhamento do desempenho do vendedor autenticado. `roleFront` é um array; o escopo é resolvido pela presença das roles abaixo (mutuamente exclusivas na área de vendas):
 
-- **`saler`** — só vê os próprios dados (`venda.idvend = vendId` ou `cnt.idvende = vendId`).
-- **`supervisor`** — vê os próprios dados **e** os dos vendedores subordinados (via `cntequipe.idcntlider = vendId`).
+- **contém `saler`** — só vê os próprios dados (`venda.idvend = vendId` ou `cnt.idvende = vendId`).
+- **contém `supersaler`** — vê os próprios dados **e** os dos vendedores subordinados (via `cntequipe.idcntlider = vendId`).
 
-Qualquer outro `roleFront` recebe `403 Forbidden`.
+Se `roleFront` não contiver `saler` nem `supersaler`, o endpoint responde `403 Forbidden`.
 
-**Auth (todos os endpoints):** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (roles: `supervisor` ou `saler`).
+**Auth (todos os endpoints):** `JwtGuard` + `UserInstanceGuard` + `RolesFrontGuard` (roles aceitas: `supersaler` ou `saler`).
 
 ### Critério de venda considerada
 

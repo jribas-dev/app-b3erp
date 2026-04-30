@@ -1,17 +1,20 @@
 export const ROLES = {
-  SUPERVISOR: "supervisor",
-  SALER: "saler",
+  ADMIN: "admin",
   BUYER: "buyer",
+  INVENTORY: "inventory",
+  SUPERSALER: "supersaler",
+  SALER: "saler",
   NOTALLOW: "notallow",
 } as const;
 
 export type UserRole = (typeof ROLES)[keyof typeof ROLES];
 
 export const PROTECTED_ROUTES = {
-  "/admin": ["supervisor"],
+  "/admin": ["admin"],
   "/buyer": ["buyer"],
-  "/home": ["saler", "supervisor", "buyer"],
-  "/saler": ["saler", "supervisor"],
+  "/home": ["admin", "supersaler", "saler", "buyer", "inventory"],
+  "/inventory": ["inventory"],
+  "/saler": ["saler", "supersaler"],
   "/notallow": ["notallow"],
 } as const;
 

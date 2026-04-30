@@ -77,7 +77,7 @@ export function usePerformance() {
           getEquipeAction(),
         ]);
         if (session) {
-          setIsSupervisor(session.roleFront === "supervisor");
+          setIsSupervisor(session.roleFront?.includes("supersaler") ?? false);
         }
         if (equipeResult.success && equipeResult.data.length > 0) {
           setEquipe(equipeResult.data);

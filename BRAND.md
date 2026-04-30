@@ -384,21 +384,35 @@ Font-size: 11–12px · Font-weight: 600 · Border-radius: 100px (pill)
 
 ## 11. Personas & Perfis de Usuário
 
-### Supervisor
+### Admin (Administrativo)
 
-**Perfil:** Gestor da equipe comercial. Acessa análises agregadas, configura estruturas e monitora resultados.
+**Role:** `admin`
+
+**Perfil:** Responsável pelas operações administrativas (Dashboard, Faturamento, Financeiro). Visão consolidada do negócio.
+
+**Módulos disponíveis:**
+- Dashboard com Gráficos (`/admin/graph`)
+- Pesquisas em Grid (`/admin/grid`)
+
+**Prioridade de design:** Densidade de informação, dashboards analíticos.
+
+---
+
+### Supersaler (Gerente de Vendas)
+
+**Role:** `supersaler` (substituiu o antigo `supervisor` — novo padrão da API)
+
+**Perfil:** Gestor da equipe comercial. Acessa análises agregadas, configura estruturas e monitora resultados de vendedores subordinados.
 
 **Módulos disponíveis:**
 - Lançamento de Pedidos (`/saler/orders`)
 - Histórico de Pedidos (`/saler/orders-history`)
 - Tabela de Preços (`/saler/price-table`)
 - Analisar meu desempenho (`/saler/performance`)
-- Lista de Clientes (`/super/customers`)
-- Configurar Equipe (`/super/team`)
-- Configurar Rota (`/super/team-route`)
-- Analisar minha equipe (`/super/team-performance`)
+- Cadastro de Clientes (`/saler/customers`)
+- Configurar Equipe (`/saler/team`)
 
-**Prioridade de design:** Densidade de informação, dashboards analíticos.
+**Prioridade de design:** Densidade de informação, visualização de equipe.
 
 ---
 
@@ -418,6 +432,8 @@ Font-size: 11–12px · Font-weight: 600 · Border-radius: 100px (pill)
 
 ### Buyer (Comprador)
 
+**Role:** `buyer`
+
 **Perfil:** Comprador de empresa cliente. Realiza pedidos de compra e acompanha transações.
 
 **Módulos disponíveis:**
@@ -426,6 +442,18 @@ Font-size: 11–12px · Font-weight: 600 · Border-radius: 100px (pill)
 - Histórico de Pedidos (`/buyer/orders-history`)
 
 **Prioridade de design:** Formulários claros, histórico acessível, confirmações explícitas.
+
+---
+
+### Inventory (Estoque) *(planejado)*
+
+**Role:** `inventory`
+
+**Perfil:** Operador de estoque. Executa movimentações, contagens e ajustes de inventário.
+
+**Módulos disponíveis:** *(a definir — rotas em `/inventory/*`)*
+
+**Prioridade de design:** Operação rápida em mobile, leitura de código de barras, confirmações claras.
 
 ---
 

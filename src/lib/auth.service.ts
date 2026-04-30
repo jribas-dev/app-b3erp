@@ -183,9 +183,10 @@ export async function redirectToLogin() {
 }
 
 export async function hasPermission(
-  userRole: string | undefined,
+  userRoles: string[] | undefined,
   requiredRoles: string[]
 ): Promise<boolean> {
-  if (!userRole || requiredRoles.length === 0) return true;
-  return requiredRoles.includes(userRole);
+  if (requiredRoles.length === 0) return true;
+  if (!userRoles || userRoles.length === 0) return false;
+  return userRoles.some((role) => requiredRoles.includes(role));
 }

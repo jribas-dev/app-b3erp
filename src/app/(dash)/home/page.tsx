@@ -295,7 +295,7 @@ export default function HomePage() {
           <div className="flex-col">
             <div className="max-w-6xl mx-auto px-2">
               {/* Dashboard Menu */}
-              <DashboardMenu userRole={session.roleFront} />
+              <DashboardMenu userRoles={session.roleFront} />
             </div>
           </div>
         )}

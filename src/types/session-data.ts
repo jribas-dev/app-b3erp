@@ -5,5 +5,5 @@ export interface SessionData {
   dbId?: string
   instanceName?: string
   roleBack?: string
-  roleFront?: string
+  roleFront?: string[]
 }

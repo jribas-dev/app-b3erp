@@ -87,7 +87,7 @@ export function useCustomerForm() {
           getEmitentesAction(),
         ]);
 
-        const isSup = session?.roleFront === "supervisor";
+        const isSup = session?.roleFront?.includes("supersaler") ?? false;
         setIsSupervisor(isSup);
 
         if (equipeRes.success) {

@@ -82,11 +82,12 @@ function isPublicRoute(pathname: string): boolean {
 }
 
 function hasRequiredRole(
-  userRole: string | undefined,
+  userRoles: string[] | undefined,
   requiredRoles: readonly string[]
 ): boolean {
-  if (!userRole || requiredRoles.length === 0) return true;
-  return requiredRoles.includes(userRole);
+  if (requiredRoles.length === 0) return true;
+  if (!userRoles || userRoles.length === 0) return false;
+  return userRoles.some((role) => requiredRoles.includes(role));
 }
 
 export async function middleware(request: NextRequest) {

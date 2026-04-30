@@ -12,7 +12,7 @@
 > Guards aplicados a toda a base:
 > - `JwtGuard`
 > - `UserInstanceGuard`
-> - `RolesFrontGuard` com role `supervisor` (todos os endpoints deste módulo)
+> - `RolesFrontGuard` com role `admin` (todos os endpoints deste módulo)
 >
 > **Nenhuma escrita é realizada** — todos os endpoints são leitura (`GET`).
 
