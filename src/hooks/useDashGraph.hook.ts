@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { getEmitentesAction } from "@/lib/vendas/cfg.service";
 import { getDashGraphAction } from "@/lib/dash/dash.service";
+import { useSelectedEmitente } from "@/components/selected-emitente-provider";
 import type { Emitente } from "@/types/vendas.types";
 import type { ChartDataDto, Dominio, Periodo } from "@/types/dash.types";
 
 export function useDashGraph() {
+  const { selectedIdemp, setSelectedIdemp } = useSelectedEmitente();
   const [emitentes, setEmitentes] = useState<Emitente[]>([]);
-  const [selectedIdemp, setSelectedIdemp] = useState<number | null>(null);
   const [isLoadingInit, setIsLoadingInit] = useState(true);
 
   const [selectedDominio, setSelectedDominio] = useState<Dominio>("faturamento");
@@ -19,18 +20,28 @@ export function useDashGraph() {
   const [isLoadingChart, setIsLoadingChart] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const initRef = useRef(false);
   useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
     async function init() {
       const result = await getEmitentesAction();
       if (result.success) {
         setEmitentes(result.data);
-        if (result.data.length === 1) {
-          setSelectedIdemp(result.data[0].id);
+        const cookieIdemp = selectedIdemp;
+        if (
+          cookieIdemp != null &&
+          result.data.some((e) => e.id === cookieIdemp)
+        ) {
+          // já está em selectedIdemp do contexto — useEffect dependente cuidará do fetch
+        } else if (result.data.length === 1) {
+          await setSelectedIdemp(result.data[0].id);
         }
       }
       setIsLoadingInit(false);
     }
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchChart = useCallback(
@@ -75,8 +86,8 @@ export function useDashGraph() {
     setSelectedPeriodo(p);
   }
 
-  function onIdempChange(id: number) {
-    setSelectedIdemp(id);
+  async function onIdempChange(id: number) {
+    await setSelectedIdemp(id);
     setChartData(null);
     setError(null);
   }

@@ -10,6 +10,7 @@ import {
   getClienteAction,
   criarPedidoAction,
 } from "@/lib/vendas";
+import { useSelectedEmitente } from "@/components/selected-emitente-provider";
 import type { Emitente, Operacao, ClienteBusca, ClienteDetalhe } from "@/types/vendas.types";
 
 const SEARCH_MIN_CHARS = 3;
@@ -18,9 +19,9 @@ const SEARCH_DEBOUNCE_MS = 300;
 export function useNovoPedido() {
   const router = useRouter();
 
+  const { selectedIdemp, setSelectedIdemp } = useSelectedEmitente();
   const [emitentes, setEmitentes] = useState<Emitente[]>([]);
   const [isLoadingEmitentes, setIsLoadingEmitentes] = useState(true);
-  const [selectedIdemp, setSelectedIdemp] = useState<number | null>(null);
 
   const [operacoes, setOperacoes] = useState<Operacao[]>([]);
   const [isLoadingOperacoes, setIsLoadingOperacoes] = useState(false);
@@ -78,18 +79,26 @@ export function useNovoPedido() {
       const result = await getEmitentesAction();
       if (result.success && result.data) {
         setEmitentes(result.data);
-        if (result.data.length === 1) {
+        if (
+          selectedIdemp != null &&
+          result.data.some((e) => e.id === selectedIdemp)
+        ) {
+          await loadOperacoes(selectedIdemp);
+        } else if (result.data.length === 1) {
           const id = result.data[0].id;
-          setSelectedIdemp(id);
+          await setSelectedIdemp(id);
           await loadOperacoes(id);
         }
       }
     } finally {
       setIsLoadingEmitentes(false);
     }
-  }, [loadOperacoes]);
+  }, [loadOperacoes, selectedIdemp, setSelectedIdemp]);
 
+  const initRef = useRef(false);
   useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
     loadEmitentes();
   }, [loadEmitentes]);
 
@@ -114,15 +123,15 @@ export function useNovoPedido() {
   }, [isLoadingEmitentes, selectedIdemp, isLoadingOperacoes, selectedIdOper]);
 
   const onIdemandChange = useCallback(
-    (idemp: number) => {
-      setSelectedIdemp(idemp);
+    async (idemp: number) => {
+      await setSelectedIdemp(idemp);
       setSelectedCliente(null);
       setClienteQuery("");
       setClienteResults([]);
       setShowResults(false);
       loadOperacoes(idemp);
     },
-    [loadOperacoes],
+    [loadOperacoes, setSelectedIdemp],
   );
 
   const runSearch = useCallback(async (q: string) => {

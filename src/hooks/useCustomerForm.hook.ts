@@ -14,6 +14,7 @@ import {
   buscarCepAction,
 } from "@/lib/vendas";
 import { getSessionAction } from "@/lib/auth.service";
+import { useSelectedEmitente } from "@/components/selected-emitente-provider";
 import { maskCep, maskDocfed } from "@/lib/format/document";
 import { isValidCPF } from "@/lib/validation/cpf";
 import { isValidCNPJ } from "@/lib/validation/cnpj";
@@ -33,6 +34,7 @@ import type {
 export type CustomerMode = "idle" | "new" | "edit";
 
 export function useCustomerForm() {
+  const { selectedIdemp, setSelectedIdemp } = useSelectedEmitente();
   const [mode, setMode] = useState<CustomerMode>("idle");
   const [clienteId, setClienteId] = useState<number | null>(null);
 
@@ -40,7 +42,6 @@ export function useCustomerForm() {
   const [selfVendId, setSelfVendId] = useState<number | null>(null);
   const [equipe, setEquipe] = useState<MembroEquipe[]>([]);
   const [emitentes, setEmitentes] = useState<Emitente[]>([]);
-  const [selectedIdemp, setSelectedIdemp] = useState<number | null>(null);
   const [operacoes, setOperacoes] = useState<Operacao[]>([]);
   const [isLoadingInit, setIsLoadingInit] = useState(true);
 
@@ -102,12 +103,22 @@ export function useCustomerForm() {
 
         if (emitentesRes.success && emitentesRes.data.length > 0) {
           setEmitentes(emitentesRes.data);
-          const firstId = emitentesRes.data[0].id;
-          setSelectedIdemp(firstId);
+          let activeId: number | null = null;
+          if (
+            selectedIdemp != null &&
+            emitentesRes.data.some((e) => e.id === selectedIdemp)
+          ) {
+            activeId = selectedIdemp;
+          } else if (emitentesRes.data.length === 1) {
+            activeId = emitentesRes.data[0].id;
+            await setSelectedIdemp(activeId);
+          }
 
-          const opsRes = await getOperacoesAction(firstId);
-          if (opsRes.success) {
-            setOperacoes(opsRes.data);
+          if (activeId != null) {
+            const opsRes = await getOperacoesAction(activeId);
+            if (opsRes.success) {
+              setOperacoes(opsRes.data);
+            }
           }
         }
       } finally {
@@ -116,6 +127,7 @@ export function useCustomerForm() {
     }
 
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setValue]);
 
   useEffect(() => {
@@ -128,14 +140,14 @@ export function useCustomerForm() {
 
   const onIdemandChange = useCallback(
     async (id: number) => {
-      setSelectedIdemp(id);
+      await setSelectedIdemp(id);
       const opsRes = await getOperacoesAction(id);
       if (opsRes.success && opsRes.data) {
         setOperacoes(opsRes.data);
         setValue("idoper", "");
       }
     },
-    [setValue],
+    [setValue, setSelectedIdemp],
   );
 
   // ── search dialog ──────────────────────────────────────────────────────────

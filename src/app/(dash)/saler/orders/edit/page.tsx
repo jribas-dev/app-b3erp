@@ -9,6 +9,7 @@ import {
   Building2,
   Check,
   Loader2,
+  LocateFixed,
   MapPin,
   Package,
   Phone,
@@ -17,6 +18,7 @@ import {
   ShoppingCart,
   Trash2,
   Truck,
+  IdCard,
 } from "lucide-react";
 
 import { useEditarPedido } from "@/hooks/useEditarPedido.hook";
@@ -25,12 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Callout,
   CalloutTitle,
@@ -43,12 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -61,6 +53,12 @@ import {
 import { FieldError } from "@/components/form/field-error";
 import { formatBRL } from "@/lib/format/currency";
 import { formatQty } from "@/lib/format/number";
+
+const formatNum = (v: number) =>
+  new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(v);
 
 function BackButton({ onClick }: { onClick: () => void }) {
   return (
@@ -95,6 +93,8 @@ function EditOrderContent() {
     onProdutoSelect,
     preco,
     isLoadingPreco,
+    precoEdit,
+    setPrecoEdit,
     qtde,
     setQtde,
     subtotal,
@@ -127,8 +127,24 @@ function EditOrderContent() {
   } = fechamentoForm;
   const obsInterValue = watchFechamento("obsInter");
 
+  const produtoBuscaRef = useRef<HTMLInputElement | null>(null);
   const qtdeInputRef = useRef<HTMLInputElement | null>(null);
+  const wasAddingRef = useRef(false);
 
+  // foco inicial no campo de busca
+  useEffect(() => {
+    produtoBuscaRef.current?.focus();
+  }, []);
+
+  // foco de volta na busca após adicionar item
+  useEffect(() => {
+    if (wasAddingRef.current && !isAddingItem) {
+      produtoBuscaRef.current?.focus();
+    }
+    wasAddingRef.current = isAddingItem;
+  }, [isAddingItem]);
+
+  // foco na quantidade quando produto+preço carregam
   useEffect(() => {
     if (selectedProduto && preco && qtdeInputRef.current) {
       qtdeInputRef.current.focus();
@@ -231,21 +247,39 @@ function EditOrderContent() {
                 {pedido.cliente && (
                   <div className="px-4 py-3 grid gap-2 text-sm">
                     {pedido.cliente.fone && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Phone size={14} className="shrink-0" />
-                        <span>{pedido.cliente.fone}</span>
+                      <div className="flex text-muted-foreground justify-between">
+                        <div className="flex items-center gap-2">
+                          <Phone size={14} className="shrink-0" />
+                          <span className="font-bold">{pedido.cliente.fone}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <IdCard size={14} className="shrink-0" />
+                          <span className="font-mono">
+                            {pedido.cliente.docformatado}
+                          </span>
+                        </div>
                       </div>
                     )}
-                    {(pedido.cliente.endereco ||
-                      pedido.cliente.cidade ||
-                      pedido.cliente.uf) && (
+                    {(pedido.cliente.endereco) && (
                       <div className="flex items-start gap-2 text-muted-foreground">
-                        <MapPin size={14} className="shrink-0 mt-0.5" />
+                        <LocateFixed size={14} className="shrink-0 mt-0.5" />
                         <span>
                           {[
                             pedido.cliente.endereco,
                             pedido.cliente.nroend,
                             pedido.cliente.bairro,
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </span>
+                      </div>
+                    )}
+                    {(pedido.cliente.cidade ||
+                      pedido.cliente.uf) && (
+                      <div className="flex items-start gap-2 text-muted-foreground">
+                        <MapPin size={14} className="shrink-0 mt-0.5" />
+                        <span className="font-semibold">
+                          {[
                             pedido.cliente.cidade,
                             pedido.cliente.uf,
                           ]
@@ -259,34 +293,28 @@ function EditOrderContent() {
               </div>
 
               {/* Totais */}
-              <div className="grid gap-2 rounded-(--radius) border border-border bg-muted/20 p-4">
+              <div className="grid gap-2 rounded-(--radius) border border-border bg-muted/20 p-4 md:w-2/3 ml-auto">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Valor bruto</span>
-                  <span className="font-mono">{formatBRL(pedido.vlrbruto)}</span>
+                  <span className="text-muted-foreground">Total Produtos</span>
+                  <span className="font-mono">
+                    {formatBRL(pedido.vlrbruto)}
+                  </span>
                 </div>
                 {pedido.desconto > 0 && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Desconto</span>
                     <span className="font-mono text-destructive">
-                      -{formatBRL(pedido.desconto)}
-                    </span>
-                  </div>
-                )}
-                {pedido.acrescimo > 0 && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Acréscimo</span>
-                    <span className="font-mono">
-                      +{formatBRL(pedido.acrescimo)}
+                      -{formatNum(pedido.desconto)}
                     </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">ICMS-ST</span>
-                  <span className="font-mono">{formatBRL(pedido.st)}</span>
+                  <span className="text-muted-foreground">Total ST</span>
+                  <span className="font-mono">{formatNum(pedido.st)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">IPI</span>
-                  <span className="font-mono">{formatBRL(pedido.ipi)}</span>
+                  <span className="text-muted-foreground">Total IPI</span>
+                  <span className="font-mono">{formatNum(pedido.ipi)}</span>
                 </div>
                 <div className="mt-1 pt-2 border-t border-border flex items-center justify-between">
                   <span className="text-sm font-semibold">Total</span>
@@ -410,11 +438,7 @@ function EditOrderContent() {
                   </Callout>
                 )}
 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={!canFechar}
-                >
+                <Button type="submit" className="w-full" disabled={!canFechar}>
                   {isFechando ? (
                     <>
                       <Loader2 size={16} className="animate-spin mr-2" />
@@ -446,6 +470,7 @@ function EditOrderContent() {
                 <div className="relative flex items-center">
                   <Input
                     id="produto-busca"
+                    ref={produtoBuscaRef}
                     value={produtoQuery}
                     onChange={(e) => onProdutoQueryChange(e.target.value)}
                     onFocus={() => {
@@ -498,7 +523,7 @@ function EditOrderContent() {
             {/* Quantidade e Display */}
             {selectedProduto && preco && (
               <div className="space-y-3">
-                <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
+                <div className="grid grid-cols-2 gap-3 items-end">
                   <div className="grid gap-1.5">
                     <Label htmlFor="qtde">Quantidade</Label>
                     <Input
@@ -510,14 +535,31 @@ function EditOrderContent() {
                       step="0.001"
                       value={qtde}
                       onChange={(e) => setQtde(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && canAddItem) {
+                          e.preventDefault();
+                          onAdicionarItem();
+                        }
+                      }}
                       className="font-mono"
                     />
                   </div>
                   <div className="grid gap-1.5">
-                    <Label>Preço unit.</Label>
-                    <div className="h-9 px-3 rounded-(--radius) border border-border bg-muted/40 flex items-center font-mono text-sm">
-                      {formatBRL(preco.vunit)}
-                    </div>
+                    <Label htmlFor="preco-unit">Preço unit.</Label>
+                    <Input
+                      id="preco-unit"
+                      type="text"
+                      inputMode="decimal"
+                      value={precoEdit}
+                      onChange={(e) => setPrecoEdit(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && canAddItem) {
+                          e.preventDefault();
+                          onAdicionarItem();
+                        }
+                      }}
+                      className="font-mono"
+                    />
                   </div>
                 </div>
 
@@ -662,7 +704,9 @@ function EditOrderContent() {
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 pl-14 text-xs font-mono text-muted-foreground">
-                      <span>{formatQty(item.qtde)} × {formatBRL(item.unitario)}</span>
+                      <span>
+                        {formatQty(item.qtde)} × {formatBRL(item.unitario)}
+                      </span>
                       {impItem > 0 && <span>imp. {formatBRL(impItem)}</span>}
                     </div>
                   </li>
@@ -682,9 +726,7 @@ function EditOrderContent() {
         <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>Pedido fechado com sucesso</DialogTitle>
-            <DialogDescription>
-              O que deseja fazer agora?
-            </DialogDescription>
+            <DialogDescription>O que deseja fazer agora?</DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-2">
             <Button variant="outline" onClick={goHome}>

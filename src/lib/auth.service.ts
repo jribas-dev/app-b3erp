@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { fetchPublic, fetchWithAuth } from "./api-client";
 import {
   clearAuthCookies,
+  clearSelectedEmitenteCookie,
   getAuthTokens,
   setAuthCookies,
 } from "./auth/cookies";
@@ -65,6 +66,7 @@ export async function selectInstanceAction(
 
     const data: AuthResponse = await response.json();
     await setAuthCookies(data.accessToken, data.refreshToken, rememberMe);
+    await clearSelectedEmitenteCookie();
     return { success: true };
   } catch (error) {
     logError("selectInstance", error, { dbId });

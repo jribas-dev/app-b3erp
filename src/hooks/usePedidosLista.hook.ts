@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   getEmitentesAction,
   getPedidosEditaveisAction,
   getPedidosFechadosAction,
 } from "@/lib/vendas";
+import { useSelectedEmitente } from "@/components/selected-emitente-provider";
 import type { Emitente, PedidoLista } from "@/types/vendas.types";
 
 export function usePedidosLista() {
+  const { selectedIdemp, setSelectedIdemp } = useSelectedEmitente();
   const [emitentes, setEmitentes] = useState<Emitente[]>([]);
   const [isLoadingEmitentes, setIsLoadingEmitentes] = useState(true);
-  const [selectedIdemp, setSelectedIdemp] = useState<number | null>(null);
 
   const [editaveis, setEditaveis] = useState<PedidoLista[]>([]);
   const [isLoadingEditaveis, setIsLoadingEditaveis] = useState(false);
@@ -57,28 +58,36 @@ export function usePedidosLista() {
       const result = await getEmitentesAction();
       if (result.success && result.data) {
         setEmitentes(result.data);
-        if (result.data.length === 1) {
+        if (
+          selectedIdemp != null &&
+          result.data.some((e) => e.id === selectedIdemp)
+        ) {
+          loadListas(selectedIdemp);
+        } else if (result.data.length === 1) {
           const id = result.data[0].id;
-          setSelectedIdemp(id);
+          await setSelectedIdemp(id);
           loadListas(id);
         }
       }
     } finally {
       setIsLoadingEmitentes(false);
     }
-  }, [loadListas]);
+  }, [loadListas, selectedIdemp, setSelectedIdemp]);
 
+  const initRef = useRef(false);
   useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
     loadEmitentes();
   }, [loadEmitentes]);
 
   const onIdemandChange = useCallback(
-    (idemp: number) => {
-      setSelectedIdemp(idemp);
+    async (idemp: number) => {
+      await setSelectedIdemp(idemp);
       setFiltroCliente("");
       loadListas(idemp);
     },
-    [loadListas],
+    [loadListas, setSelectedIdemp],
   );
 
   const filteredFechados = fechados.filter((p) =>

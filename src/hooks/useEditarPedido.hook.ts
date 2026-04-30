@@ -48,6 +48,7 @@ export function useEditarPedido(idPedido: number | null) {
   const [selectedProduto, setSelectedProduto] = useState<ProdutoBusca | null>(null);
   const [preco, setPreco] = useState<ProdutoPreco | null>(null);
   const [isLoadingPreco, setIsLoadingPreco] = useState(false);
+  const [precoEdit, setPrecoEdit] = useState<string>("");
   const [qtde, setQtde] = useState<string>("1");
   const [impostos, setImpostos] = useState<ImpostoCalculado | null>(null);
   const [isCalcImposto, setIsCalcImposto] = useState(false);
@@ -176,13 +177,16 @@ export function useEditarPedido(idPedido: number | null) {
       try {
         const result = await getProdutoPrecoAction(p.id, pedido.idcli, pedido.idoper);
         if (result.success) {
+          const vunit = roundPrice(result.data.vunit);
           setPreco({
             cfop: result.data.cfop,
             custo: roundPrice(result.data.custo),
-            vunit: roundPrice(result.data.vunit),
+            vunit,
           });
+          setPrecoEdit(vunit.toFixed(2));
         } else {
           setPreco(null);
+          setPrecoEdit("");
           setAddError(result.error || "Erro ao buscar preço");
         }
       } finally {
@@ -197,13 +201,18 @@ export function useEditarPedido(idPedido: number | null) {
     return Number.isFinite(n) && n > 0 ? n : 0;
   }, [qtde]);
 
+  const precoNum = useMemo(() => {
+    const n = Number(precoEdit.replace(",", "."));
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  }, [precoEdit]);
+
   const subtotal = useMemo(() => {
-    if (!preco || qtdeNum <= 0) return 0;
-    return Number((qtdeNum * preco.vunit).toFixed(2));
-  }, [preco, qtdeNum]);
+    if (!preco || qtdeNum <= 0 || precoNum <= 0) return 0;
+    return Number((qtdeNum * precoNum).toFixed(2));
+  }, [preco, qtdeNum, precoNum]);
 
   useEffect(() => {
-    if (!pedido || !preco || qtdeNum <= 0 || !selectedProduto) {
+    if (!pedido || !preco || qtdeNum <= 0 || precoNum <= 0 || !selectedProduto) {
       setImpostos(null);
       return;
     }
@@ -227,7 +236,7 @@ export function useEditarPedido(idPedido: number | null) {
       }
     }, 350);
     return () => clearTimeout(handle);
-  }, [pedido, preco, qtdeNum, subtotal, selectedProduto, isFiscal]);
+  }, [pedido, preco, qtdeNum, precoNum, subtotal, selectedProduto, isFiscal]);
 
   const canAddItem = !!(
     pedido &&
@@ -235,6 +244,7 @@ export function useEditarPedido(idPedido: number | null) {
     selectedProduto &&
     preco &&
     qtdeNum > 0 &&
+    precoNum > 0 &&
     impostos &&
     !isCalcImposto &&
     !isLoadingPreco &&
@@ -247,20 +257,21 @@ export function useEditarPedido(idPedido: number | null) {
     setProdutoResults([]);
     setShowResults(false);
     setPreco(null);
+    setPrecoEdit("");
     setImpostos(null);
     setQtde("1");
     setAddError(null);
   }, []);
 
   const onAdicionarItem = useCallback(async () => {
-    if (!pedido || !selectedProduto || !preco || !impostos || qtdeNum <= 0) return;
+    if (!pedido || !selectedProduto || !preco || !impostos || qtdeNum <= 0 || precoNum <= 0) return;
     setIsAddingItem(true);
     setAddError(null);
     try {
       const result = await adicionarItemAction(pedido.id, {
         idProd: selectedProduto.id,
         qtde: qtdeNum,
-        vunit: preco.vunit,
+        vunit: precoNum,
         custo: preco.custo,
         cfop: preco.cfop,
         vST: impostos.st,
@@ -279,7 +290,7 @@ export function useEditarPedido(idPedido: number | null) {
     } finally {
       setIsAddingItem(false);
     }
-  }, [pedido, selectedProduto, preco, impostos, qtdeNum, resetProdutoForm]);
+  }, [pedido, selectedProduto, preco, impostos, qtdeNum, precoNum, resetProdutoForm]);
 
   const onRemoverItem = useCallback(
     async (seq: number) => {
@@ -343,6 +354,9 @@ export function useEditarPedido(idPedido: number | null) {
     onProdutoSelect,
     preco,
     isLoadingPreco,
+    precoEdit,
+    setPrecoEdit,
+    precoNum,
     qtde,
     setQtde,
     qtdeNum,

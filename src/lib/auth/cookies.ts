@@ -10,6 +10,8 @@ const COOKIE_OPTIONS = {
 const ACCESS_TOKEN_FIRST_MAX_AGE = 15 * 60;
 const ACCESS_TOKEN_SECOND_MAX_AGE = 3 * 60 * 60;
 const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60;
+const SELECTED_EMITENTE_MAX_AGE = REFRESH_TOKEN_MAX_AGE;
+const SELECTED_EMITENTE_COOKIE = "selectedEmitente";
 
 export async function setAuthCookies(
   accessToken: string,
@@ -46,6 +48,28 @@ export async function clearAuthCookies(): Promise<void> {
   store.delete("accessToken");
   store.delete("refreshToken");
   store.delete("rememberMe");
+  store.delete(SELECTED_EMITENTE_COOKIE);
+}
+
+export async function setSelectedEmitenteCookie(idemp: number): Promise<void> {
+  const store = await cookies();
+  store.set(SELECTED_EMITENTE_COOKIE, String(idemp), {
+    ...COOKIE_OPTIONS,
+    maxAge: SELECTED_EMITENTE_MAX_AGE,
+  });
+}
+
+export async function getSelectedEmitenteCookie(): Promise<number | null> {
+  const store = await cookies();
+  const raw = store.get(SELECTED_EMITENTE_COOKIE)?.value;
+  if (!raw) return null;
+  const parsed = Number(raw);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+export async function clearSelectedEmitenteCookie(): Promise<void> {
+  const store = await cookies();
+  store.delete(SELECTED_EMITENTE_COOKIE);
 }
 
 export async function getAuthTokens(): Promise<{
