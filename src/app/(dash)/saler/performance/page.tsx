@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, TrendingUp, Users, Loader2, RefreshCw, X, UserX, Phone, Mail, MapPin, Clock } from "lucide-react";
+import { ArrowLeft, TrendingUp, Users, Loader2, RefreshCw, X, UserX, Phone, Mail, MapPin, Clock, UsersRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   ResponsiveContainer,
@@ -279,18 +279,26 @@ export default function PerformancePage() {
   const {
     isLoadingInit,
     isSupervisor,
+    emitentes,
+    selectedIdemp,
+    onIdempChange,
     equipe,
     selectedVendedor,
     isComboboxActive,
     onActivateCombobox,
     onCancelCombobox,
     onVendedorSelect,
+    joinTeam,
+    onJoinToggle,
     activeTab,
     onTabChange,
     isLoadingMetrica,
     metricaData,
     metricaError,
   } = usePerformance();
+
+  const empresaAtual = emitentes.find((e) => e.id === selectedIdemp) ?? null;
+  const podeAgregarEquipe = isSupervisor && equipe.length > 1;
 
   return (
     <div className="container mx-auto max-w-5xl px-3 py-4 space-y-4">
@@ -304,55 +312,142 @@ export default function PerformancePage() {
         <h1 className="text-xl font-semibold">Análise de Desempenho</h1>
       </div>
 
-      {/* Campo 1 + 2: seletor de vendedor */}
-      <div className="grid gap-1.5">
-        <Label>Vendedor</Label>
+      {/* Empresa — só aparece selector quando há mais de uma */}
+      {!isLoadingInit && emitentes.length > 1 && (
+        <div className="grid gap-1.5">
+          <Label htmlFor="empresa">Empresa</Label>
+          <Select
+            value={selectedIdemp?.toString() ?? ""}
+            onValueChange={(v) => onIdempChange(Number(v))}
+          >
+            <SelectTrigger id="empresa" className="w-full">
+              <SelectValue placeholder="Selecione a empresa" />
+            </SelectTrigger>
+            <SelectContent>
+              {emitentes.map((e) => (
+                <SelectItem key={e.id} value={e.id.toString()}>
+                  {e.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
-        {isLoadingInit ? (
-          <div className="flex items-center gap-2 h-10 px-3 border rounded-(--radius) bg-muted/40">
-            <Spinner size="sm" tone="muted" />
-            <span className="text-sm text-muted-foreground">Carregando equipe…</span>
-          </div>
-        ) : isComboboxActive ? (
-          <div className="flex items-center gap-2">
-            <Select
-              defaultValue={selectedVendedor ? String(selectedVendedor.id) : undefined}
-              onValueChange={(v) => {
-                const membro = equipe.find((m) => String(m.id) === v);
-                if (membro) onVendedorSelect(membro);
-              }}
-            >
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Selecione um vendedor" />
-              </SelectTrigger>
-              <SelectContent>
-                {equipe.map((m) => (
-                  <SelectItem key={m.id} value={String(m.id)}>
-                    {m.razao}
-                    {m.liderado === 0 ? " (você)" : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button variant="ghost" size="sm" onClick={onCancelCombobox} aria-label="Cancelar">
-              <X size={16} />
-            </Button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 h-10 px-3 border rounded-(--radius) bg-muted/40 flex-1 min-w-0">
-              <Users size={14} className="text-muted-foreground shrink-0" />
-              <span className="text-sm truncate">{selectedVendedor?.razao ?? "—"}</span>
+      {/* Vendedor — só aparece quando NÃO está agregando a equipe */}
+      {!joinTeam && (
+        <div className="grid gap-1.5">
+          <Label>Vendedor</Label>
+
+          {isLoadingInit ? (
+            <div className="flex items-center gap-2 h-10 px-3 border rounded-(--radius) bg-muted/40">
+              <Spinner size="sm" tone="muted" />
+              <span className="text-sm text-muted-foreground">Carregando equipe…</span>
             </div>
-            {isSupervisor && equipe.length > 1 && (
-              <Button variant="outline" size="sm" onClick={onActivateCombobox} className="gap-1.5 shrink-0">
-                <RefreshCw size={14} />
-                Trocar
+          ) : isComboboxActive ? (
+            <div className="flex items-center gap-2">
+              <Select
+                defaultValue={selectedVendedor ? String(selectedVendedor.id) : undefined}
+                onValueChange={(v) => {
+                  const membro = equipe.find((m) => String(m.id) === v);
+                  if (membro) onVendedorSelect(membro);
+                }}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Selecione um vendedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {equipe.map((m) => (
+                    <SelectItem key={m.id} value={String(m.id)}>
+                      {m.razao}
+                      {m.liderado === 0 ? " (você)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="ghost" size="sm" onClick={onCancelCombobox} aria-label="Cancelar">
+                <X size={16} />
               </Button>
-            )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 h-10 px-3 border rounded-(--radius) bg-muted/40 flex-1 min-w-0">
+                <Users size={14} className="text-muted-foreground shrink-0" />
+                <span className="text-sm truncate">{selectedVendedor?.razao ?? "—"}</span>
+              </div>
+              {podeAgregarEquipe && (
+                <Button variant="outline" size="sm" onClick={onActivateCombobox} className="gap-1.5 shrink-0">
+                  <RefreshCw size={14} />
+                  Trocar
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Toggle de agregação da equipe — apenas para supersaler com subordinados */}
+      {!isLoadingInit && podeAgregarEquipe && (
+        <button
+          type="button"
+          role="switch"
+          aria-checked={joinTeam}
+          onClick={() => onJoinToggle(!joinTeam)}
+          className={[
+            "w-full flex items-center gap-3 rounded-(--radius) border px-3 py-2.5 text-left transition-colors",
+            joinTeam
+              ? "border-primary bg-primary/10"
+              : "border-border bg-card hover:bg-muted/60",
+          ].join(" ")}
+        >
+          <div
+            className={[
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+              joinTeam
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground",
+            ].join(" ")}
+          >
+            <UsersRound size={18} />
           </div>
-        )}
-      </div>
+          <div className="flex flex-col min-w-0 flex-1">
+            <span
+              className={[
+                "text-sm font-semibold leading-tight",
+                joinTeam ? "text-primary" : "text-foreground",
+              ].join(" ")}
+            >
+              Agregar toda a equipe
+            </span>
+            <span className="text-xs text-muted-foreground leading-tight">
+              {joinTeam
+                ? "Mostrando dados somados de você e dos subordinados"
+                : `Mostrando apenas ${selectedVendedor?.razao ?? "o vendedor selecionado"}`}
+            </span>
+          </div>
+          <span
+            className={[
+              "shrink-0 inline-flex h-6 w-10 rounded-full border transition-colors items-center px-0.5",
+              joinTeam ? "bg-primary border-primary" : "bg-muted border-border",
+            ].join(" ")}
+            aria-hidden
+          >
+            <span
+              className={[
+                "h-5 w-5 rounded-full bg-card shadow-sm transition-transform",
+                joinTeam ? "translate-x-4" : "translate-x-0",
+              ].join(" ")}
+            />
+          </span>
+        </button>
+      )}
+
+      {/* Empresa quando única — apenas informativa */}
+      {!isLoadingInit && emitentes.length === 1 && empresaAtual && (
+        <p className="text-xs text-muted-foreground px-1">
+          Empresa: <span className="font-medium text-foreground">{empresaAtual.nome}</span>
+        </p>
+      )}
 
       {/* Campo 3: mini menu de métricas */}
       {!isLoadingInit && (
