@@ -60,11 +60,17 @@ const formatNum = (v: number) =>
     maximumFractionDigits: 2,
   }).format(v);
 
-function BackButton({ onClick }: { onClick: () => void }) {
+function BackButton({
+  onClick,
+  label = "Home",
+}: {
+  onClick: () => void;
+  label?: string;
+}) {
   return (
     <Button variant="outline" size="sm" onClick={onClick} className="gap-2">
       <ArrowLeft size={16} />
-      Voltar
+      {label}
     </Button>
   );
 }
@@ -152,7 +158,7 @@ function EditOrderContent() {
     }
   }, [selectedProduto, preco]);
 
-  const goBack = () => router.push("/home");
+  const goList = () => router.push("/saler/orders/find");
   const goHome = () => router.push("/home");
   const goNovoPedido = () => router.push("/saler/orders/new");
 
@@ -169,7 +175,7 @@ function EditOrderContent() {
   if (loadError || !pedido) {
     return (
       <div className="container mx-auto max-w-xl px-3 py-4 space-y-4">
-        <BackButton onClick={goBack} />
+        <BackButton onClick={goHome} />
         <Callout variant="destructive">
           <CalloutTitle>Não foi possível carregar o pedido</CalloutTitle>
           <CalloutDescription>
@@ -185,8 +191,9 @@ function EditOrderContent() {
   return (
     <div className="container mx-auto max-w-xl px-3 py-4 space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <BackButton onClick={goBack} />
-        <span className="text-xs text-muted-foreground font-mono">
+        <BackButton onClick={goHome} />
+        <BackButton onClick={goList} label="Histórico" />
+        <span className="text-muted-foreground font-mono font-bold">
           #{pedido.id}
         </span>
       </div>
@@ -601,7 +608,7 @@ function EditOrderContent() {
                   <div className="pt-1.5 mt-1 border-t border-border flex items-center justify-between">
                     <span className="text-sm font-semibold">Total do item</span>
                     <span className="font-mono font-bold text-primary">
-                      {formatBRL(subtotal + (impostos?.total ?? 0))}
+                      {formatBRL(subtotal + (impostos?.st ?? 0) + (impostos?.ipi ?? 0))}
                     </span>
                   </div>
 

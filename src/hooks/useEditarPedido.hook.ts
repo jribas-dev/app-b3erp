@@ -77,7 +77,7 @@ export function useEditarPedido(idPedido: number | null) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const impostoSeqRef = useRef(0);
 
-  const isFiscal = pedido?.rcfat === "F";
+  const isFiscal = pedido?.fiscal === "F";
   const isAberto = pedido?.tipo === "O";
 
   const loadPedido = useCallback(async () => {

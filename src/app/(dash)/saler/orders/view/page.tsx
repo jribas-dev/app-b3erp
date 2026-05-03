@@ -32,24 +32,20 @@ import { formatDate } from "@/lib/format/date";
 import { formatQty } from "@/lib/format/number";
 
 const STATUS: Record<string, { label: string; className: string }> = {
-  O: {
-    label: "Rascunho",
-    className: "border-primary/30 bg-primary/10 text-primary",
-  },
-  P: {
-    label: "Pendente",
+  E: {
+    label: "Estimativa",
     className: "border-accent/30 bg-accent/10 text-accent",
   },
-  V: {
-    label: "Validado",
+  F: {
+    label: "Fiscal",
     className:
       "border-[oklch(0.625_0.177_140.4)]/30 bg-[oklch(0.625_0.177_140.4)]/10 text-[oklch(0.625_0.177_140.4)]",
   },
 };
 
-function StatusBadge({ tipo }: { tipo: string }) {
-  const { label, className } = STATUS[tipo] ?? {
-    label: tipo,
+function StatusBadge({ tpfat }: { tpfat: string }) {
+  const { label, className } = STATUS[tpfat] ?? {
+    label: tpfat,
     className: "border-border bg-muted text-muted-foreground",
   };
   return (
@@ -152,7 +148,7 @@ function ViewOrderContent() {
                 {formatDate(pedido.dthremissao)}
               </span>
             )}
-            <StatusBadge tipo={pedido.tipo} />
+            <StatusBadge tpfat={pedido.fiscal} />
           </div>
         </div>
 

@@ -39,7 +39,7 @@ import { formatDate } from "@/lib/format/date";
 
 const STATUS: Record<string, { label: string; className: string }> = {
   O: {
-    label: "Rascunho",
+    label: "Aberto",
     className: "border-primary/30 bg-primary/10 text-primary",
   },
   P: {
