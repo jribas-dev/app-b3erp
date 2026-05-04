@@ -1,208 +1,202 @@
-import { NextResponse, NextRequest } from "next/server";
-import { PROTECTED_ROUTES, PUBLIC_ROUTES } from "./mocks/routes-permission";
-import { SessionData } from "./types/session-data";
-import { AuthResponse } from "./types/auth-response";
+import { NextResponse, type NextRequest } from "next/server";
 
-async function getSession(accessToken: string): Promise<SessionData | null> {
-  try {
-    const response = await fetch(`${process.env.BACKEND_URL}/backend/session`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+import {
+  COOKIE_MAX_AGES,
+  COOKIE_OPTIONS,
+  hasRequiredRole,
+  refreshAccessToken,
+  verifyAccessToken,
+} from "@/lib/auth/edge-safe";
+import { logError } from "@/lib/observability/log";
+import { PROTECTED_ROUTES, PUBLIC_ROUTES } from "@/config/route-registry";
+import type { SessionData } from "@/types/session-data";
 
-    if (!response.ok) {
-      return null;
-    }
+type PendingCookies = { accessToken: string; refreshToken?: string };
 
-    return await response.json();
-  } catch (error) {
-    console.error("Erro ao verificar sessão:", error);
-    return null;
-  }
-}
+type MiddlewareCtx = {
+  request: NextRequest;
+  pathname: string;
+  accessToken: string | undefined;
+  refreshToken: string | undefined;
+  rememberMe: boolean;
+  session: SessionData | null;
+  pendingCookies: PendingCookies | null;
+};
 
-async function refreshAccessToken(
-  refreshToken: string
-): Promise<AuthResponse | null> {
-  try {
-    const response = await fetch(`${process.env.BACKEND_URL}/auth/refresh`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ refreshToken }),
-    });
+type Handler = (ctx: MiddlewareCtx) => Promise<NextResponse | null>;
 
-    if (!response.ok) {
-      return null;
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Erro ao renovar token:", error);
-    return null;
-  }
-}
-
-function setSecureCookies(
+function setAuthCookiesOnResponse(
   response: NextResponse,
-  accessToken: string,
-  refreshToken?: string
-) {
-  const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict" as const,
-    path: "/",
-  };
+  pending: PendingCookies,
+): NextResponse {
+  // Igual à regra de cookies.ts: presença de refreshToken indica sessão pós
+  // /auth/instance, então o accessToken pode usar a janela longa (3h).
+  const accessMaxAge = pending.refreshToken
+    ? COOKIE_MAX_AGES.ACCESS_SECOND
+    : COOKIE_MAX_AGES.ACCESS_FIRST;
 
-  // Access Token com tempo menor (conforme JWT exp)
-  response.cookies.set("accessToken", accessToken, {
-    ...cookieOptions,
-    maxAge: 3 * 60 * 60, // 3 horas em segundos
+  response.cookies.set("accessToken", pending.accessToken, {
+    ...COOKIE_OPTIONS,
+    maxAge: accessMaxAge,
   });
 
-  // Refresh Token com tempo maior (se fornecido)
-  if (refreshToken) {
-    response.cookies.set("refreshToken", refreshToken, {
-      ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60, // 7 dias em segundos
+  if (pending.refreshToken) {
+    response.cookies.set("refreshToken", pending.refreshToken, {
+      ...COOKIE_OPTIONS,
+      maxAge: COOKIE_MAX_AGES.REFRESH,
     });
   }
+
+  return response;
 }
 
 function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some(
-    (route) =>
-      pathname === "/" || pathname === route || pathname.startsWith(`${route}/`)
+  return (
+    pathname === "/" ||
+    PUBLIC_ROUTES.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    )
   );
 }
 
-function hasRequiredRole(
-  userRoles: string[] | undefined,
-  requiredRoles: readonly string[]
-): boolean {
-  if (requiredRoles.length === 0) return true;
-  if (!userRoles || userRoles.length === 0) return false;
-  return userRoles.some((role) => requiredRoles.includes(role));
+// Resolve a sessão a partir do accessToken atual; se expirado e houver
+// refreshToken, tenta o refresh inline e armazena os novos cookies em
+// `pendingCookies` para que o handler final propague na resposta.
+async function resolveSession(ctx: MiddlewareCtx): Promise<void> {
+  if (!ctx.accessToken) return;
+
+  const result = await verifyAccessToken(ctx.accessToken);
+
+  if (result.kind === "valid") {
+    ctx.session = result.session;
+    return;
+  }
+
+  if (result.kind === "misconfigured") {
+    logError("middleware.verifyAccessToken", new Error("JWT_SECRET ausente"), {
+      pathname: ctx.pathname,
+    });
+    return;
+  }
+
+  if (result.kind === "expired" && ctx.refreshToken) {
+    const refreshed = await refreshAccessToken(ctx.refreshToken);
+    if (!refreshed) return;
+
+    const reverify = await verifyAccessToken(refreshed.accessToken);
+    if (reverify.kind !== "valid") return;
+
+    ctx.session = reverify.session;
+    ctx.pendingCookies = {
+      accessToken: refreshed.accessToken,
+      refreshToken: refreshed.refreshToken,
+    };
+  }
 }
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  console.log("MIDDLEWARE:", pathname);
+// Handlers — cada um retorna NextResponse para terminar o pipeline ou null
+// para passar adiante. Ordem é significativa.
 
-  const accessToken = request.cookies.get("accessToken")?.value;
-  const refreshToken = request.cookies.get("refreshToken")?.value;
-  const rememberMe = request.cookies.get("rememberMe")?.value === "true";
+const redirectLoggedFromLogin: Handler = async (ctx) => {
+  if (ctx.pathname !== "/auth/login") return null;
+  if (!ctx.accessToken || !ctx.rememberMe) return null;
 
-  // Verificar se usuário já está autenticado e está tentando acessar página de login
-  if (pathname === "/auth/login" && accessToken && rememberMe) {
-    // Verificar se a sessão ainda é válida
-    let session = await getSession(accessToken);
+  await resolveSession(ctx);
+  if (!ctx.session) return null;
 
-    // Se a sessão não é válida mas há refresh token, tentar renovar
-    if (!session && refreshToken) {
-      const refreshResult = await refreshAccessToken(refreshToken);
-      if (refreshResult) {
-        session = await getSession(refreshResult.accessToken);
-        if (session) {
-          // Redirecionar para home com novos tokens
-          const response = NextResponse.redirect(new URL("/home", request.url));
-          setSecureCookies(
-            response,
-            refreshResult.accessToken,
-            refreshResult.refreshToken
-          );
-          return response;
-        }
-      }
-    }
+  const response = NextResponse.redirect(new URL("/home", ctx.request.url));
+  return ctx.pendingCookies
+    ? setAuthCookiesOnResponse(response, ctx.pendingCookies)
+    : response;
+};
 
-    // Se a sessão é válida, redirecionar para home
-    if (session) {
-      return NextResponse.redirect(new URL("/home", request.url));
-    }
-  }
+const allowPublic: Handler = async (ctx) => {
+  return isPublicRoute(ctx.pathname) ? NextResponse.next() : null;
+};
 
-  // Permitir rotas públicas
-  if (isPublicRoute(pathname)) {
-    return NextResponse.next();
-  }
+const requireAccessToken: Handler = async (ctx) => {
+  if (ctx.accessToken) return null;
+  const loginUrl = new URL("/auth/login", ctx.request.url);
+  loginUrl.searchParams.set("redirect", ctx.pathname);
+  return NextResponse.redirect(loginUrl);
+};
 
-  // Se não há token de acesso, redirecionar para login
-  if (!accessToken) {
-    const loginUrl = new URL("/auth/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
+const validateOrRefresh: Handler = async (ctx) => {
+  await resolveSession(ctx);
+  return null;
+};
 
-  // Verificar sessão atual
-  let session = await getSession(accessToken);
+const requireSessionOrRedirect: Handler = async (ctx) => {
+  if (ctx.session) return null;
+  // Não limpamos cookies aqui: o refresh-token é uso único com rotação
+  // automática, e múltiplas server actions em paralelo (Promise.all) disputam
+  // o mesmo refresh. Apagar cookies na requisição perdedora destrói a sessão
+  // que a vencedora já renovou. O logout explícito (logoutAction) continua
+  // limpando cookies no auth.service.
+  return NextResponse.redirect(new URL("/auth/login", ctx.request.url));
+};
 
-  // Se sessão inválida, tentar renovar com refresh token
-  if (!session && refreshToken) {
-    const refreshResult = await refreshAccessToken(refreshToken);
+const requireInstance: Handler = async (ctx) => {
+  if (!ctx.session) return null;
+  if (ctx.session.instanceName) return null;
 
-    if (refreshResult) {
-      // Verificar nova sessão com token renovado
-      session = await getSession(refreshResult.accessToken);
+  // /home pode ser acessado sem instância (é onde o usuário escolhe).
+  if (ctx.pathname === "/home") return null;
+  // Sub-rotas de /home e demais rotas privadas exigem instância.
+  return NextResponse.redirect(new URL("/home", ctx.request.url));
+};
 
-      if (session) {
-        // Criar resposta com novos cookies
-        const response = NextResponse.next();
-        setSecureCookies(
-          response,
-          refreshResult.accessToken,
-          refreshResult.refreshToken
-        );
-        return response;
-      }
-    }
-  }
+const gateByRole: Handler = async (ctx) => {
+  if (!ctx.session) return null;
 
-  // Se ainda não há sessão válida, redirecionar para login.
-  // Não limpamos cookies aqui: o refresh-token é uso único com rotação automática,
-  // e múltiplas server actions em paralelo (Promise.all) disputam o mesmo refresh.
-  // Apagar cookies na requisição perdedora destrói a sessão v2 que a vencedora
-  // já renovou, fazendo o usuário perder o login no próximo navigate (ex.: voltar).
-  // O logout explícito (logoutAction) continua limpando cookies no auth.service.
-  if (!session) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
-  }
-
-  // Verificar se é rota /home e se usuário precisa escolher instância
-  if (pathname.startsWith("/home") && !session.instanceName) {
-    // Usuário autenticado mas sem instância selecionada - permitir acesso ao /home
-    if (pathname === "/home") {
-      return NextResponse.next();
-    }
-    // Bloquear sub-rotas de /home sem instância
-    return NextResponse.redirect(new URL("/home", request.url));
-  }
-
-  // Verificar rotas protegidas que não sejam /home
   const protectedRoute = Object.keys(PROTECTED_ROUTES).find(
-    (route) => pathname.startsWith(route) && route !== "/home"
-  ) as keyof typeof PROTECTED_ROUTES;
+    (route) =>
+      route !== "/home" &&
+      (ctx.pathname === route || ctx.pathname.startsWith(`${route}/`)),
+  ) as keyof typeof PROTECTED_ROUTES | undefined;
 
-  if (protectedRoute) {
-    // Para rotas além de /home, exigir instância selecionada
-    if (!session.instanceName) {
-      return NextResponse.redirect(new URL("/home", request.url));
-    }
+  if (!protectedRoute) return null;
 
-    const requiredRoles = PROTECTED_ROUTES[protectedRoute];
+  const requiredRoles = PROTECTED_ROUTES[protectedRoute];
+  if (hasRequiredRole(ctx.session.roleFront, requiredRoles)) return null;
 
-    if (!hasRequiredRole(session.roleFront, requiredRoles)) {
-      // Usuário não tem permissão - redirecionar para home
-      return NextResponse.redirect(new URL("/home", request.url));
+  return NextResponse.redirect(new URL("/home", ctx.request.url));
+};
+
+const pipeline: Handler[] = [
+  redirectLoggedFromLogin,
+  allowPublic,
+  requireAccessToken,
+  validateOrRefresh,
+  requireSessionOrRedirect,
+  requireInstance,
+  gateByRole,
+];
+
+export async function middleware(request: NextRequest) {
+  const ctx: MiddlewareCtx = {
+    request,
+    pathname: request.nextUrl.pathname,
+    accessToken: request.cookies.get("accessToken")?.value,
+    refreshToken: request.cookies.get("refreshToken")?.value,
+    rememberMe: request.cookies.get("rememberMe")?.value === "true",
+    session: null,
+    pendingCookies: null,
+  };
+
+  for (const handler of pipeline) {
+    const result = await handler(ctx);
+    if (result) {
+      return ctx.pendingCookies
+        ? setAuthCookiesOnResponse(result, ctx.pendingCookies)
+        : result;
     }
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  return ctx.pendingCookies
+    ? setAuthCookiesOnResponse(response, ctx.pendingCookies)
+    : response;
 }
 
 export const config = {

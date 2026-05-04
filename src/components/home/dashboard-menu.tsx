@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import { Callout, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
-import { dashItemsPrivate } from "@/mocks/dash-items-private";
+import { dashItemsPrivate } from "@/config/route-registry";
 import {
   DASH_SECTION_LABELS,
   DASH_SECTION_ORDER,

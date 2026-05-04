@@ -1,10 +1,14 @@
 "use server";
 
-import { SignInFormData } from "./validations/sign-in.form";
+import { redirect } from "next/navigation";
+
 import { type AuthResponse } from "@/types/auth-response";
 import { type SessionData } from "@/types/session-data";
-import { UserInstanceList, UserInstanceListResponse } from "@/types/user-instance-list";
-import { redirect } from "next/navigation";
+import {
+  UserInstanceList,
+  UserInstanceListResponse,
+} from "@/types/user-instance-list";
+
 import { fetchPublic, fetchWithAuth } from "./api-client";
 import {
   clearAuthCookies,
@@ -12,7 +16,9 @@ import {
   getAuthTokens,
   setAuthCookies,
 } from "./auth/cookies";
+import { refreshAccessToken, verifyAccessToken } from "./auth/edge-safe";
 import { logError } from "./observability/log";
+import { SignInFormData } from "./validations/sign-in.form";
 
 export async function loginAction(
   credentials: SignInFormData,
@@ -78,18 +84,25 @@ export async function selectInstanceAction(
   }
 }
 
+// Decodifica o JWT localmente (sem round-trip ao backend). Se o access token
+// estiver expirado mas houver refresh válido, tenta renovar e re-verifica.
 export async function getSessionAction(): Promise<SessionData | null> {
   try {
-    const response = await fetchWithAuth("/backend/session", {
-      method: "GET",
-      cache: "no-store",
-    });
+    const { accessToken } = await getAuthTokens();
+    if (!accessToken) return null;
 
-    if (!response.ok) {
-      return null;
-    }
+    const result = await verifyAccessToken(accessToken);
+    if (result.kind === "valid") return result.session;
+    if (result.kind !== "expired") return null;
 
-    return response.json();
+    const refreshed = await refreshTokenAction();
+    if (!refreshed.success) return null;
+
+    const { accessToken: newToken } = await getAuthTokens();
+    if (!newToken) return null;
+
+    const reverify = await verifyAccessToken(newToken);
+    return reverify.kind === "valid" ? reverify.session : null;
   } catch (error) {
     logError("getSession", error);
     return null;
@@ -106,16 +119,9 @@ export async function refreshTokenAction(): Promise<{
       return { success: false, error: "Refresh token não encontrado" };
     }
 
-    const response = await fetchPublic("/auth/refresh", {
-      method: "POST",
-      body: JSON.stringify({ refreshToken }),
-    });
+    const data = await refreshAccessToken(refreshToken);
+    if (!data) return { success: false, error: "Erro ao renovar token" };
 
-    if (!response.ok) {
-      return { success: false, error: "Erro ao renovar token" };
-    }
-
-    const data: AuthResponse = await response.json();
     await setAuthCookies(data.accessToken, data.refreshToken);
     return { success: true };
   } catch (error) {
@@ -180,13 +186,4 @@ export async function redirectAfterLogin() {
 
 export async function redirectToLogin() {
   redirect("/auth/login");
-}
-
-export async function hasPermission(
-  userRoles: string[] | undefined,
-  requiredRoles: string[]
-): Promise<boolean> {
-  if (requiredRoles.length === 0) return true;
-  if (!userRoles || userRoles.length === 0) return false;
-  return userRoles.some((role) => requiredRoles.includes(role));
 }

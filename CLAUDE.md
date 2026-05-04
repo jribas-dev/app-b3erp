@@ -23,7 +23,9 @@ No test runner is configured.
 
 Path alias: `@/* → src/*` (see [tsconfig.json](tsconfig.json)).
 
-Required env: `BACKEND_URL` (REST API base). Auth flow also sets `NODE_ENV` to gate `secure` cookies.
+Required env:
+- `BACKEND_URL` — REST API base.
+- `JWT_SECRET` — segredo HS256 compartilhado com o backend. O middleware verifica o JWT localmente (sem round-trip a `/backend/session`) — se o secret divergir do backend, todas as sessões viram inválidas. `NODE_ENV` também é lido para gate de cookies `secure`.
 
 ## Backend API
 

@@ -1,16 +1,7 @@
 import { cookies } from "next/headers";
 
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  path: "/",
-};
+import { COOKIE_MAX_AGES, COOKIE_OPTIONS } from "./edge-safe";
 
-const ACCESS_TOKEN_FIRST_MAX_AGE = 15 * 60;
-const ACCESS_TOKEN_SECOND_MAX_AGE = 3 * 60 * 60;
-const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60;
-const SELECTED_EMITENTE_MAX_AGE = REFRESH_TOKEN_MAX_AGE;
 const SELECTED_EMITENTE_COOKIE = "selectedEmitente";
 
 export async function setAuthCookies(
@@ -20,8 +11,8 @@ export async function setAuthCookies(
 ): Promise<void> {
   const store = await cookies();
   const accessTokenMaxAge = refreshToken
-    ? ACCESS_TOKEN_SECOND_MAX_AGE
-    : ACCESS_TOKEN_FIRST_MAX_AGE;
+    ? COOKIE_MAX_AGES.ACCESS_SECOND
+    : COOKIE_MAX_AGES.ACCESS_FIRST;
 
   store.set("accessToken", accessToken, {
     ...COOKIE_OPTIONS,
@@ -31,14 +22,14 @@ export async function setAuthCookies(
   if (refreshToken) {
     store.set("refreshToken", refreshToken, {
       ...COOKIE_OPTIONS,
-      maxAge: REFRESH_TOKEN_MAX_AGE,
+      maxAge: COOKIE_MAX_AGES.REFRESH,
     });
   }
 
   if (rememberMe !== undefined) {
     store.set("rememberMe", rememberMe ? "true" : "false", {
       ...COOKIE_OPTIONS,
-      maxAge: rememberMe ? REFRESH_TOKEN_MAX_AGE : 0,
+      maxAge: rememberMe ? COOKIE_MAX_AGES.REFRESH : 0,
     });
   }
 }
@@ -55,7 +46,7 @@ export async function setSelectedEmitenteCookie(idemp: number): Promise<void> {
   const store = await cookies();
   store.set(SELECTED_EMITENTE_COOKIE, String(idemp), {
     ...COOKIE_OPTIONS,
-    maxAge: SELECTED_EMITENTE_MAX_AGE,
+    maxAge: COOKIE_MAX_AGES.REFRESH,
   });
 }
 
