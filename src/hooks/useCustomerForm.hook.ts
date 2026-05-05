@@ -1,53 +1,33 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { cfgApi, customersApi, equipeApi } from "@/lib/api";
-import { getSessionAction } from "@/lib/auth.service";
+import { useCallback, useState } from "react";
+import { useForm } from "react-hook-form";
+
 import { useSelectedEmitente } from "@/components/selected-emitente-provider";
-import { maskCep, maskDocfed } from "@/lib/format/document";
-import { isValidCPF } from "@/lib/validation/cpf";
-import { isValidCNPJ } from "@/lib/validation/cnpj";
 import {
   ClienteFormSchema,
   EMPTY_CLIENTE_FORM,
-  toClienteFormPayload,
   type ClienteFormValues,
 } from "@/lib/forms/cliente-form.form";
-import type {
-  ClienteBusca,
-  MembroEquipe,
-  Emitente,
-  Operacao,
-} from "@/types/vendas.types";
+import { maskDocfed } from "@/lib/format/document";
+import { isValidCNPJ } from "@/lib/validation/cnpj";
+import { isValidCPF } from "@/lib/validation/cpf";
 
-export type CustomerMode = "idle" | "new" | "edit";
+import type { CustomerMode } from "./customerForm/customer-mode";
+import { useCepLookup } from "./customerForm/useCepLookup.hook";
+import { useCustomerData } from "./customerForm/useCustomerData.hook";
+import { useCustomerInit } from "./customerForm/useCustomerInit.hook";
+import { useCustomerSubmit } from "./customerForm/useCustomerSubmit.hook";
 
+export type { CustomerMode } from "./customerForm/customer-mode";
+
+// Orquestrador do cadastro de cliente. Compõe sub-hooks: contexto inicial,
+// search/seleção, lookup de CEP, e submit. Mantém interface pública estável.
 export function useCustomerForm() {
   const { selectedIdemp, setSelectedIdemp } = useSelectedEmitente();
   const [mode, setMode] = useState<CustomerMode>("idle");
   const [clienteId, setClienteId] = useState<number | null>(null);
-
-  const [isSupervisor, setIsSupervisor] = useState(false);
-  const [selfVendId, setSelfVendId] = useState<number | null>(null);
-  const [equipe, setEquipe] = useState<MembroEquipe[]>([]);
-  const [emitentes, setEmitentes] = useState<Emitente[]>([]);
-  const [operacoes, setOperacoes] = useState<Operacao[]>([]);
-  const [isLoadingInit, setIsLoadingInit] = useState(true);
-
-  const [isLoadingCliente, setIsLoadingCliente] = useState(false);
-  const [isCepLoading, setIsCepLoading] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<ClienteBusca[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const initDoneRef = useRef(false);
 
   const form = useForm<ClienteFormValues>({
     resolver: zodResolver(ClienteFormSchema),
@@ -63,174 +43,33 @@ export function useCustomerForm() {
     formState: { isValid, isSubmitting },
   } = form;
 
-  // ── init ──────────────────────────────────────────────────────────────────
+  const init = useCustomerInit({
+    setValue,
+    selectedIdemp,
+    setSelectedIdemp,
+  });
 
-  useEffect(() => {
-    if (initDoneRef.current) return;
-    initDoneRef.current = true;
+  const submit = useCustomerSubmit({
+    handleSubmit,
+    mode,
+    clienteId,
+    setMode,
+    setClienteId,
+  });
 
-    async function init() {
-      setIsLoadingInit(true);
-      try {
-        const [session, equipeRes, emitentesRes] = await Promise.all([
-          getSessionAction(),
-          equipeApi.list(),
-          cfgApi.getEmitentes(),
-        ]);
+  const dataSearch = useCustomerData({
+    reset,
+    selfVendId: init.selfVendId,
+    setMode,
+    setClienteId,
+    setSubmitError: submit.setSubmitError,
+    setSubmitSuccess: submit.setSubmitSuccess,
+  });
 
-        const isSup = session?.roleFront?.includes("supersaler") ?? false;
-        setIsSupervisor(isSup);
+  const cep = useCepLookup({ setValue, getValues });
 
-        if (equipeRes.success) {
-          setEquipe(equipeRes.data);
-          const self = equipeRes.data.find((m) => m.liderado === 0);
-          if (self) {
-            setSelfVendId(self.id);
-            if (!isSup) {
-              setValue("idvende", String(self.id));
-            }
-          }
-        }
-
-        if (emitentesRes.success && emitentesRes.data.length > 0) {
-          setEmitentes(emitentesRes.data);
-          let activeId: number | null = null;
-          if (
-            selectedIdemp != null &&
-            emitentesRes.data.some((e) => e.id === selectedIdemp)
-          ) {
-            activeId = selectedIdemp;
-          } else if (emitentesRes.data.length === 1) {
-            activeId = emitentesRes.data[0].id;
-            await setSelectedIdemp(activeId);
-          }
-
-          if (activeId != null) {
-            const opsRes = await cfgApi.getOperacoes(activeId);
-            if (opsRes.success) {
-              setOperacoes(opsRes.data);
-            }
-          }
-        }
-      } finally {
-        setIsLoadingInit(false);
-      }
-    }
-
-    init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setValue]);
-
-  useEffect(() => {
-    return () => {
-      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    };
-  }, []);
-
-  // ── emitente change ────────────────────────────────────────────────────────
-
-  const onIdemandChange = useCallback(
-    async (id: number) => {
-      await setSelectedIdemp(id);
-      const opsRes = await cfgApi.getOperacoes(id);
-      if (opsRes.success && opsRes.data) {
-        setOperacoes(opsRes.data);
-        setValue("idoper", "");
-      }
-    },
-    [setValue, setSelectedIdemp],
-  );
-
-  // ── search dialog ──────────────────────────────────────────────────────────
-
-  const openSearch = useCallback(() => {
-    setSearchQuery("");
-    setSearchResults([]);
-    setSearchOpen(true);
-  }, []);
-
-  const closeSearch = useCallback(() => {
-    setSearchOpen(false);
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-  }, []);
-
-  const onSearchQueryChange = useCallback((q: string) => {
-    setSearchQuery(q);
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    if (q.length < 2) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
-    }
-    setIsSearching(true);
-    searchTimerRef.current = setTimeout(async () => {
-      const res = await customersApi.search(q);
-      setSearchResults(res.success && res.data ? res.data : []);
-      setIsSearching(false);
-    }, 400);
-  }, []);
-
-  const onSelectFromSearch = useCallback(
-    async (id: number) => {
-      setSearchOpen(false);
-      setIsLoadingCliente(true);
-      setSubmitError(null);
-      setSubmitSuccess(false);
-      try {
-        const res = await customersApi.getById(id);
-        if (res.success) {
-          const c = res.data;
-          setClienteId(c.id);
-          setMode("edit");
-          const rawDocfed = c.docfed ?? "";
-          reset({
-            tipopessoa: c.tipopessoa ?? "F",
-            razao: c.razao ?? "",
-            fantasia: c.fantasia ?? "",
-            docfedDisplay: rawDocfed ? maskDocfed(rawDocfed) : "",
-            docest: c.docest ?? "",
-            email: c.email ?? "",
-            emailnfe: c.emailnfe ?? "",
-            emailcob: c.emailcob ?? "",
-            site: c.site ?? "",
-            cepDisplay: c.cep ? maskCep(c.cep) : "",
-            endereco: c.endereco ?? "",
-            nroend: c.nroend ?? "",
-            bairro: c.bairro ?? "",
-            cidade: c.cidade ?? "",
-            uf: c.uf ?? "",
-            fone: c.fone ?? "",
-            fone2: c.fone2 ?? "",
-            cel: c.cel ?? "",
-            obsvenda: c.obsvenda ?? "",
-            idoper: c.idoper ? String(c.idoper) : "",
-            idvende: c.idvende ? String(c.idvende) : "",
-          });
-        } else {
-          setSubmitError(res.error || "Erro ao carregar cliente");
-        }
-      } finally {
-        setIsLoadingCliente(false);
-      }
-    },
-    [reset],
-  );
-
-  // ── new cliente ────────────────────────────────────────────────────────────
-
-  const onNewCliente = useCallback(() => {
-    setClienteId(null);
-    setMode("new");
-    setSubmitError(null);
-    setSubmitSuccess(false);
-    reset({
-      ...EMPTY_CLIENTE_FORM,
-      idvende: selfVendId ? String(selfVendId) : "",
-    });
-  }, [selfVendId, reset]);
-
-  // ── docfed field (masked) ──────────────────────────────────────────────────
-
+  // Pequeno: docfed mascarado + auto-detect tipopessoa. Mantido aqui por
+  // brevidade (~12 linhas) — extrair em sub-hook seria over-engineering.
   const onDocfedChange = useCallback(
     (v: string) => {
       setValue("docfedDisplay", maskDocfed(v), { shouldValidate: true });
@@ -246,92 +85,38 @@ export function useCustomerForm() {
     [setValue, getValues],
   );
 
-  // ── cep field (masked + lookup) ────────────────────────────────────────────
-
-  const onCepChange = useCallback(
-    (v: string) => {
-      setValue("cepDisplay", maskCep(v), { shouldValidate: true });
-    },
-    [setValue],
-  );
-
-  const onCepBlur = useCallback(async () => {
-    const cepDisplay = getValues("cepDisplay");
-    const raw = cepDisplay.replace(/\D/g, "");
-    if (raw.length !== 8) return;
-    setIsCepLoading(true);
-    try {
-      const res = await customersApi.lookupCep(raw);
-      if (res.success && res.data) {
-        const d = res.data;
-        if (d.logradouro) setValue("endereco", d.logradouro);
-        if (d.bairro) setValue("bairro", d.bairro);
-        if (d.localidade) setValue("cidade", d.localidade);
-        if (d.uf) setValue("uf", d.uf);
-      }
-    } finally {
-      setIsCepLoading(false);
-    }
-  }, [getValues, setValue]);
-
-  // ── submit ─────────────────────────────────────────────────────────────────
-
-  const onSubmit = handleSubmit(async (values) => {
-    setSubmitError(null);
-    setSubmitSuccess(false);
-
-    const payload = toClienteFormPayload(values);
-
-    let res;
-    if (mode === "edit" && clienteId) {
-      res = await customersApi.update(clienteId, payload);
-    } else {
-      res = await customersApi.create(payload);
-      if (res.success) {
-        setClienteId(res.data.id);
-        setMode("edit");
-      }
-    }
-
-    if (res.success) {
-      setSubmitSuccess(true);
-    } else {
-      setSubmitError(res.error || "Erro ao salvar cliente");
-    }
-  });
-
   const canSave =
-    mode !== "idle" && isValid && !isSubmitting && !isLoadingCliente;
+    mode !== "idle" && isValid && !isSubmitting && !dataSearch.isLoadingCliente;
 
   return {
     mode,
-    isLoadingInit,
-    isSupervisor,
-    selfVendId,
-    equipe,
-    emitentes,
+    isLoadingInit: init.isLoadingInit,
+    isSupervisor: init.isSupervisor,
+    selfVendId: init.selfVendId,
+    equipe: init.equipe,
+    emitentes: init.emitentes,
     selectedIdemp,
-    operacoes,
+    operacoes: init.operacoes,
     form,
     onDocfedChange,
-    onCepChange,
-    onCepBlur,
-    isCepLoading,
-    isLoadingCliente,
+    onCepChange: cep.onCepChange,
+    onCepBlur: cep.onCepBlur,
+    isCepLoading: cep.isCepLoading,
+    isLoadingCliente: dataSearch.isLoadingCliente,
     isSubmitting,
-    submitError,
-    submitSuccess,
+    submitError: submit.submitError,
+    submitSuccess: submit.submitSuccess,
     canSave,
-    searchOpen,
-    searchQuery,
-    searchResults,
-    isSearching,
-    openSearch,
-    closeSearch,
-    onSearchQueryChange,
-    onSelectFromSearch,
-    onNewCliente,
-    onSubmit,
-    onIdemandChange,
+    searchOpen: dataSearch.searchOpen,
+    searchQuery: dataSearch.searchQuery,
+    searchResults: dataSearch.searchResults,
+    isSearching: dataSearch.isSearching,
+    openSearch: dataSearch.openSearch,
+    closeSearch: dataSearch.closeSearch,
+    onSearchQueryChange: dataSearch.onSearchQueryChange,
+    onSelectFromSearch: dataSearch.onSelectFromSearch,
+    onNewCliente: dataSearch.onNewCliente,
+    onSubmit: submit.onSubmit,
+    onIdemandChange: init.onIdemandChange,
   };
 }

@@ -1,103 +1,46 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { cfgApi, customersApi, pedidosApi } from "@/lib/api";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { useSelectedEmitente } from "@/components/selected-emitente-provider";
-import type { Emitente, Operacao, ClienteBusca, ClienteDetalhe } from "@/types/vendas.types";
 
-const SEARCH_MIN_CHARS = 3;
-const SEARCH_DEBOUNCE_MS = 300;
+import { useClienteSearch } from "./novoPedido/useClienteSearch.hook";
+import { useEmitenteOperacao } from "./novoPedido/useEmitenteOperacao.hook";
+import { useNovoPedidoSubmit } from "./novoPedido/useNovoPedidoSubmit.hook";
 
+// Orquestrador da criação de pedido. Compõe sub-hooks (emitente/operação,
+// busca de cliente, submit) e adiciona o pequeno estado local de
+// rcfat + os refs de focus management inicial.
 export function useNovoPedido() {
-  const router = useRouter();
-
   const { selectedIdemp, setSelectedIdemp } = useSelectedEmitente();
-  const [emitentes, setEmitentes] = useState<Emitente[]>([]);
-  const [isLoadingEmitentes, setIsLoadingEmitentes] = useState(true);
 
-  const [operacoes, setOperacoes] = useState<Operacao[]>([]);
-  const [isLoadingOperacoes, setIsLoadingOperacoes] = useState(false);
-  const [selectedIdOper, setSelectedIdOper] = useState<number | null>(null);
+  const cliente = useClienteSearch();
 
-  const [clienteQuery, setClienteQuery] = useState("");
-  const [clienteResults, setClienteResults] = useState<ClienteBusca[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [selectedCliente, setSelectedCliente] = useState<ClienteDetalhe | null>(null);
-  const [isLoadingCliente, setIsLoadingCliente] = useState(false);
+  const emitOper = useEmitenteOperacao({
+    selectedIdemp,
+    setSelectedIdemp,
+    onEmitenteChanged: cliente.clearCliente,
+  });
 
   const [rcfat, setRcfat] = useState<"F" | "E">("E");
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const submit = useNovoPedidoSubmit({
+    selectedIdemp,
+    selectedIdOper: emitOper.selectedIdOper,
+    selectedCliente: cliente.selectedCliente,
+    rcfat,
+  });
 
-  const searchSeqRef = useRef(0);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  // Focus management inicial — depois que tudo carrega, foca no primeiro
+  // campo a preencher.
   const emitenteTriggerRef = useRef<HTMLButtonElement>(null);
   const operacaoTriggerRef = useRef<HTMLButtonElement>(null);
   const clienteInputRef = useRef<HTMLInputElement>(null);
   const initialFocusDoneRef = useRef(false);
 
-  const loadOperacoes = useCallback(async (idemp: number) => {
-    setIsLoadingOperacoes(true);
-    setOperacoes([]);
-    setSelectedIdOper(null);
-    try {
-      const result = await cfgApi.getOperacoes(idemp);
-      if (result.success && result.data) {
-        const lista = result.data;
-        setOperacoes(lista);
-
-        if (lista.length > 0) {
-          const cfg = await cfgApi.getTenantCfg("VOPERPADRAO");
-          const fromCfg = cfg.success && cfg.data ? Number(cfg.data.valor) : NaN;
-          const defaultOp =
-            Number.isFinite(fromCfg) && lista.some((op) => op.id === fromCfg)
-              ? fromCfg
-              : lista.find((op) => op.id === 1)?.id ?? null;
-
-          setSelectedIdOper(defaultOp);
-        }
-      }
-    } finally {
-      setIsLoadingOperacoes(false);
-    }
-  }, []);
-
-  const loadEmitentes = useCallback(async () => {
-    setIsLoadingEmitentes(true);
-    try {
-      const result = await cfgApi.getEmitentes();
-      if (result.success && result.data) {
-        setEmitentes(result.data);
-        if (
-          selectedIdemp != null &&
-          result.data.some((e) => e.id === selectedIdemp)
-        ) {
-          await loadOperacoes(selectedIdemp);
-        } else if (result.data.length === 1) {
-          const id = result.data[0].id;
-          await setSelectedIdemp(id);
-          await loadOperacoes(id);
-        }
-      }
-    } finally {
-      setIsLoadingEmitentes(false);
-    }
-  }, [loadOperacoes, selectedIdemp, setSelectedIdemp]);
-
-  const initRef = useRef(false);
-  useEffect(() => {
-    if (initRef.current) return;
-    initRef.current = true;
-    loadEmitentes();
-  }, [loadEmitentes]);
-
   useEffect(() => {
     if (initialFocusDoneRef.current) return;
-    if (isLoadingEmitentes) return;
+    if (emitOper.isLoadingEmitentes) return;
 
     if (!selectedIdemp) {
       emitenteTriggerRef.current?.focus();
@@ -105,138 +48,59 @@ export function useNovoPedido() {
       return;
     }
 
-    if (isLoadingOperacoes) return;
+    if (emitOper.isLoadingOperacoes) return;
 
-    if (selectedIdOper) {
+    if (emitOper.selectedIdOper) {
       clienteInputRef.current?.focus();
     } else {
       operacaoTriggerRef.current?.focus();
     }
     initialFocusDoneRef.current = true;
-  }, [isLoadingEmitentes, selectedIdemp, isLoadingOperacoes, selectedIdOper]);
+  }, [
+    emitOper.isLoadingEmitentes,
+    selectedIdemp,
+    emitOper.isLoadingOperacoes,
+    emitOper.selectedIdOper,
+  ]);
 
+  // Wrap onIdemandChange para também limpar resultados de cliente (já cobre
+  // selectedCliente via callback no sub-hook, mas o orquestrador mantém a
+  // assinatura pública estável).
   const onIdemandChange = useCallback(
     async (idemp: number) => {
-      await setSelectedIdemp(idemp);
-      setSelectedCliente(null);
-      setClienteQuery("");
-      setClienteResults([]);
-      setShowResults(false);
-      loadOperacoes(idemp);
+      await emitOper.onIdemandChange(idemp);
     },
-    [loadOperacoes, setSelectedIdemp],
+    [emitOper],
   );
-
-  const runSearch = useCallback(async (q: string) => {
-    const seq = ++searchSeqRef.current;
-    setIsSearching(true);
-    setShowResults(true);
-    try {
-      const result = await customersApi.search(q);
-      if (seq !== searchSeqRef.current) return; // resultado antigo
-      if (result.success && result.data) {
-        setClienteResults(result.data);
-      } else {
-        setClienteResults([]);
-      }
-    } finally {
-      if (seq === searchSeqRef.current) setIsSearching(false);
-    }
-  }, []);
-
-  const onClienteQueryChange = useCallback(
-    (value: string) => {
-      setClienteQuery(value);
-      if (selectedCliente && value !== selectedCliente.razao) {
-        setSelectedCliente(null);
-      }
-
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-
-      const trimmed = value.trim();
-      if (trimmed.length < SEARCH_MIN_CHARS) {
-        searchSeqRef.current++; // invalida buscas em andamento
-        setIsSearching(false);
-        setShowResults(false);
-        setClienteResults([]);
-        return;
-      }
-
-      debounceRef.current = setTimeout(() => {
-        runSearch(trimmed);
-      }, SEARCH_DEBOUNCE_MS);
-    },
-    [selectedCliente, runSearch],
-  );
-
-  const onClienteSelect = useCallback(async (id: number) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    searchSeqRef.current++;
-    setShowResults(false);
-    setIsSearching(false);
-    setIsLoadingCliente(true);
-    try {
-      const result = await customersApi.getById(id);
-      if (result.success && result.data) {
-        setSelectedCliente(result.data);
-        setClienteQuery(result.data.razao);
-        setClienteResults([]);
-      }
-    } finally {
-      setIsLoadingCliente(false);
-    }
-  }, []);
-
-  const onSubmit = useCallback(async () => {
-    if (!selectedIdemp || !selectedIdOper || !selectedCliente) return;
-
-    setIsSubmitting(true);
-    setSubmitError(null);
-    try {
-      const result = await pedidosApi.create({
-        rctipo: "O",
-        rcfat,
-        idCli: selectedCliente.id,
-        idOper: selectedIdOper,
-        idemp: selectedIdemp,
-      });
-
-      if (result.success) {
-        router.push(`/saler/orders/edit?id=${result.data.id}`);
-      } else {
-        setSubmitError(result.error || "Erro ao criar pedido");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [selectedIdemp, selectedIdOper, selectedCliente, rcfat, router]);
-
-  const canSubmit = !!(selectedIdemp && selectedIdOper && selectedCliente && !isSubmitting);
 
   return {
-    emitentes,
-    isLoadingEmitentes,
+    emitentes: emitOper.emitentes,
+    isLoadingEmitentes: emitOper.isLoadingEmitentes,
     selectedIdemp,
     onIdemandChange,
-    operacoes,
-    isLoadingOperacoes,
-    selectedIdOper,
-    setSelectedIdOper,
-    clienteQuery,
-    onClienteQueryChange,
-    clienteResults,
-    isSearching,
-    showResults,
-    setShowResults,
-    selectedCliente,
-    isLoadingCliente,
-    onClienteSelect,
+    operacoes: emitOper.operacoes,
+    isLoadingOperacoes: emitOper.isLoadingOperacoes,
+    selectedIdOper: emitOper.selectedIdOper,
+    setSelectedIdOper: emitOper.setSelectedIdOper,
+
+    clienteQuery: cliente.clienteQuery,
+    onClienteQueryChange: cliente.onClienteQueryChange,
+    clienteResults: cliente.clienteResults,
+    isSearching: cliente.isSearching,
+    showResults: cliente.showResults,
+    setShowResults: cliente.setShowResults,
+    selectedCliente: cliente.selectedCliente,
+    isLoadingCliente: cliente.isLoadingCliente,
+    onClienteSelect: cliente.onClienteSelect,
+
     rcfat,
     setRcfat,
-    isSubmitting,
-    submitError,
-    onSubmit,
-    canSubmit,
+
+    isSubmitting: submit.isSubmitting,
+    submitError: submit.submitError,
+    onSubmit: submit.onSubmit,
+    canSubmit: submit.canSubmit,
+
     emitenteTriggerRef,
     operacaoTriggerRef,
     clienteInputRef,
