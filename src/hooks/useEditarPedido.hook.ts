@@ -4,24 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import {
-  getPedidoAction,
-  buscarProdutosAction,
-  getProdutoPrecoAction,
-  calcImpostoAction,
-  adicionarItemAction,
-  removerItemAction,
-  getFormasPagamentoAction,
-  getCondicoesPagamentoAction,
-  fecharPedidoAction,
-} from "@/lib/vendas";
+import { pagamentosApi, pedidosApi, produtosApi } from "@/lib/api";
 import { roundPrice } from "@/lib/business/preco";
 import {
   FechamentoFormSchema,
   EMPTY_FECHAMENTO_FORM,
   toFecharPedidoPayload,
   type FechamentoFormValues,
-} from "@/lib/validations/fechamento.form";
+} from "@/lib/forms/fechamento.form";
 import type {
   PedidoDetalhe,
   ProdutoBusca,
@@ -88,7 +78,7 @@ export function useEditarPedido(idPedido: number | null) {
     }
     setIsLoading(true);
     setLoadError(null);
-    const result = await getPedidoAction(idPedido);
+    const result = await pedidosApi.getById(idPedido);
     if (result.success) {
       setPedido({ ...result.data, itens: result.data.itens ?? [] });
       resetFechamento({
@@ -114,8 +104,8 @@ export function useEditarPedido(idPedido: number | null) {
     setIsLoadingFormas(true);
     try {
       const [fr, cr] = await Promise.all([
-        getFormasPagamentoAction(idPedido),
-        getCondicoesPagamentoAction(idPedido),
+        pagamentosApi.getFormas(idPedido),
+        pagamentosApi.getCondicoes(idPedido),
       ]);
       if (fr.success) setFormas(fr.data);
       if (cr.success) setCondicoes(cr.data);
@@ -129,7 +119,7 @@ export function useEditarPedido(idPedido: number | null) {
     setIsSearching(true);
     setShowResults(true);
     try {
-      const result = await buscarProdutosAction(q);
+      const result = await produtosApi.search(q);
       if (seq !== searchSeqRef.current) return;
       setProdutoResults(result.success ? result.data : []);
     } finally {
@@ -175,7 +165,7 @@ export function useEditarPedido(idPedido: number | null) {
       if (!pedido) return;
       setIsLoadingPreco(true);
       try {
-        const result = await getProdutoPrecoAction(p.id, pedido.idcli, pedido.idoper);
+        const result = await produtosApi.getPreco(p.id, pedido.idcli, pedido.idoper);
         if (result.success) {
           const vunit = roundPrice(result.data.vunit);
           setPreco({
@@ -224,7 +214,7 @@ export function useEditarPedido(idPedido: number | null) {
     setIsCalcImposto(true);
     const handle = setTimeout(async () => {
       try {
-        const result = await calcImpostoAction(selectedProduto.id, subtotal, pedido.idoper);
+        const result = await produtosApi.calcImposto(selectedProduto.id, subtotal, pedido.idoper);
         if (seq !== impostoSeqRef.current) return;
         if (result.success) {
           setImpostos(result.data);
@@ -268,7 +258,7 @@ export function useEditarPedido(idPedido: number | null) {
     setIsAddingItem(true);
     setAddError(null);
     try {
-      const result = await adicionarItemAction(pedido.id, {
+      const result = await pedidosApi.addItem(pedido.id, {
         idProd: selectedProduto.id,
         qtde: qtdeNum,
         vunit: precoNum,
@@ -279,7 +269,7 @@ export function useEditarPedido(idPedido: number | null) {
         tabela: 0,
       });
       if (result.success) {
-        const reload = await getPedidoAction(pedido.id);
+        const reload = await pedidosApi.getById(pedido.id);
         if (reload.success) {
           setPedido({ ...reload.data, itens: reload.data.itens ?? [] });
         }
@@ -297,9 +287,9 @@ export function useEditarPedido(idPedido: number | null) {
       if (!pedido) return;
       setRemovingSeq(seq);
       try {
-        const result = await removerItemAction(pedido.id, seq);
+        const result = await pedidosApi.removeItem(pedido.id, seq);
         if (result.success) {
-          const reload = await getPedidoAction(pedido.id);
+          const reload = await pedidosApi.getById(pedido.id);
           if (reload.success) {
             setPedido({ ...reload.data, itens: reload.data.itens ?? [] });
           }
@@ -316,7 +306,7 @@ export function useEditarPedido(idPedido: number | null) {
   const onFechar = handleFecharSubmit(async (values) => {
     if (!pedido) return;
     setFecharError(null);
-    const result = await fecharPedidoAction(
+    const result = await pedidosApi.fechar(
       pedido.id,
       toFecharPedidoPayload(values),
     );

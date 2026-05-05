@@ -11,7 +11,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 
-import { getPedidoAction } from "@/lib/vendas";
+import { pedidosApi } from "@/lib/api";
 import type { PedidoDetalhe } from "@/types/vendas.types";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -77,7 +77,7 @@ function ViewOrderContent() {
     }
     let cancelled = false;
     setIsLoading(true);
-    getPedidoAction(idPedido).then((result) => {
+    pedidosApi.getById(idPedido).then((result) => {
       if (cancelled) return;
       if (result.success) {
         setPedido(result.data);

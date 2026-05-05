@@ -9,7 +9,7 @@ import {
   redirectToLogin,
   getUserInstancesAction,
 } from "@/lib/auth.service";
-import { SignInFormData } from "@/lib/validations/sign-in.form";
+import { SignInFormData } from "@/lib/forms/sign-in.form";
 import { UserInstanceListResponse } from "@/types/user-instance-list";
 
 export function useAuth() {

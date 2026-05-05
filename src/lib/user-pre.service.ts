@@ -1,7 +1,7 @@
 "use server";
 
 import { ApiResponse } from "@/types/api-response";
-import { CompleteRegisterFormData } from "./validations/register.form";
+import { CompleteRegisterFormData } from "./forms/register.form";
 import { logError } from "./observability/log";
 
 /**

@@ -1,11 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import {
-  getEmitentesAction,
-  getPedidosEditaveisAction,
-  getPedidosFechadosAction,
-} from "@/lib/vendas";
+import { cfgApi, pedidosApi } from "@/lib/api";
 import { useSelectedEmitente } from "@/components/selected-emitente-provider";
 import type { Emitente, PedidoLista } from "@/types/vendas.types";
 
@@ -33,8 +29,8 @@ export function usePedidosLista() {
     setFechados([]);
 
     const [resEdit, resFech] = await Promise.all([
-      getPedidosEditaveisAction(idemp),
-      getPedidosFechadosAction(idemp),
+      pedidosApi.listEditaveis(idemp),
+      pedidosApi.listFechados(idemp),
     ]);
 
     if (resEdit.success) {
@@ -55,7 +51,7 @@ export function usePedidosLista() {
   const loadEmitentes = useCallback(async () => {
     setIsLoadingEmitentes(true);
     try {
-      const result = await getEmitentesAction();
+      const result = await cfgApi.getEmitentes();
       if (result.success && result.data) {
         setEmitentes(result.data);
         if (

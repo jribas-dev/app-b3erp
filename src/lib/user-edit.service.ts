@@ -1,6 +1,6 @@
 "use server";
 
-import { UserEditFormData } from "@/lib/validations/user-edit.form";
+import { UserEditFormData } from "@/lib/forms/user-edit.form";
 import {
   UserData,
   UserUpdateResponse,

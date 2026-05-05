@@ -1,7 +1,7 @@
 "use server";
 
-import { LostPasswordFormData } from "@/lib/validations/lost-password.form";
-import { ResetPasswordFormData } from "@/lib/validations/reset-password.form";
+import { LostPasswordFormData } from "@/lib/forms/lost-password.form";
+import { ResetPasswordFormData } from "@/lib/forms/reset-password.form";
 import { logError } from "@/lib/observability/log";
 
 export interface LostPasswordResponse {

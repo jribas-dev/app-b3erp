@@ -1,11 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
-import {
-  getTenantCfgAction,
-  getClientesRedeSPAction,
-  getTabelaPrecosAction,
-} from "@/lib/vendas";
+import { cfgApi, customersApi, tabelaPrecosApi } from "@/lib/api";
 import type { ClienteRedeSP, ItemTabelaPrecos } from "@/types/vendas.types";
 
 export function useTabelaPrecos() {
@@ -32,8 +28,8 @@ export function useTabelaPrecos() {
       setIsLoadingInit(true);
       try {
         const [cfgResult, clientesResult] = await Promise.all([
-          getTenantCfgAction("VOPERPADRAO"),
-          getClientesRedeSPAction(),
+          cfgApi.getTenantCfg("VOPERPADRAO"),
+          customersApi.listRedeSP(),
         ]);
         if (cfgResult.success) {
           const n = Number(cfgResult.data.valor);
@@ -91,7 +87,7 @@ export function useTabelaPrecos() {
       setTabelaError(null);
       setIsLoadingTabela(true);
       try {
-        const result = await getTabelaPrecosAction(idOper, cliente.id);
+        const result = await tabelaPrecosApi.list(idOper, cliente.id);
         if (result.success) {
           setTabela(result.data);
           setTimeout(() => filtroInputRef.current?.focus(), 100);

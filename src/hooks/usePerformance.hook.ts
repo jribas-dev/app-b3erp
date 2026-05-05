@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import {
-  getEmitentesAction,
-  getEquipeAction,
-  getVendasSemanaisAction,
-  getVendasMensaisAction,
-  getTopClientesAtivosAction,
-  getClientesInativosAction,
-} from "@/lib/vendas";
+import { cfgApi, equipeApi, metricasApi } from "@/lib/api";
 import { getSessionAction } from "@/lib/auth.service";
 import { useSelectedEmitente } from "@/components/selected-emitente-provider";
 import type {
@@ -68,12 +61,12 @@ export function usePerformance() {
         const query = { idemp, idvende, join };
         let result;
         if (tab === "vendas-semanais")
-          result = await getVendasSemanaisAction(query);
+          result = await metricasApi.vendasSemanais(query);
         else if (tab === "vendas-mensais")
-          result = await getVendasMensaisAction(query);
+          result = await metricasApi.vendasMensais(query);
         else if (tab === "top-clientes")
-          result = await getTopClientesAtivosAction(query);
-        else result = await getClientesInativosAction(query);
+          result = await metricasApi.topClientesAtivos(query);
+        else result = await metricasApi.clientesInativos(query);
 
         if (result.success) {
           setMetricaData(result.data as MetricaData);
@@ -121,8 +114,8 @@ export function usePerformance() {
       try {
         const [session, equipeResult, emitentesResult] = await Promise.all([
           getSessionAction(),
-          getEquipeAction(),
-          getEmitentesAction(),
+          equipeApi.list(),
+          cfgApi.getEmitentes(),
         ]);
 
         const supervisor = session?.roleFront?.includes("supersaler") ?? false;

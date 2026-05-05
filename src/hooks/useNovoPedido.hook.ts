@@ -2,14 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import {
-  getEmitentesAction,
-  getOperacoesAction,
-  getTenantCfgAction,
-  buscarClientesAction,
-  getClienteAction,
-  criarPedidoAction,
-} from "@/lib/vendas";
+import { cfgApi, customersApi, pedidosApi } from "@/lib/api";
 import { useSelectedEmitente } from "@/components/selected-emitente-provider";
 import type { Emitente, Operacao, ClienteBusca, ClienteDetalhe } from "@/types/vendas.types";
 
@@ -52,13 +45,13 @@ export function useNovoPedido() {
     setOperacoes([]);
     setSelectedIdOper(null);
     try {
-      const result = await getOperacoesAction(idemp);
+      const result = await cfgApi.getOperacoes(idemp);
       if (result.success && result.data) {
         const lista = result.data;
         setOperacoes(lista);
 
         if (lista.length > 0) {
-          const cfg = await getTenantCfgAction("VOPERPADRAO");
+          const cfg = await cfgApi.getTenantCfg("VOPERPADRAO");
           const fromCfg = cfg.success && cfg.data ? Number(cfg.data.valor) : NaN;
           const defaultOp =
             Number.isFinite(fromCfg) && lista.some((op) => op.id === fromCfg)
@@ -76,7 +69,7 @@ export function useNovoPedido() {
   const loadEmitentes = useCallback(async () => {
     setIsLoadingEmitentes(true);
     try {
-      const result = await getEmitentesAction();
+      const result = await cfgApi.getEmitentes();
       if (result.success && result.data) {
         setEmitentes(result.data);
         if (
@@ -139,7 +132,7 @@ export function useNovoPedido() {
     setIsSearching(true);
     setShowResults(true);
     try {
-      const result = await buscarClientesAction(q);
+      const result = await customersApi.search(q);
       if (seq !== searchSeqRef.current) return; // resultado antigo
       if (result.success && result.data) {
         setClienteResults(result.data);
@@ -183,7 +176,7 @@ export function useNovoPedido() {
     setIsSearching(false);
     setIsLoadingCliente(true);
     try {
-      const result = await getClienteAction(id);
+      const result = await customersApi.getById(id);
       if (result.success && result.data) {
         setSelectedCliente(result.data);
         setClienteQuery(result.data.razao);
@@ -200,7 +193,7 @@ export function useNovoPedido() {
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      const result = await criarPedidoAction({
+      const result = await pedidosApi.create({
         rctipo: "O",
         rcfat,
         idCli: selectedCliente.id,

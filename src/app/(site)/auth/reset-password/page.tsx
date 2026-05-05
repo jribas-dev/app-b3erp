@@ -19,7 +19,7 @@ import { useResetPassword } from "@/hooks/useLostPassword.hook";
 import {
   ResetPasswordFormData,
   resetPasswordSchema,
-} from "@/lib/validations/reset-password.form";
+} from "@/lib/forms/reset-password.form";
 import { PasswordInput } from "@/components/ui/password-input";
 import Link from "next/link";
 import { Callout, CalloutDescription } from "@/components/ui/callout";

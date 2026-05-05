@@ -18,7 +18,7 @@ import {
 } from "./auth/cookies";
 import { refreshAccessToken, verifyAccessToken } from "./auth/edge-safe";
 import { logError } from "./observability/log";
-import { SignInFormData } from "./validations/sign-in.form";
+import { SignInFormData } from "./forms/sign-in.form";
 
 export async function loginAction(
   credentials: SignInFormData,

@@ -12,7 +12,7 @@ export const menuItemsPublic = [
     name: "Dúvidas | Ajuda",
     hasSubmenu: true,
     subMenuItems: [
-      { name: "Dúvidas Frequentes", routePath: "https://blog.3b3.com.br/", },
+      { name: "Dúvidas Frequentes", routePath: "https://blog.3b3.com.br/" },
       { name: "Suporte Técnico", routePath: "https://3b3.com.br/suporte" },
     ],
   },

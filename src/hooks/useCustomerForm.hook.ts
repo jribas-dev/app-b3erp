@@ -3,16 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  buscarClientesAction,
-  getClienteAction,
-  getEquipeAction,
-  getEmitentesAction,
-  getOperacoesAction,
-  criarClienteAction,
-  atualizarClienteAction,
-  buscarCepAction,
-} from "@/lib/vendas";
+import { cfgApi, customersApi, equipeApi } from "@/lib/api";
 import { getSessionAction } from "@/lib/auth.service";
 import { useSelectedEmitente } from "@/components/selected-emitente-provider";
 import { maskCep, maskDocfed } from "@/lib/format/document";
@@ -23,7 +14,7 @@ import {
   EMPTY_CLIENTE_FORM,
   toClienteFormPayload,
   type ClienteFormValues,
-} from "@/lib/validations/cliente-form.form";
+} from "@/lib/forms/cliente-form.form";
 import type {
   ClienteBusca,
   MembroEquipe,
@@ -83,8 +74,8 @@ export function useCustomerForm() {
       try {
         const [session, equipeRes, emitentesRes] = await Promise.all([
           getSessionAction(),
-          getEquipeAction(),
-          getEmitentesAction(),
+          equipeApi.list(),
+          cfgApi.getEmitentes(),
         ]);
 
         const isSup = session?.roleFront?.includes("supersaler") ?? false;
@@ -115,7 +106,7 @@ export function useCustomerForm() {
           }
 
           if (activeId != null) {
-            const opsRes = await getOperacoesAction(activeId);
+            const opsRes = await cfgApi.getOperacoes(activeId);
             if (opsRes.success) {
               setOperacoes(opsRes.data);
             }
@@ -141,7 +132,7 @@ export function useCustomerForm() {
   const onIdemandChange = useCallback(
     async (id: number) => {
       await setSelectedIdemp(id);
-      const opsRes = await getOperacoesAction(id);
+      const opsRes = await cfgApi.getOperacoes(id);
       if (opsRes.success && opsRes.data) {
         setOperacoes(opsRes.data);
         setValue("idoper", "");
@@ -173,7 +164,7 @@ export function useCustomerForm() {
     }
     setIsSearching(true);
     searchTimerRef.current = setTimeout(async () => {
-      const res = await buscarClientesAction(q);
+      const res = await customersApi.search(q);
       setSearchResults(res.success && res.data ? res.data : []);
       setIsSearching(false);
     }, 400);
@@ -186,7 +177,7 @@ export function useCustomerForm() {
       setSubmitError(null);
       setSubmitSuccess(false);
       try {
-        const res = await getClienteAction(id);
+        const res = await customersApi.getById(id);
         if (res.success) {
           const c = res.data;
           setClienteId(c.id);
@@ -270,7 +261,7 @@ export function useCustomerForm() {
     if (raw.length !== 8) return;
     setIsCepLoading(true);
     try {
-      const res = await buscarCepAction(raw);
+      const res = await customersApi.lookupCep(raw);
       if (res.success && res.data) {
         const d = res.data;
         if (d.logradouro) setValue("endereco", d.logradouro);
@@ -293,9 +284,9 @@ export function useCustomerForm() {
 
     let res;
     if (mode === "edit" && clienteId) {
-      res = await atualizarClienteAction(clienteId, payload);
+      res = await customersApi.update(clienteId, payload);
     } else {
-      res = await criarClienteAction(payload);
+      res = await customersApi.create(payload);
       if (res.success) {
         setClienteId(res.data.id);
         setMode("edit");

@@ -22,7 +22,7 @@ import {
   UserEditFormSchema,
   PasswordChangeFormData,
   PasswordChangeSchema,
-} from "@/lib/validations/user-edit.form";
+} from "@/lib/forms/user-edit.form";
 import { LoadingFallbackLarge } from "@/components/home/loading-fallback";
 import { PasswordInput } from "@/components/ui/password-input";
 import { PhoneInput } from "@/components/ui/phone-input";

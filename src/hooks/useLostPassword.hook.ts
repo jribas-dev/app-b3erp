@@ -6,8 +6,8 @@ import {
   checkLostPasswordAction,
   updateLostPasswordAction,
 } from "@/lib/lost-password.service";
-import { LostPasswordFormData } from "@/lib/validations/lost-password.form";
-import { ResetPasswordFormData } from "@/lib/validations/reset-password.form";
+import { LostPasswordFormData } from "@/lib/forms/lost-password.form";
+import { ResetPasswordFormData } from "@/lib/forms/reset-password.form";
 
 interface UseLostPasswordReturn {
   isLoading: boolean;

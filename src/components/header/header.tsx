@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Menu } from "lucide-react";
 import MobileMenu from "./mobile-menu";
 import LogoEmpresa from "./logo-empresa";
-import { menuItemsPublic } from "@/mocks/menu-items-public";
+import { menuItemsPublic } from "@/config/menu-items-public";
 import DesktopMenu from "./desktop-menu";
 import { useTheme } from "next-themes";
 import { ThemeDropDown } from "../home/theme-dropdown";

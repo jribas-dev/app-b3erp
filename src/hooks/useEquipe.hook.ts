@@ -1,12 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  getEquipeAction,
-  getEquipeSemEquipeAction,
-  adicionarMembroEquipeAction,
-  removerMembroEquipeAction,
-} from "@/lib/vendas";
+import { equipeApi } from "@/lib/api";
 import { getSessionAction } from "@/lib/auth.service";
 import type { MembroEquipe } from "@/types/vendas.types";
 
@@ -31,8 +26,8 @@ export function useEquipe() {
     try {
       const [session, equipeRes, semEquipeRes] = await Promise.all([
         getSessionAction(),
-        getEquipeAction(),
-        getEquipeSemEquipeAction(),
+        equipeApi.list(),
+        equipeApi.listAvailable(),
       ]);
 
       if (session) setIsSupervisor(session.roleFront?.includes("supersaler") ?? false);
@@ -66,7 +61,7 @@ export function useEquipe() {
     setIsActing(true);
     setError(null);
 
-    const res = await adicionarMembroEquipeAction(selectedDisponivel.id);
+    const res = await equipeApi.addMembro(selectedDisponivel.id);
     if (res.success) {
       setActionMsg(`${selectedDisponivel.razao} adicionado à equipe`);
       clearActionMsg();
@@ -82,7 +77,7 @@ export function useEquipe() {
     setIsActing(true);
     setError(null);
 
-    const res = await removerMembroEquipeAction(selectedMembro.id);
+    const res = await equipeApi.removeMembro(selectedMembro.id);
     if (res.success) {
       setActionMsg(`${selectedMembro.razao} removido da equipe`);
       clearActionMsg();

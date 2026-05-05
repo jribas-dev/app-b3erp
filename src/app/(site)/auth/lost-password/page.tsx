@@ -19,7 +19,7 @@ import { useLostPassword } from "@/hooks/useLostPassword.hook";
 import {
   LostPasswordFormData,
   LostPasswordFormSchema,
-} from "@/lib/validations/lost-password.form";
+} from "@/lib/forms/lost-password.form";
 import Link from "next/link";
 import { Callout, CalloutDescription } from "@/components/ui/callout";
 import { FieldError } from "@/components/form/field-error";

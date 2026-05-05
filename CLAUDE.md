@@ -97,13 +97,13 @@ Server-side actions ("use server") in [src/lib/auth.service.ts](src/lib/auth.ser
 
 ### Middleware = the gatekeeper
 
-[src/middleware.ts](src/middleware.ts) runs on every non-static path **except Server Action POSTs** (requests with `next-action` header are excluded from the matcher — redirecting a Server Action POST breaks Next.js's action reducer):
-- Reads `accessToken` and verifies it via `GET /backend/session`. On 401 it tries `POST /auth/refresh` and re-issues cookies inline on the `NextResponse`.
-- Public-vs-protected is decided against `PUBLIC_ROUTES` / `PROTECTED_ROUTES` in [src/mocks/routes-permission.ts](src/mocks/routes-permission.ts) — **edit that file when adding a new top-level route, not the middleware.**
-- `/home` is special: accessible to any authenticated user even without a tenant; all other `(dash)` routes require `session.instanceName` and redirect to `/home` if missing.
-- Role gating verifica se **alguma** role em `session.roleFront` (array) pertence a `PROTECTED_ROUTES[route]` — ver `hasRequiredRole` no middleware. Active roles: `admin`, `supersaler`, `saler`, `buyer`, `inventory`, `notallow` (`ROLES` const in same file). Note: `supersaler` (gerente de vendas) replaced the legacy `supervisor` value to follow the new API standard — the prior `supervisor` covered both administrativo and sales-manager actors, now split into `admin` and `supersaler`.
+[src/middleware.ts](src/middleware.ts) runs on every non-static path **except Server Action POSTs** (requests with `next-action` header are excluded from the matcher — redirecting a Server Action POST breaks Next.js's action reducer). Estrutura interna: pipeline tipado de `Handler[]` (cada handler retorna `NextResponse | null`) — adicione handlers em ordem explícita, não inflar `middleware()`.
+- **Verifica o JWT localmente** com `verifyAccessToken` ([src/lib/auth/edge-safe.ts](src/lib/auth/edge-safe.ts)) — sem round-trip a `/backend/session`. Se expirado e houver refresh token, tenta `POST /auth/refresh` inline e re-emite cookies via `pendingCookies` no ctx.
+- Public-vs-protected é decidido contra `PUBLIC_ROUTES` / `PROTECTED_ROUTES` em [src/config/route-registry.ts](src/config/route-registry.ts) — **edite esse arquivo quando adicionar uma rota nova; o menu do dashboard e o middleware derivam dele automaticamente.**
+- `/home` é especial: acessível a qualquer usuário autenticado mesmo sem tenant; demais rotas `(dash)` exigem `session.instanceName` e redirecionam a `/home` se ausente.
+- Role gating verifica se **alguma** role em `session.roleFront` (array) pertence às roles do prefixo casado — ver `hasRequiredRole` em [src/lib/auth/edge-safe.ts](src/lib/auth/edge-safe.ts). Roles ativas: `admin`, `supersaler`, `saler`, `buyer`, `inventory`, `notallow` (`ROLES` em [src/types/role.ts](src/types/role.ts)). Note: `supersaler` (gerente de vendas) substituiu o legado `supervisor` para seguir o novo padrão da API — o `supervisor` antigo cobria administrativo e gerente de vendas, agora divididos em `admin` e `supersaler`.
 
-Note the middleware re-implements `getSession` / `refreshAccessToken` rather than importing from `auth.service.ts`, because middleware runs in the Edge runtime and can't use `next/headers` `cookies()`. Keep these two paths in sync when changing the auth contract.
+`edge-safe.ts` é a fonte única para `verifyAccessToken`, `refreshAccessToken`, `hasRequiredRole`, `COOKIE_MAX_AGES` e `COOKIE_OPTIONS` — importável tanto pelo middleware (Edge runtime) quanto por server actions Node. Não duplique essas funções em outros arquivos.
 
 Server Actions handle token refresh independently via `fetchWithAuth` (see [src/lib/api-client.ts](src/lib/api-client.ts)).
 
@@ -115,6 +115,53 @@ Server Actions handle token refresh independently via `fetchWithAuth` (see [src/
 - **Icons:** Lucide React only (`size={20}` default, `size={16}` inline).
 - **shadcn primitives in [src/components/ui/](src/components/ui/) are generated — do not hand-edit.** Build new components in sibling folders (`header/`, `footer/`, `home/`) that compose them.
 - **Server Actions for backend calls** — service files in [src/lib/](src/lib/) start with `"use server"` and are the only place cookies are mutated. Don't fetch the backend directly from client components; go through a hook. All authenticated calls must use `fetchWithAuth` from [src/lib/api-client.ts](src/lib/api-client.ts) — it handles token refresh + cookie rotation automatically. Never roll `getAuthTokens()` + manual `fetch(..., { headers: { Authorization } })` in new actions; that pattern is gone.
-- Module names shown in the dashboard come from [src/mocks/dash-items-private.ts](src/mocks/dash-items-private.ts) — match those strings exactly when referencing them in copy.
+- Module names shown in the dashboard come from [src/config/route-registry.ts](src/config/route-registry.ts) (campo `menu.label`) — match those strings exactly when referencing them in copy.
 
 Full design contract for AI-generated UI: [agent_docs/design-rules.md](agent_docs/design-rules.md). Brand reference: [BRAND.md](BRAND.md).
+
+## Code quality requirements (SOLID + Clean Code)
+
+Estes são **requisitos do projeto**, não recomendações. Toda nova contribuição (humana ou IA) deve aderir; PRs que violem precisam de justificativa explícita.
+
+### Tamanho e responsabilidade
+
+- **SRP por arquivo:** uma página, um hook ou um componente faz **uma** coisa. Se você precisa explicar um arquivo com "e", "também" ou "além disso", quebre.
+- **Limites de tamanho** (não absolutos, mas pontos de alerta):
+  - Page (`page.tsx`): ≤250 linhas. Acima disso, extraia blocos para `components/<feature>/`.
+  - Hook: ≤150 linhas. Acima disso, decomponha em sub-hooks compostos por um orquestrador fino.
+  - Componente: ≤200 linhas. Acima disso, separe presentational vs container, ou extraia subcomponentes.
+- **ISP em hooks:** hook que retorna >10 valores é cheiro de "hook deus". Quebre em hooks focados que o componente compõe.
+
+### DRY e reuso
+
+- **Padrões repetidos viram primitivos:** loading/error states, form fields, page containers, listagens responsivas. Antes de copiar JSX/Tailwind pela 3ª vez, extraia para `components/<dominio>/` ou `components/ui/<primitive>/`.
+- **Classes Tailwind repetidas** (>5 ocorrências do mesmo conjunto) viram componente, não snippet copiado.
+- **Validadores compartilhados** (CPF, CNPJ, telefone, CEP) ficam em [src/lib/validation/](src/lib/validation/) — não reescreva.
+
+### Tipos e schemas
+
+- **Zod como source-of-truth** para tipos de payload: prefira `z.infer<typeof Schema>` em vez de definir o tipo TS e o schema em paralelo (drift garantido).
+- **Erros tipados:** `ActionResult<T>` é a forma canônica (ver [src/lib/api-action.ts](src/lib/api-action.ts)). Não invente outras shapes.
+- **Sem `any`** em código de aplicação. `unknown` é aceito em fronteiras (logger, parsers).
+
+### Tratamento de erro
+
+- **Toast para feedback transitório**, `Callout` para estado persistente da página, `ErrorBoundary` para crash recovery. Não use `Callout` inline para todo erro — vira ruído.
+- **Logger estruturado** via [src/lib/observability/log.ts](src/lib/observability/log.ts) (`logError`/`logWarn`/`logInfo`). Não use `console.*` direto em código server-side.
+- **Erros silenciosos** (`catch { return null }`) são proibidos — sempre logar com scope.
+
+### Acoplamento
+
+- **DIP em hooks:** hooks consomem services agrupados (`customerApi.search()`), não importam 7 server actions soltas. Quando uma feature tem ≥3 actions relacionadas, agrupe num objeto exportado.
+- **OCP em rotas:** adicionar rota nova é **uma** entrada em [src/config/route-registry.ts](src/config/route-registry.ts). Não toque middleware.
+
+### Camadas
+
+- **`src/components/ui/`:** primitivos shadcn (gerados — não editar à mão).
+- **`src/components/<dominio>/`:** componentes da aplicação que compõem primitivos.
+- **`src/hooks/`:** estado + side effects. Sem JSX.
+- **`src/lib/<dominio>/`:** server actions + utilitários puros. Server actions começam com `"use server"` e usam `fetchWithAuth`/`createAction`.
+- **`src/config/`:** configuração viva (rotas, menus, feature flags).
+- **`src/types/`:** tipos compartilhados. Tipos de domínio derivados de Zod ficam junto do schema.
+
+Vide [agent_docs/refactor-solid-clean-code.md](agent_docs/refactor-solid-clean-code.md) para o plano de migração do código existente que ainda não atende esses requisitos.

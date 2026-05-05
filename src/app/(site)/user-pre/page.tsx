@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   preRegisterSchema,
   PreRegisterFormData,
-} from "@/lib/validations/register.form";
+} from "@/lib/forms/register.form";
 import {
   Card,
   CardContent,
