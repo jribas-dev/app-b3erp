@@ -33,6 +33,7 @@ export function useFechamento({
   const [isLoadingFormas, setIsLoadingFormas] = useState(false);
   const [fecharError, setFecharError] = useState<string | null>(null);
   const [fechouOk, setFechouOk] = useState(false);
+  const [isFechando, setIsFechando] = useState(false);
 
   const form = useForm<FechamentoFormValues>({
     resolver: zodResolver(FechamentoFormSchema),
@@ -40,13 +41,8 @@ export function useFechamento({
     mode: "onChange",
   });
 
-  const {
-    handleSubmit,
-    reset,
-    formState: { isValid, isSubmitting: isFechando },
-  } = form;
+  const { reset } = form;
 
-  // Reseta o form com os dados do pedido sempre que ele é (re)carregado.
   useEffect(() => {
     if (!pedido) return;
     reset({
@@ -72,22 +68,35 @@ export function useFechamento({
   }, [idPedido]);
 
   const isAberto = pedido?.tipo === "O";
-  const canFechar = !!(pedido && isAberto && isValid && !isFechando);
+  const canFechar = !!(pedido && isAberto && !isFechando);
 
-  const onFechar = handleSubmit(async (values) => {
-    if (!pedido) return;
+  const onFechar = async () => {
+    if (!pedido || isFechando) return;
     setFecharError(null);
-    const result = await pedidosApi.fechar(
-      pedido.id,
-      toFecharPedidoPayload(values),
-    );
-    if (result.success) {
-      onPedidoUpdated(result.data);
+
+    // Sem mudanças: pula o POST e abre o diálogo diretamente.
+    if (!form.formState.isDirty) {
       setFechouOk(true);
-    } else {
-      setFecharError(result.error || "Erro ao fechar pedido");
+      return;
     }
-  });
+
+    setIsFechando(true);
+    try {
+      const values = form.getValues();
+      const result = await pedidosApi.fechar(
+        pedido.id,
+        toFecharPedidoPayload(values),
+      );
+      if (result.success) {
+        onPedidoUpdated(result.data);
+        setFechouOk(true);
+      } else {
+        setFecharError(result.error || "Erro ao fechar pedido");
+      }
+    } finally {
+      setIsFechando(false);
+    }
+  };
 
   return {
     fechamentoForm: form,

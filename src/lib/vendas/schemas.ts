@@ -266,8 +266,8 @@ export const AdicionarItemPayloadSchema = z.object({
 export type AdicionarItemPayload = z.infer<typeof AdicionarItemPayloadSchema>;
 
 export const FecharPedidoPayloadSchema = z.object({
-  idForma: positiveIdSchema,
-  idCond: positiveIdSchema,
+  idForma: positiveIdSchema.optional(),
+  idCond: positiveIdSchema.optional(),
   obsInter: z.string().optional(),
 });
 export type FecharPedidoPayload = z.infer<typeof FecharPedidoPayloadSchema>;

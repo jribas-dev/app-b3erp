@@ -2,8 +2,8 @@ import { z } from "zod";
 import type { FecharPedidoPayload } from "@/types/vendas.types";
 
 export const FechamentoFormSchema = z.object({
-  idForma: z.string().min(1, "Selecione a forma de pagamento"),
-  idCond: z.string().min(1, "Selecione a condição de pagamento"),
+  idForma: z.string(),
+  idCond: z.string(),
   obsInter: z.string().max(255, "Observação deve ter no máximo 255 caracteres"),
 });
 
@@ -20,8 +20,8 @@ export function toFecharPedidoPayload(
 ): FecharPedidoPayload {
   const obs = v.obsInter.trim();
   return {
-    idForma: parseInt(v.idForma, 10),
-    idCond: parseInt(v.idCond, 10),
+    ...(v.idForma && { idForma: parseInt(v.idForma, 10) }),
+    ...(v.idCond && { idCond: parseInt(v.idCond, 10) }),
     ...(obs && { obsInter: obs }),
   };
 }
