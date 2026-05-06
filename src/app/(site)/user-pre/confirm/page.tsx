@@ -24,6 +24,7 @@ import {
 } from "@/lib/user-pre.service";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { logError } from "@/lib/observability/log";
 import { ShieldCheck } from "lucide-react";
 import {
   Callout,
@@ -100,7 +101,7 @@ export default function Confirmacao() {
         setErrorMessage(response.message || "Erro ao completar o cadastro");
       }
     } catch (error) {
-      console.error("Erro ao enviar dados:", error);
+      logError("user-pre.confirm.submit", error);
       setErrorMessage(
         "Erro ao processar sua solicitação. Tente novamente mais tarde."
       );

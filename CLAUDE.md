@@ -164,4 +164,4 @@ Estes são **requisitos do projeto**, não recomendações. Toda nova contribui�
 - **`src/config/`:** configuração viva (rotas, menus, feature flags).
 - **`src/types/`:** tipos compartilhados. Tipos de domínio derivados de Zod ficam junto do schema.
 
-Vide [agent_docs/refactor-solid-clean-code.md](agent_docs/refactor-solid-clean-code.md) para o plano de migração do código existente que ainda não atende esses requisitos.
+Histórico da refatoração inicial que estabilizou esses requisitos: [agent_docs/refactor-solid-clean-code.md](agent_docs/refactor-solid-clean-code.md). Inclui a lista de arquivos ainda acima dos limites como débito conhecido — abordá-los quando a próxima mudança grande tocar a área.

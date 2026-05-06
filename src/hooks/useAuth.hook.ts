@@ -10,6 +10,7 @@ import {
   getUserInstancesAction,
 } from "@/lib/auth.service";
 import { SignInFormData } from "@/lib/forms/sign-in.form";
+import { logError } from "@/lib/observability/log";
 import { UserInstanceListResponse } from "@/types/user-instance-list";
 
 export function useAuth() {
@@ -67,7 +68,7 @@ export function useAuth() {
           localStorage.removeItem("rememberMe");
           await redirectToLogin();
         } catch (error) {
-          console.error("Erro durante logout:", error);
+          logError("useAuth.logout", error);
           await redirectToLogin();
         } finally {
           resolve();
