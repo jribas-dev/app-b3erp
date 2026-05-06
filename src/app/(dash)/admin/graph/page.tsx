@@ -152,7 +152,7 @@ function DashLineChart({ data, currency }: { data: ChartDataDto; currency?: bool
 
   return (
     <div className="w-full h-64 sm:h-72">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 1, height: 1 }}>
         <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 40 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis
@@ -205,7 +205,7 @@ function DashBarHChart({ data, currency }: { data: ChartDataDto; currency?: bool
 
   return (
     <div className="w-full" style={{ height: Math.max(260, chartData.length * 36 + 40) }}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 1, height: 1 }}>
         <BarChart
           layout="vertical"
           data={chartData}
@@ -259,7 +259,7 @@ function DashBarVChart({ data, currency }: { data: ChartDataDto; currency?: bool
 
   return (
     <div className="w-full h-64 sm:h-72">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 1, height: 1 }}>
         <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 48 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
           <XAxis
@@ -310,7 +310,7 @@ function DashPieChart({ data, currency }: { data: ChartDataDto; currency?: boole
 
   return (
     <div className="w-full h-64 sm:h-72">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 1, height: 1 }}>
         <PieChart>
           <Pie
             data={chartData}
