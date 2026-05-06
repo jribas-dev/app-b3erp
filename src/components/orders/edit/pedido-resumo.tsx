@@ -63,12 +63,12 @@ export function PedidoResumo({ pedido, isFiscal }: PedidoResumoProps) {
             </span>
           </div>
           {pedido.cliente && (
-            <div className="px-4 py-3 grid gap-2 text-sm">
+            <div className="px-4 py-3 grid gap-2 text-xs md:text-sm">
               {pedido.cliente.fone && (
                 <div className="flex text-muted-foreground justify-between">
                   <div className="flex items-center gap-2">
                     <Phone size={14} className="shrink-0" />
-                    <span className="font-bold">{pedido.cliente.fone}</span>
+                    <span className="font-bold truncate">{pedido.cliente.fone}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <IdCard size={14} className="shrink-0" />
