@@ -1,12 +1,12 @@
 "use server";
 
-import type {
-  CondicaoPagamento,
-  FormaPagamento,
-} from "@/types/vendas.types";
-import { createAction } from "../api-action";
+import { createAction } from "../../api-action";
+import type { CondicaoPagamento, FormaPagamento } from "../schemas";
 
-export const getFormasPagamentoAction = createAction<[number], FormaPagamento[]>({
+export const getFormasPagamentoAction = createAction<
+  [number],
+  FormaPagamento[]
+>({
   path: (idPedido) => `/b3vendas/pedidos/${idPedido}/formas-disponiveis`,
   errorMsg: "Erro ao buscar formas de pagamento",
   scope: "getFormasPagamento",

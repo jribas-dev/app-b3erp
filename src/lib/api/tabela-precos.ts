@@ -1,4 +1,4 @@
-import { getTabelaPrecosAction } from "@/lib/vendas/tabela-precos.service";
+import { getTabelaPrecosAction } from "@/lib/vendas/tabela-precos";
 
 export const tabelaPrecosApi = {
   list: getTabelaPrecosAction,

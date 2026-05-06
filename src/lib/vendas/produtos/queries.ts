@@ -1,11 +1,11 @@
 "use server";
 
+import { createAction } from "../../api-action";
 import type {
   ImpostoCalculado,
   ProdutoBusca,
   ProdutoPreco,
-} from "@/types/vendas.types";
-import { createAction } from "../api-action";
+} from "../schemas";
 
 export const buscarProdutosAction = createAction<[string], ProdutoBusca[]>({
   path: (q) => `/b3vendas/produtos/buscar?q=${encodeURIComponent(q)}`,
@@ -23,6 +23,8 @@ export const getProdutoPrecoAction = createAction<
   scope: "getProdutoPreco",
 });
 
+// calcImposto é POST por necessidade do backend (carrega body), mas é uma
+// computação read-only — não muda estado. Mantida em queries.
 export const calcImpostoAction = createAction<
   [number, number, number],
   ImpostoCalculado

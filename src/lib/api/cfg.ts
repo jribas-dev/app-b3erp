@@ -4,7 +4,7 @@ import {
   getSelectedEmitenteAction,
   getTenantCfgAction,
   setSelectedEmitenteAction,
-} from "@/lib/vendas/cfg.service";
+} from "@/lib/vendas/cfg";
 
 export const cfgApi = {
   getEmitentes: getEmitentesAction,

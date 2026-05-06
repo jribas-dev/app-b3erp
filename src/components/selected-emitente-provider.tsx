@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { setSelectedEmitenteAction } from "@/lib/vendas/cfg.service";
+import { setSelectedEmitenteAction } from "@/lib/vendas/cfg";
 
 type SelectedEmitenteContextValue = {
   selectedIdemp: number | null;

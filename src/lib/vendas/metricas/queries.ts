@@ -1,10 +1,7 @@
 "use server";
 
-import type {
-  ClienteInativo,
-  MetricaChartResponse,
-} from "@/types/vendas.types";
-import { createAction } from "../api-action";
+import { createAction } from "../../api-action";
+import type { ClienteInativo, MetricaChartResponse } from "../schemas";
 
 export interface MetricaQuery {
   idemp: number;

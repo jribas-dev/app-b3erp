@@ -5,7 +5,7 @@ import {
   criarClienteAction,
   getClienteAction,
   getClientesRedeSPAction,
-} from "@/lib/vendas/clientes.service";
+} from "@/lib/vendas/clientes";
 
 // Agrupa as server actions de cliente em uma fachada coesa.
 // Hooks consomem `customersApi.search()` em vez de importar 6 funções soltas.

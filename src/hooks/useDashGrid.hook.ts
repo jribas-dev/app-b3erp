@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { getEmitentesAction } from "@/lib/vendas/cfg.service";
+import { getEmitentesAction } from "@/lib/vendas/cfg";
 import { getDashGridAction } from "@/lib/dash/dash.service";
 import { useSelectedEmitente } from "@/components/selected-emitente-provider";
 import type { Emitente } from "@/types/vendas.types";

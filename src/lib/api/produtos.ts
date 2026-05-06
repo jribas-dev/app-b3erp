@@ -2,7 +2,7 @@ import {
   buscarProdutosAction,
   calcImpostoAction,
   getProdutoPrecoAction,
-} from "@/lib/vendas/produtos.service";
+} from "@/lib/vendas/produtos";
 
 export const produtosApi = {
   search: buscarProdutosAction,

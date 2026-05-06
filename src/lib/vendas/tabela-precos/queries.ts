@@ -1,7 +1,7 @@
 "use server";
 
-import type { ItemTabelaPrecos } from "@/types/vendas.types";
-import { createAction } from "../api-action";
+import { createAction } from "../../api-action";
+import type { ItemTabelaPrecos } from "../schemas";
 
 export const getTabelaPrecosAction = createAction<
   [number, number],

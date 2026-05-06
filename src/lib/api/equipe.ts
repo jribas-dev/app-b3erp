@@ -3,7 +3,7 @@ import {
   getEquipeAction,
   getEquipeSemEquipeAction,
   removerMembroEquipeAction,
-} from "@/lib/vendas/equipe.service";
+} from "@/lib/vendas/equipe";
 
 export const equipeApi = {
   list: getEquipeAction,

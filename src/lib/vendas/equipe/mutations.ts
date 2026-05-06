@@ -1,19 +1,6 @@
 "use server";
 
-import type { MembroEquipe } from "@/types/vendas.types";
-import { createAction } from "../api-action";
-
-export const getEquipeAction = createAction<[], MembroEquipe[]>({
-  path: () => "/b3vendas/equipe",
-  errorMsg: "Erro ao buscar equipe",
-  scope: "getEquipe",
-});
-
-export const getEquipeSemEquipeAction = createAction<[], MembroEquipe[]>({
-  path: () => "/b3vendas/equipe/sem-equipe",
-  errorMsg: "Erro ao buscar vendedores disponíveis",
-  scope: "getEquipeSemEquipe",
-});
+import { createAction } from "../../api-action";
 
 export const adicionarMembroEquipeAction = createAction<[number], void>({
   path: () => "/b3vendas/equipe",

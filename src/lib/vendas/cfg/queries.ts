@@ -1,12 +1,8 @@
 "use server";
 
-import type { Emitente, Operacao, TenantCfg } from "@/types/vendas.types";
-import { createAction } from "../api-action";
-import {
-  getSelectedEmitenteCookie,
-  setSelectedEmitenteCookie,
-} from "../auth/cookies";
-import { logError } from "../observability/log";
+import { createAction } from "../../api-action";
+import { getSelectedEmitenteCookie } from "../../auth/cookies";
+import type { Emitente, Operacao, TenantCfg } from "../schemas";
 
 export const getEmitentesAction = createAction<[], Emitente[]>({
   path: () => "/tenant/emitentes",
@@ -35,15 +31,4 @@ export const getTenantCfgAction = createAction<[string], TenantCfg>({
 
 export async function getSelectedEmitenteAction(): Promise<number | null> {
   return getSelectedEmitenteCookie();
-}
-
-export async function setSelectedEmitenteAction(
-  idemp: number,
-): Promise<{ success: boolean; error?: string }> {
-  if (!Number.isInteger(idemp) || idemp <= 0) {
-    logError("setSelectedEmitente", new Error("idemp inválido"), { idemp });
-    return { success: false, error: "Empresa inválida" };
-  }
-  await setSelectedEmitenteCookie(idemp);
-  return { success: true };
 }

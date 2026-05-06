@@ -3,9 +3,9 @@ import {
   getTopClientesAtivosAction,
   getVendasMensaisAction,
   getVendasSemanaisAction,
-} from "@/lib/vendas/metricas.service";
+} from "@/lib/vendas/metricas";
 
-export type { MetricaQuery } from "@/lib/vendas/metricas.service";
+export type { MetricaQuery } from "@/lib/vendas/metricas";
 
 export const metricasApi = {
   vendasSemanais: getVendasSemanaisAction,

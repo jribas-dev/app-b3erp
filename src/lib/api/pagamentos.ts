@@ -1,7 +1,7 @@
 import {
   getCondicoesPagamentoAction,
   getFormasPagamentoAction,
-} from "@/lib/vendas/pagamentos.service";
+} from "@/lib/vendas/pagamentos";
 
 export const pagamentosApi = {
   getFormas: getFormasPagamentoAction,

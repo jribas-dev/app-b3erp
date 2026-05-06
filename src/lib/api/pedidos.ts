@@ -1,14 +1,12 @@
 import {
   adicionarItemAction,
-  removerItemAction,
-} from "@/lib/vendas/pedido-itens.service";
-import {
   criarPedidoAction,
   fecharPedidoAction,
   getPedidoAction,
   getPedidosEditaveisAction,
   getPedidosFechadosAction,
-} from "@/lib/vendas/pedidos.service";
+  removerItemAction,
+} from "@/lib/vendas/pedidos";
 
 export const pedidosApi = {
   create: criarPedidoAction,
