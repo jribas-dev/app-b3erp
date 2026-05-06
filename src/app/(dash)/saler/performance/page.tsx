@@ -90,7 +90,7 @@ function LineMetricaChart({ data }: { data: MetricaChartResponse }) {
 
   return (
     <div className="w-full h-64 sm:h-72">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 1, height: 1 }}>
         <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 40 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis
@@ -131,7 +131,7 @@ function BarMetricaChart({ data }: { data: MetricaChartResponse }) {
 
   return (
     <div className="w-full" style={{ height: Math.max(260, chartData.length * 36 + 40) }}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 1, height: 1 }}>
         <BarChart
           layout="vertical"
           data={chartData}
