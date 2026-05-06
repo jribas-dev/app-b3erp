@@ -57,6 +57,7 @@ function DialogContent({
   return (
     <DialogPortal>
       <DialogOverlay />
+      <DialogDescription className="sr-only" />
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(

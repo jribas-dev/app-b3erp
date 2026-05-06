@@ -197,12 +197,15 @@ export default function CustomersPage() {
                 </Callout>
               )}
 
-              <div className="flex gap-2 w-full justify-end">
+              <div className="flex mt-4 gap-3 w-full justify-end">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push("/saler/customers")}
+                  onClick={() => {
+                    router.push("/saler/customers");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
                   className="gap-1.5"
                   disabled={isSubmitting}
                 >
