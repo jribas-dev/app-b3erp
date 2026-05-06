@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type BaseSyntheticEvent } from "react";
 import { useForm } from "react-hook-form";
 
 import {
@@ -41,7 +41,10 @@ export function useFechamento({
     mode: "onChange",
   });
 
-  const { reset } = form;
+  const {
+    reset,
+    formState: { isDirty },
+  } = form;
 
   useEffect(() => {
     if (!pedido) return;
@@ -70,12 +73,14 @@ export function useFechamento({
   const isAberto = pedido?.tipo === "O";
   const canFechar = !!(pedido && isAberto && !isFechando);
 
-  const onFechar = async () => {
+  const onFechar = async (e?: BaseSyntheticEvent) => {
+    e?.preventDefault();
     if (!pedido || isFechando) return;
     setFecharError(null);
 
     // Sem mudanças: pula o POST e abre o diálogo diretamente.
-    if (!form.formState.isDirty) {
+    if (!isDirty) {
+      console.log("Fechamento sem mudanças, pulando API");
       setFechouOk(true);
       return;
     }
@@ -83,6 +88,7 @@ export function useFechamento({
     setIsFechando(true);
     try {
       const values = form.getValues();
+      console.log("Fechando pedido com valores:", values);
       const result = await pedidosApi.fechar(
         pedido.id,
         toFecharPedidoPayload(values),
