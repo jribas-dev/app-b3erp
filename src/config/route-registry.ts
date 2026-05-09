@@ -9,7 +9,9 @@ import {
   ShoppingCart,
   Sliders,
   UserCheck,
-  Users,
+  UserStar,
+  UserLock,
+  ContactRound,
 } from "lucide-react";
 
 import type { DashItem, DashSection } from "@/types/dash-item";
@@ -80,7 +82,7 @@ export const ROUTES = [
   {
     path: "/saler/customers",
     roles: ["supersaler"],
-    menu: { label: "Cadastro de Clientes", icon: Users, section: "sales" },
+    menu: { label: "Cadastro de Clientes", icon: ContactRound, section: "sales" },
   },
   {
     path: "/saler/team",
@@ -102,6 +104,24 @@ export const ROUTES = [
     menu: {
       label: "Pesquisas em Grid",
       icon: Grid2X2Check,
+      section: "management",
+    },
+  },
+  {
+    path: "/admin/user-pre",
+    roles: ["admin"],
+    menu: {
+      label: "Convidar Usuário",
+      icon: UserStar,
+      section: "management",
+    },
+  },
+  {
+    path: "/admin/users",
+    roles: ["admin"],
+    menu: {
+      label: "Gerenciamento de Usuários",
+      icon: UserLock,
       section: "management",
     },
   },

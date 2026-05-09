@@ -12,9 +12,11 @@
 > Guards aplicados a toda a base:
 > - `JwtGuard`
 > - `UserInstanceGuard`
-> - `RolesFrontGuard` com role `admin` (todos os endpoints deste módulo)
+> - **Faturamento, Financeiro, Estoque** — `RolesFrontGuard` exigindo `RoleFrontEnum.ADMIN` no array `roleFront` do token. Retorna `403 Forbidden` se o usuário não tiver `admin` no seu array de papéis.
 >
 > **Nenhuma escrita é realizada** — todos os endpoints são leitura (`GET`).
+>
+> > Operações sobre a tabela `usu` do tenant (listagem back-office e update de campos pelo próprio usuário) foram movidas para `/tenant/usu/*`. Ver [api-core.md](./api-core.md#tenant).
 
 ---
 
