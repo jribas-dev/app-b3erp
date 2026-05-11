@@ -3,6 +3,7 @@
 import { Send } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { RoleSelector } from "@/components/admin/users/role-selector";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { FieldError } from "@/components/form/field-error";
@@ -22,8 +23,6 @@ import { useCreateInvite } from "@/hooks/useCreateInvite.hook";
 import { useSession } from "@/hooks/useSession.hook";
 import {
   InviteFormSchema,
-  ROLE_BACK_OPTIONS,
-  ROLE_FRONT_OPTIONS,
   TIPO_USUARIO_OPTIONS,
   type RoleBackValue,
   type RoleFrontValue,
@@ -241,77 +240,15 @@ export function CreateInviteTab({ onCreated }: CreateInviteTabProps) {
           </div>
         </div>
 
-        <div className="grid gap-1.5">
-          <Label>
-            Acesso BackOffice <span className="text-destructive">*</span>
-          </Label>
-          <div
-            role="radiogroup"
-            aria-label="Acesso BackOffice"
-            aria-disabled={isExterno}
-            className="grid grid-cols-2 gap-1.5 sm:grid-cols-4"
-          >
-            {ROLE_BACK_OPTIONS.map(({ value, label }) => {
-              const active = roleBack === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => handleRoleBack(value)}
-                  disabled={isExterno}
-                  className={[
-                    "rounded-(--radius) border px-2 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60",
-                    active
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-card text-foreground hover:bg-muted/60",
-                  ].join(" ")}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-          <FieldError>{errors.roleBack}</FieldError>
-        </div>
-
-        <div className="grid gap-1.5">
-          <Label>
-            Acesso Web App <span className="text-destructive">*</span>
-          </Label>
-          <p className="text-xs text-muted-foreground">
-            Selecione uma ou mais funções (Vendedor e Gerente de Vendas não
-            podem coexistir).
-          </p>
-          <div
-            aria-disabled={isExterno}
-            className="grid grid-cols-2 gap-1.5 sm:grid-cols-3"
-          >
-            {ROLE_FRONT_OPTIONS.map(({ value, label }) => {
-              const active = roleFront.includes(value);
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  role="checkbox"
-                  aria-checked={active}
-                  onClick={() => toggleRoleFront(value)}
-                  disabled={isExterno}
-                  className={[
-                    "rounded-(--radius) border px-2 py-2 text-sm font-medium transition-colors text-left disabled:cursor-not-allowed disabled:opacity-60",
-                    active
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-card text-foreground hover:bg-muted/60",
-                  ].join(" ")}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-          <FieldError>{errors.roleFront}</FieldError>
-        </div>
+        <RoleSelector
+          roleBack={roleBack}
+          roleFront={roleFront}
+          onRoleBackChange={handleRoleBack}
+          onRoleFrontToggle={toggleRoleFront}
+          disabled={isExterno}
+          roleBackError={errors.roleBack}
+          roleFrontError={errors.roleFront}
+        />
 
         <div className="grid gap-1.5">
           <Label htmlFor="empresa">

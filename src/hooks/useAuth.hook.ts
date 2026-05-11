@@ -22,18 +22,19 @@ export function useAuth() {
   ): Promise<{ success: boolean; error?: string }> => {
     return new Promise((resolve) => {
       startTransition(async () => {
+        let result: { success: boolean; error?: string };
         try {
-          const result = await loginAction(credentials, rememberMe);
-          if (result.success) {
-            await redirectAfterLogin();
-          }
-
-          resolve(result);
+          result = await loginAction(credentials, rememberMe);
         } catch (error) {
           resolve({
             success: false,
             error: error instanceof Error ? error.message : "Erro inesperado",
           });
+          return;
+        }
+        resolve(result);
+        if (result.success) {
+          await redirectAfterLogin();
         }
       });
     });
@@ -66,13 +67,12 @@ export function useAuth() {
         try {
           await logoutAction();
           localStorage.removeItem("rememberMe");
-          await redirectToLogin();
         } catch (error) {
           logError("useAuth.logout", error);
-          await redirectToLogin();
         } finally {
           resolve();
         }
+        await redirectToLogin();
       });
     });
   };
