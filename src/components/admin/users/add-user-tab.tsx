@@ -56,9 +56,11 @@ interface DraftState {
   idBackendUser: number | null;
 }
 
-const DEFAULT_ROLE_BACK: RoleBackValue = "notallow";
+const DEFAULT_ROLE_BACK: RoleBackValue = "user";
+const EXTERNO_ROLE_BACK: RoleBackValue = "notallow";
 const DEFAULT_ROLE_FRONT: RoleFrontValue[] = ["notallow"];
 const EXTERNO_ROLE_FRONT: RoleFrontValue[] = ["buyer"];
+const INTERNO_DISABLED_ROLE_BACK: readonly RoleBackValue[] = ["notallow"];
 
 function defaultDraft(): DraftState {
   return {
@@ -133,8 +135,10 @@ export const AddUserTab = forwardRef<AddUserTabHandle, AddUserTabProps>(
           ? {
               ...d,
               tipo: value,
-              roleBack: "notallow",
+              roleBack: EXTERNO_ROLE_BACK,
               roleFront: EXTERNO_ROLE_FRONT,
+              idemp: null,
+              idBackendUser: null,
             }
           : {
               ...d,
@@ -176,6 +180,7 @@ export const AddUserTab = forwardRef<AddUserTabHandle, AddUserTabProps>(
       if (!dbId || !selectedUserId) return;
       if (draft.roleFront.length === 0) return;
       if (hasConflict(draft.roleFront)) return;
+      if (draft.roleBack !== "notallow" && draft.idBackendUser === null) return;
 
       const ok = await createBinding({
         userId: selectedUserId,
@@ -203,6 +208,8 @@ export const AddUserTab = forwardRef<AddUserTabHandle, AddUserTabProps>(
     const conflict = hasConflict(draft.roleFront);
     const emptyRoles = draft.roleFront.length === 0;
     const isExterno = draft.tipo === "externo";
+    const requiresBackoffice = draft.roleBack !== "notallow";
+    const backofficeMissing = requiresBackoffice && draft.idBackendUser === null;
 
     if (!dbId) {
       return (
@@ -345,6 +352,9 @@ export const AddUserTab = forwardRef<AddUserTabHandle, AddUserTabProps>(
                           onRoleBackChange={handleRoleBack}
                           onRoleFrontToggle={toggleRoleFront}
                           disabled={isExterno}
+                          disabledRoleBack={
+                            isExterno ? undefined : INTERNO_DISABLED_ROLE_BACK
+                          }
                           roleFrontError={
                             conflict
                               ? "Vendedor e Gerente de Vendas não podem coexistir"
@@ -357,9 +367,13 @@ export const AddUserTab = forwardRef<AddUserTabHandle, AddUserTabProps>(
                         <div className="grid gap-1.5">
                           <Label htmlFor={`empresa-${user.userId}`}>
                             Empresa{" "}
-                            <span className="text-muted-foreground">
-                              (opcional)
-                            </span>
+                            {requiresBackoffice ? (
+                              <span className="text-destructive">*</span>
+                            ) : (
+                              <span className="text-muted-foreground">
+                                (opcional)
+                              </span>
+                            )}
                           </Label>
                           {isLoadingEmitentes ? (
                             <LoadingInput label="Carregando empresas…" />
@@ -401,9 +415,13 @@ export const AddUserTab = forwardRef<AddUserTabHandle, AddUserTabProps>(
                         <div className="grid gap-1.5">
                           <Label htmlFor={`backoffice-${user.userId}`}>
                             Usuário do Back-Office{" "}
-                            <span className="text-muted-foreground">
-                              (opcional)
-                            </span>
+                            {requiresBackoffice ? (
+                              <span className="text-destructive">*</span>
+                            ) : (
+                              <span className="text-muted-foreground">
+                                (opcional)
+                              </span>
+                            )}
                           </Label>
                           {draft.idemp === null ? (
                             <div className="flex h-10 items-center rounded-(--radius) border border-dashed border-border bg-muted/30 px-3 text-sm text-muted-foreground">
@@ -440,6 +458,12 @@ export const AddUserTab = forwardRef<AddUserTabHandle, AddUserTabProps>(
                               </SelectContent>
                             </Select>
                           )}
+                          {backofficeMissing ? (
+                            <p className="text-xs text-destructive">
+                              Informe o usuário do BackOffice para a função
+                              selecionada.
+                            </p>
+                          ) : null}
                         </div>
 
                         <div className="flex flex-wrap gap-2 pt-1">
@@ -448,7 +472,10 @@ export const AddUserTab = forwardRef<AddUserTabHandle, AddUserTabProps>(
                             size="sm"
                             onClick={handleSubmit}
                             disabled={
-                              isSubmitting || conflict || emptyRoles
+                              isSubmitting ||
+                              conflict ||
+                              emptyRoles ||
+                              backofficeMissing
                             }
                             className="gap-1.5"
                           >

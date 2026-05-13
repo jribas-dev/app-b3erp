@@ -71,6 +71,17 @@ export const InviteFormSchema = z
       message: "Vendedor e Gerente de Vendas não podem coexistir",
       path: ["roleFront"],
     }
+  )
+  .refine((d) => d.tipo === "externo" || d.roleBack !== "notallow", {
+    message: "Usuários internos exigem uma função no BackOffice",
+    path: ["roleBack"],
+  })
+  .refine(
+    (d) => d.roleBack === "notallow" || typeof d.idBackendUser === "number",
+    {
+      message: "Informe o usuário do BackOffice para a função selecionada",
+      path: ["idBackendUser"],
+    }
   );
 
 export type InviteFormValues = z.infer<typeof InviteFormSchema>;

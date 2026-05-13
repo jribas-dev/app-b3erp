@@ -15,6 +15,7 @@ interface RoleSelectorProps {
   onRoleBackChange: (value: RoleBackValue) => void;
   onRoleFrontToggle: (value: RoleFrontValue) => void;
   disabled?: boolean;
+  disabledRoleBack?: readonly RoleBackValue[];
   roleBackError?: string;
   roleFrontError?: string;
 }
@@ -25,6 +26,7 @@ export function RoleSelector({
   onRoleBackChange,
   onRoleFrontToggle,
   disabled = false,
+  disabledRoleBack,
   roleBackError,
   roleFrontError,
 }: RoleSelectorProps) {
@@ -42,14 +44,16 @@ export function RoleSelector({
         >
           {ROLE_BACK_OPTIONS.map(({ value, label }) => {
             const active = roleBack === value;
+            const optionDisabled =
+              disabled || (disabledRoleBack?.includes(value) ?? false);
             return (
               <button
                 key={value}
                 type="button"
                 role="radio"
                 aria-checked={active}
-                onClick={() => !disabled && onRoleBackChange(value)}
-                disabled={disabled}
+                onClick={() => !optionDisabled && onRoleBackChange(value)}
+                disabled={optionDisabled}
                 className={[
                   "rounded-(--radius) border px-2 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60",
                   active

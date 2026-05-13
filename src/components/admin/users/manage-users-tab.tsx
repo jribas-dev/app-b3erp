@@ -54,6 +54,12 @@ function hasConflict(rolefront: RoleFrontValue[]): boolean {
   return rolefront.includes("saler") && rolefront.includes("supersaler");
 }
 
+const NON_NOTALLOW_ROLE_BACK: readonly RoleBackValue[] = [
+  "admin",
+  "supervisor",
+  "user",
+];
+
 export const ManageUsersTab = forwardRef<
   ManageUsersTabHandle,
   ManageUsersTabProps
@@ -107,6 +113,9 @@ export const ManageUsersTab = forwardRef<
     if (!draft) return;
     if (draft.rolefront.length === 0) return;
     if (hasConflict(draft.rolefront)) return;
+    if (row.instance.idBackendUser === null && draft.roleback !== "notallow") {
+      return;
+    }
 
     const ok = await updateInstance(row.instance.id, {
       roleback: draft.roleback,
@@ -226,6 +235,9 @@ export const ManageUsersTab = forwardRef<
             const conflict = hasConflict(currentDraft.rolefront);
             const emptyRoles = currentDraft.rolefront.length === 0;
             const accountInactive = !row.account.isActive;
+            const lockedNonNotallow = row.instance.idBackendUser === null;
+            const backofficeMissing =
+              lockedNonNotallow && currentDraft.roleback !== "notallow";
 
             return (
               <li key={row.instance.id}>
@@ -290,6 +302,11 @@ export const ManageUsersTab = forwardRef<
                           toggleRoleFrontDraft(row.instance.id, v)
                         }
                         disabled={isPending || accountInactive}
+                        disabledRoleBack={
+                          lockedNonNotallow
+                            ? NON_NOTALLOW_ROLE_BACK
+                            : undefined
+                        }
                         roleFrontError={
                           conflict
                             ? "Vendedor e Gerente de Vendas não podem coexistir"
@@ -298,6 +315,21 @@ export const ManageUsersTab = forwardRef<
                             : undefined
                         }
                       />
+                      {lockedNonNotallow ? (
+                        <p
+                          className={[
+                            "text-xs",
+                            backofficeMissing
+                              ? "text-destructive"
+                              : "text-muted-foreground",
+                          ].join(" ")}
+                        >
+                          Este vínculo não está associado a um usuário do
+                          BackOffice. Para definir uma função no BackOffice,
+                          remova o vínculo e crie um novo informando empresa e
+                          usuário do legado.
+                        </p>
+                      ) : null}
 
                       <div className="rounded-(--radius) border border-border bg-card p-3 space-y-2">
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -353,7 +385,8 @@ export const ManageUsersTab = forwardRef<
                             !dirty ||
                             conflict ||
                             emptyRoles ||
-                            accountInactive
+                            accountInactive ||
+                            backofficeMissing
                           }
                           className="gap-1.5"
                         >

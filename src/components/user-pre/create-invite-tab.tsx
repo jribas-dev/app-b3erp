@@ -39,11 +39,14 @@ interface FormErrors {
   email?: string;
   roleBack?: string;
   roleFront?: string;
+  idBackendUser?: string;
 }
 
-const DEFAULT_ROLE_BACK: RoleBackValue = "notallow";
+const DEFAULT_ROLE_BACK: RoleBackValue = "user";
+const EXTERNO_ROLE_BACK: RoleBackValue = "notallow";
 const DEFAULT_ROLE_FRONT: RoleFrontValue[] = ["notallow"];
 const EXTERNO_ROLE_FRONT: RoleFrontValue[] = ["buyer"];
+const INTERNO_DISABLED_ROLE_BACK: readonly RoleBackValue[] = ["notallow"];
 
 export function CreateInviteTab({ onCreated }: CreateInviteTabProps) {
   const { session, isLoading: isSessionLoading } = useSession();
@@ -92,19 +95,30 @@ export function CreateInviteTab({ onCreated }: CreateInviteTabProps) {
   const handleTipoChange = (value: TipoUsuarioValue) => {
     setTipo(value);
     if (value === "externo") {
-      setRoleBack("notallow");
+      setRoleBack(EXTERNO_ROLE_BACK);
       setRoleFront(EXTERNO_ROLE_FRONT);
+      setIdemp(null);
+      setIdBackendUser(null);
     } else {
       setRoleBack(DEFAULT_ROLE_BACK);
       setRoleFront(DEFAULT_ROLE_FRONT);
     }
-    setErrors((prev) => ({ ...prev, roleBack: undefined, roleFront: undefined }));
+    setErrors((prev) => ({
+      ...prev,
+      roleBack: undefined,
+      roleFront: undefined,
+      idBackendUser: undefined,
+    }));
   };
 
   const handleRoleBack = (value: RoleBackValue) => {
     if (isExterno) return;
     setRoleBack(value);
-    setErrors((prev) => ({ ...prev, roleBack: undefined }));
+    setErrors((prev) => ({
+      ...prev,
+      roleBack: undefined,
+      idBackendUser: undefined,
+    }));
   };
 
   const toggleRoleFront = (value: RoleFrontValue) => {
@@ -118,10 +132,12 @@ export function CreateInviteTab({ onCreated }: CreateInviteTabProps) {
   const handleIdempChange = (raw: string) => {
     setIdemp(raw === "" ? null : Number(raw));
     setIdBackendUser(null);
+    setErrors((prev) => ({ ...prev, idBackendUser: undefined }));
   };
 
   const handleBackofficeChange = (raw: string) => {
     setIdBackendUser(raw === "" ? null : Number(raw));
+    setErrors((prev) => ({ ...prev, idBackendUser: undefined }));
   };
 
   const handleEmailChange = (v: string) => {
@@ -159,7 +175,12 @@ export function CreateInviteTab({ onCreated }: CreateInviteTabProps) {
       const next: FormErrors = {};
       for (const issue of parsed.error.issues) {
         const key = issue.path[0];
-        if (key === "email" || key === "roleBack" || key === "roleFront") {
+        if (
+          key === "email" ||
+          key === "roleBack" ||
+          key === "roleFront" ||
+          key === "idBackendUser"
+        ) {
           next[key] = issue.message;
         }
       }
@@ -181,12 +202,14 @@ export function CreateInviteTab({ onCreated }: CreateInviteTabProps) {
     }
   };
 
+  const requiresBackoffice = roleBack !== "notallow";
   const isSubmitDisabled =
     isSubmitting ||
     !session?.dbId ||
     email.trim() === "" ||
     roleBack === ("" as RoleBackValue) ||
-    roleFront.length === 0;
+    roleFront.length === 0 ||
+    (requiresBackoffice && idBackendUser === null);
 
   if (isSessionLoading) {
     return (
@@ -246,6 +269,7 @@ export function CreateInviteTab({ onCreated }: CreateInviteTabProps) {
           onRoleBackChange={handleRoleBack}
           onRoleFrontToggle={toggleRoleFront}
           disabled={isExterno}
+          disabledRoleBack={isExterno ? undefined : INTERNO_DISABLED_ROLE_BACK}
           roleBackError={errors.roleBack}
           roleFrontError={errors.roleFront}
         />
@@ -253,7 +277,11 @@ export function CreateInviteTab({ onCreated }: CreateInviteTabProps) {
         <div className="grid gap-1.5">
           <Label htmlFor="empresa">
             Empresa{" "}
-            <span className="text-muted-foreground">(opcional)</span>
+            {requiresBackoffice ? (
+              <span className="text-destructive">*</span>
+            ) : (
+              <span className="text-muted-foreground">(opcional)</span>
+            )}
           </Label>
           {isLoadingEmitentes ? (
             <LoadingInput label="Carregando empresas…" />
@@ -287,7 +315,11 @@ export function CreateInviteTab({ onCreated }: CreateInviteTabProps) {
         <div className="grid gap-1.5">
           <Label htmlFor="backoffice">
             Usuário do Back-Office{" "}
-            <span className="text-muted-foreground">(opcional)</span>
+            {requiresBackoffice ? (
+              <span className="text-destructive">*</span>
+            ) : (
+              <span className="text-muted-foreground">(opcional)</span>
+            )}
           </Label>
           {idemp === null ? (
             <div className="flex h-10 items-center rounded-(--radius) border border-dashed border-border bg-muted/30 px-3 text-sm text-muted-foreground">
@@ -300,7 +332,14 @@ export function CreateInviteTab({ onCreated }: CreateInviteTabProps) {
               value={idBackendUser?.toString() ?? ""}
               onValueChange={handleBackofficeChange}
             >
-              <SelectTrigger id="backoffice" className="w-full">
+              <SelectTrigger
+                id="backoffice"
+                className="w-full"
+                aria-invalid={!!errors.idBackendUser}
+                aria-describedby={
+                  errors.idBackendUser ? "invite-backoffice-error" : undefined
+                }
+              >
                 <SelectValue placeholder="Selecione um usuário" />
               </SelectTrigger>
               <SelectContent>
@@ -318,6 +357,9 @@ export function CreateInviteTab({ onCreated }: CreateInviteTabProps) {
               </SelectContent>
             </Select>
           )}
+          <FieldError id="invite-backoffice-error">
+            {errors.idBackendUser}
+          </FieldError>
         </div>
       </div>
 
