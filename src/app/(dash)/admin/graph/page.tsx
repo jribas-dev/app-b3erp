@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowLeft,
   BarChart2,
   TrendingUp,
   Receipt,
@@ -23,7 +22,6 @@ import {
   Loader2,
   type LucideIcon,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import {
   ResponsiveContainer,
   LineChart,
@@ -38,6 +36,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Callout, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
@@ -153,7 +152,7 @@ function DashLineChart({ data, currency }: { data: ChartDataDto; currency?: bool
   return (
     <div className="w-full h-64 sm:h-72">
       <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 1, height: 1 }}>
-        <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 40 }}>
+        <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis
             dataKey="label"
@@ -161,12 +160,12 @@ function DashLineChart({ data, currency }: { data: ChartDataDto; currency?: bool
             angle={-45}
             textAnchor="end"
             interval={0}
-            height={60}
+            height={56}
           />
           <YAxis
             tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
             tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v))}
-            width={46}
+            width={40}
           />
           <Tooltip
             content={({ active, payload, label }) => (
@@ -255,20 +254,20 @@ function DashBarVChart({ data, currency }: { data: ChartDataDto; currency?: bool
     label,
     valor: data.series[0]?.data[i] ?? 0,
   }));
-  const maxLabelLen = 10;
+  const maxLabelLen = 14;
 
   return (
     <div className="w-full h-64 sm:h-72">
       <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 1, height: 1 }}>
-        <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 48 }}>
+        <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
           <XAxis
             dataKey="label"
             tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-            angle={-35}
+            angle={-45}
             textAnchor="end"
             interval={0}
-            height={60}
+            height={76}
             tickFormatter={(v: string) =>
               v.length > maxLabelLen ? v.slice(0, maxLabelLen) + "…" : v
             }
@@ -309,40 +308,41 @@ function DashPieChart({ data, currency }: { data: ChartDataDto; currency?: boole
   }));
 
   return (
-    <div className="w-full h-64 sm:h-72">
-      <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 1, height: 1 }}>
-        <PieChart>
-          <Pie
-            data={chartData}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            outerRadius="70%"
-            label={({ name, percent }: { name?: string; percent?: number }) => {
-              const n = name ?? "";
-              const pct = percent ?? 0;
-              return `${n.length > 12 ? n.slice(0, 12) + "…" : n} (${(pct * 100).toFixed(0)}%)`;
-            }}
-            labelLine={false}
-          >
-            {chartData.map((_, i) => (
-              <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip
-            content={({ active, payload }) => (
-              <ChartTooltip
-                active={active}
-                payload={payload as unknown as { name: string; value: number; color?: string }[]}
-                currency={currency}
-              />
-            )}
-          />
-        </PieChart>
-      </ResponsiveContainer>
-      {/* legenda */}
-      <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center mt-1">
+    <div className="w-full h-64 sm:h-72 flex flex-col">
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 1, height: 1 }}>
+          <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+            <Pie
+              data={chartData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius="95%"
+              label={({ percent }: { percent?: number }) => {
+                const pct = percent ?? 0;
+                if (pct < 0.05) return "";
+                return `${(pct * 100).toFixed(0)}%`;
+              }}
+              labelLine={false}
+            >
+              {chartData.map((_, i) => (
+                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              content={({ active, payload }) => (
+                <ChartTooltip
+                  active={active}
+                  payload={payload as unknown as { name: string; value: number; color?: string }[]}
+                  currency={currency}
+                />
+              )}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center mt-2 shrink-0">
         {chartData.map((d, i) => (
           <div key={d.name} className="flex items-center gap-1 text-xs text-muted-foreground">
             <span
@@ -387,7 +387,6 @@ function ChartDispatcher({ data, metrica }: { data: ChartDataDto; metrica: strin
 // ── page ───────────────────────────────────────────────────────────────────────
 
 export default function DashGraphPage() {
-  const router = useRouter();
   const {
     emitentes,
     selectedIdemp,
@@ -408,15 +407,7 @@ export default function DashGraphPage() {
 
   return (
     <div className="container mx-auto max-w-xl px-3 py-4 space-y-4">
-      {/* header */}
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={() => router.push("/home")} className="gap-2">
-          <ArrowLeft size={16} />
-          Voltar
-        </Button>
-        <BarChart2 size={20} className="text-primary shrink-0" />
-        <h1 className="text-xl font-semibold leading-tight">Dashboard com Gráficos</h1>
-      </div>
+      <PageHeader icon={BarChart2} title="Dashboard Gerencial" subtitle="Visualizar dados em formato de gráfico" />
 
       {/* empresa selector */}
       {isLoadingInit ? (
@@ -526,16 +517,14 @@ export default function DashGraphPage() {
               <CalloutDescription>{error}</CalloutDescription>
             </Callout>
           ) : chartData ? (
-            <ChartDispatcher data={chartData} metrica={selectedMetrica ?? ""} />
+            <ChartDispatcher data={chartData} metrica={selectedMetrica} />
           ) : (
             <div className="flex flex-col items-center justify-center h-64 gap-2 text-muted-foreground">
               <BarChart2 size={36} className="opacity-30" />
               <p className="text-sm text-center">
-                {!selectedIdemp && emitentes.length > 1
-                  ? "Selecione a empresa"
-                  : !selectedMetrica
-                    ? "Selecione uma métrica"
-                    : "Selecione o período"}
+                {!selectedIdemp
+                  ? "Selecione a empresa para visualizar"
+                  : "Sem dados para exibir"}
               </p>
             </div>
           )}

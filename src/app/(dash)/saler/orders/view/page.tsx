@@ -1,9 +1,8 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
-  ArrowLeft,
   Building2,
   MapPin,
   Package,
@@ -13,14 +12,9 @@ import {
 
 import { pedidosApi } from "@/lib/api";
 import type { PedidoDetalhe } from "@/types/vendas.types";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/page-header";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Callout,
   CalloutDescription,
@@ -58,12 +52,10 @@ function StatusBadge({ tpfat }: { tpfat: string }) {
 }
 
 function ViewOrderContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const idRaw = searchParams.get("id");
   const idNumber = idRaw ? Number(idRaw) : NaN;
-  const idPedido =
-    Number.isFinite(idNumber) && idNumber > 0 ? idNumber : null;
+  const idPedido = Number.isFinite(idNumber) && idNumber > 0 ? idNumber : null;
 
   const [pedido, setPedido] = useState<PedidoDetalhe | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -91,8 +83,6 @@ function ViewOrderContent() {
     };
   }, [idPedido]);
 
-  const goBack = () => router.push("/saler/orders/find#history");
-
   if (isLoading) {
     return (
       <div className="container mx-auto max-w-xl px-3 py-4">
@@ -106,10 +96,11 @@ function ViewOrderContent() {
   if (loadError || !pedido) {
     return (
       <div className="container mx-auto max-w-xl px-3 py-4 space-y-4">
-        <Button variant="outline" size="sm" onClick={goBack} className="gap-2">
-          <ArrowLeft size={16} />
-          Voltar
-        </Button>
+        <PageHeader
+          icon={ShoppingCart}
+          title="Visualizar Pedido"
+          backTo="/saler/orders/find#history"
+        />
         <Callout variant="destructive">
           <CalloutTitle>Não foi possível carregar o pedido</CalloutTitle>
           <CalloutDescription>
@@ -122,16 +113,11 @@ function ViewOrderContent() {
 
   return (
     <div className="container mx-auto max-w-xl px-3 py-4 space-y-4">
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between gap-2">
-        <Button variant="outline" size="sm" onClick={goBack} className="gap-2">
-          <ArrowLeft size={16} />
-          Voltar
-        </Button>
-        <span className="font-mono text-xs text-muted-foreground">
-          #{pedido.id}
-        </span>
-      </div>
+      <PageHeader
+        icon={ShoppingCart}
+        title="Visualizar Pedido"
+        backTo="/saler/orders/find#history"
+      />
 
       {/* Card principal */}
       <Card>
@@ -211,7 +197,9 @@ function ViewOrderContent() {
             {pedido.acrescimo > 0 && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Acréscimo</span>
-                <span className="font-mono">+{formatBRL(pedido.acrescimo)}</span>
+                <span className="font-mono">
+                  +{formatBRL(pedido.acrescimo)}
+                </span>
               </div>
             )}
             <div className="flex items-center justify-between text-sm">
@@ -279,7 +267,9 @@ function ViewOrderContent() {
                       </span>
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 pl-14 font-mono text-xs text-muted-foreground">
-                      <span>{formatQty(item.qtde)} × {formatBRL(item.unitario)}</span>
+                      <span>
+                        {formatQty(item.qtde)} × {formatBRL(item.unitario)}
+                      </span>
                       {impItem > 0 && <span>imp. {formatBRL(impItem)}</span>}
                     </div>
                   </li>
@@ -289,14 +279,6 @@ function ViewOrderContent() {
           )}
         </CardContent>
       </Card>
-
-      {/* Botão Voltar inferior */}
-      <div className="flex justify-start">
-        <Button variant="outline" onClick={goBack} className="gap-2">
-          <ArrowLeft size={16} />
-          Voltar para a lista
-        </Button>
-      </div>
     </div>
   );
 }

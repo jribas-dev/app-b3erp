@@ -55,6 +55,35 @@
 
 ## 4. Componentes — Padrões
 
+### Header de página (PageHeader)
+
+**Padrão obrigatório** para toda página interna sob `(dash)/`. Componente reutilizável em `src/components/layout/page-header.tsx`. Renderiza duas linhas: botão **Voltar** (em linha própria) + card de identidade do domínio (badge accent com ícone + título + subtítulo opcional).
+
+```tsx
+import { PageHeader } from "@/components/layout/page-header";
+import { UserLock } from "lucide-react";
+
+<PageHeader
+  icon={UserLock}
+  title="Gerenciamento de Usuários"
+  subtitle="Adicionar ou configurar acesso de usuários"
+/>
+```
+
+**Props:**
+- `icon: LucideIcon` — ícone do domínio renderizado no badge accent.
+- `title: string` — título do domínio (h1).
+- `subtitle?: string` — descrição curta da intenção da página.
+- `backTo?: string` — default `"/home"`. Para sub-rotas que devem voltar à rota-pai (ex.: `/saler/orders/view` → `/saler/orders/find#history`), passe explicitamente.
+- `backLabel?: string` — default `"Voltar"`. Use `"Cancelar"` apenas em fluxos de criação onde semanticamente faz mais sentido (raro).
+
+**Diretrizes:**
+- O componente retorna `<>back-button + header</>` (Fragment). O wrapper da página (`<div className="container ... space-y-4">` ou `<div className="flex flex-col gap-4">`) cuida do espaçamento entre eles e o conteúdo seguinte.
+- **Não há botão Cancelar redundante** no rodapé de formulários quando o botão Voltar do PageHeader já navega para o mesmo destino. Em `orders/new`, o footer fica apenas com a ação primária ocupando largura total.
+- **Não duplique** o título no `<CardHeader>` do conteúdo abaixo. O título do domínio fica exclusivamente no PageHeader.
+- Páginas com fluxos especiais (ex.: `saler/orders/edit` com `PedidoHeader` próprio que carrega ID dinâmico + status) **não usam** o PageHeader — mantenha o componente local específico.
+- O design visual usa `bg-linear-to-br from-card via-card to-accent/20`, badge `bg-accent/15 ring-accent/25` e ícone `text-accent`. Para alterar a estética, edite o componente — nunca duplique o markup numa página.
+
 ### Botões
 ```tsx
 // Primary — ação principal
@@ -179,6 +208,7 @@ src/
 
 ## 10. Checklist antes de gerar código
 
+- [ ] Páginas internas usam `<PageHeader>` (ver §4), não montam botão Voltar + título inline
 - [ ] Cores usando `var(--token)`, não hex avulso
 - [ ] Dark mode testado (classe `.dark`)
 - [ ] Tipografia nas famílias aprovadas e pesos corretos

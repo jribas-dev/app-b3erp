@@ -1,8 +1,8 @@
 "use client";
 
 import { Loader2, ShoppingCart } from "lucide-react";
-import { useRouter } from "next/navigation";
 
+import { PageHeader } from "@/components/layout/page-header";
 import { ClienteCard } from "@/components/orders/new/cliente-card";
 import { ClienteSearch } from "@/components/orders/new/cliente-search";
 import { EmitenteSelector } from "@/components/orders/new/emitente-selector";
@@ -18,13 +18,10 @@ import {
   Card,
   CardContent,
   CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { useNovoPedido } from "@/hooks/useNovoPedido.hook";
 
 export default function OrderNewPage() {
-  const router = useRouter();
   const {
     emitentes,
     isLoadingEmitentes,
@@ -55,16 +52,11 @@ export default function OrderNewPage() {
   } = useNovoPedido();
 
   return (
-    <div className="container mx-auto max-w-xl px-3 py-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <ShoppingCart size={20} className="text-primary" />
-            Novo Pedido
-          </CardTitle>
-        </CardHeader>
+    <div className="container mx-auto max-w-xl px-3 py-4 space-y-4">
+      <PageHeader icon={ShoppingCart} title="Novo Pedido" subtitle="Informe os dados para abrir o pedido" />
 
-        <CardContent className="space-y-4">
+      <Card>
+        <CardContent className="space-y-4 pt-6">
           <EmitenteSelector
             emitentes={emitentes}
             isLoading={isLoadingEmitentes}
@@ -109,16 +101,8 @@ export default function OrderNewPage() {
           )}
         </CardContent>
 
-        <CardFooter className="flex gap-2">
-          <Button
-            variant="outline"
-            className="flex-1"
-            disabled={isSubmitting}
-            onClick={() => router.push("/home")}
-          >
-            Cancelar
-          </Button>
-          <Button className="flex-1" disabled={!canSubmit} onClick={onSubmit}>
+        <CardFooter>
+          <Button className="w-full" disabled={!canSubmit} onClick={onSubmit}>
             {isSubmitting ? (
               <>
                 <Loader2 size={16} className="animate-spin mr-2" />

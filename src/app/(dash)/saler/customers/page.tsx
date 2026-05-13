@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowLeft,
   Loader2,
   Plus,
   Save,
@@ -17,6 +16,7 @@ import { EnderecoSection } from "@/components/customers/endereco-section";
 import { IdentificacaoSection } from "@/components/customers/identificacao-section";
 import { ModeBadge } from "@/components/customers/mode-badge";
 import { SearchDialog } from "@/components/customers/search-dialog";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Callout,
@@ -70,19 +70,7 @@ export default function CustomersPage() {
 
   return (
     <div className="container mx-auto max-w-2xl px-3 py-4 space-y-4">
-      <div className="flex items-center gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push("/home")}
-          className="gap-2"
-        >
-          <ArrowLeft size={16} />
-          Voltar
-        </Button>
-        <Users size={20} className="text-primary shrink-0" />
-        <h1 className="text-xl font-semibold">Cadastro de Clientes</h1>
-      </div>
+      <PageHeader icon={Users} title="Cadastro de Clientes" subtitle="Gerenciar informações dos clientes" />
 
       <SearchDialog
         open={searchOpen}

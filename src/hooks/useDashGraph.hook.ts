@@ -7,14 +7,70 @@ import { useSelectedEmitente } from "@/components/selected-emitente-provider";
 import type { Emitente } from "@/types/vendas.types";
 import type { ChartDataDto, Dominio, Periodo } from "@/types/dash.types";
 
+const STORAGE_KEY = "dash-graph-view";
+
+const VALID_DOMINIOS: Dominio[] = ["faturamento", "financeiro", "estoque"];
+const VALID_PERIODOS: Periodo[] = ["S", "M", "T"];
+
+const DOMINIO_FIRST_METRICA: Record<Dominio, string> = {
+  faturamento: "evolucao",
+  financeiro: "receber-vs-pagar",
+  estoque: "entradas-vs-saidas",
+};
+
+type StoredView = {
+  dominio: Dominio;
+  metrica: string;
+  periodo: Periodo;
+};
+
+const DEFAULT_VIEW: StoredView = {
+  dominio: "faturamento",
+  metrica: "evolucao",
+  periodo: "M",
+};
+
+function loadStoredView(): StoredView {
+  if (typeof window === "undefined") return DEFAULT_VIEW;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return DEFAULT_VIEW;
+    const parsed = JSON.parse(raw) as Partial<StoredView>;
+    if (
+      parsed.dominio &&
+      VALID_DOMINIOS.includes(parsed.dominio) &&
+      typeof parsed.metrica === "string" &&
+      parsed.metrica.length > 0 &&
+      parsed.periodo &&
+      VALID_PERIODOS.includes(parsed.periodo)
+    ) {
+      return {
+        dominio: parsed.dominio,
+        metrica: parsed.metrica,
+        periodo: parsed.periodo,
+      };
+    }
+  } catch {
+    // ignore parse/storage errors and fall back to defaults
+  }
+  return DEFAULT_VIEW;
+}
+
+function persistView(v: StoredView) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(v));
+  } catch {
+    // storage quota / unavailable — silently skip persistence
+  }
+}
+
 export function useDashGraph() {
   const { selectedIdemp, setSelectedIdemp } = useSelectedEmitente();
   const [emitentes, setEmitentes] = useState<Emitente[]>([]);
   const [isLoadingInit, setIsLoadingInit] = useState(true);
 
-  const [selectedDominio, setSelectedDominio] = useState<Dominio>("faturamento");
-  const [selectedMetrica, setSelectedMetrica] = useState<string | null>(null);
-  const [selectedPeriodo, setSelectedPeriodo] = useState<Periodo | null>(null);
+  const [view, setView] = useState<StoredView>(() => loadStoredView());
 
   const [chartData, setChartData] = useState<ChartDataDto | null>(null);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
@@ -44,6 +100,10 @@ export function useDashGraph() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    persistView(view);
+  }, [view]);
+
   const fetchChart = useCallback(
     async (dominio: Dominio, metrica: string, idemp: number, periodo: Periodo) => {
       setChartData(null);
@@ -64,32 +124,25 @@ export function useDashGraph() {
   );
 
   useEffect(() => {
-    if (selectedIdemp && selectedMetrica && selectedPeriodo) {
-      fetchChart(selectedDominio, selectedMetrica, selectedIdemp, selectedPeriodo);
+    if (selectedIdemp) {
+      fetchChart(view.dominio, view.metrica, selectedIdemp, view.periodo);
     }
-  }, [selectedIdemp, selectedDominio, selectedMetrica, selectedPeriodo, fetchChart]);
+  }, [selectedIdemp, view, fetchChart]);
 
   function onDominioChange(d: Dominio) {
-    setSelectedDominio(d);
-    setSelectedMetrica(null);
-    setChartData(null);
-    setError(null);
+    setView((v) => ({ ...v, dominio: d, metrica: DOMINIO_FIRST_METRICA[d] }));
   }
 
   function onMetricaChange(m: string) {
-    setSelectedMetrica(m);
-    setChartData(null);
-    setError(null);
+    setView((v) => ({ ...v, metrica: m }));
   }
 
   function onPeriodoChange(p: Periodo) {
-    setSelectedPeriodo(p);
+    setView((v) => ({ ...v, periodo: p }));
   }
 
   async function onIdempChange(id: number) {
     await setSelectedIdemp(id);
-    setChartData(null);
-    setError(null);
   }
 
   return {
@@ -97,11 +150,11 @@ export function useDashGraph() {
     selectedIdemp,
     onIdempChange,
     isLoadingInit,
-    selectedDominio,
+    selectedDominio: view.dominio,
     onDominioChange,
-    selectedMetrica,
+    selectedMetrica: view.metrica,
     onMetricaChange,
-    selectedPeriodo,
+    selectedPeriodo: view.periodo,
     onPeriodoChange,
     chartData,
     isLoadingChart,

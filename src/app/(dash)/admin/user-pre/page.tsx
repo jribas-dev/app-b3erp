@@ -1,10 +1,9 @@
 "use client";
 
-import { ArrowLeft, UserStar } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { UserStar } from "lucide-react";
 import { useRef } from "react";
 
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/page-header";
 import {
   Tabs,
   TabsContent,
@@ -18,7 +17,6 @@ import {
 } from "@/components/user-pre/invites-tab";
 
 export default function UserPrePage() {
-  const router = useRouter();
   const invitesRef = useRef<InvitesTabHandle | null>(null);
 
   const handleCreated = () => {
@@ -27,21 +25,7 @@ export default function UserPrePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push("/home")}
-          className="gap-2"
-        >
-          <ArrowLeft size={16} />
-          Voltar
-        </Button>
-        <h1 className="flex items-center gap-2 text-xl font-semibold">
-          <UserStar size={20} />
-          Convidar Usuário
-        </h1>
-      </div>
+      <PageHeader icon={UserStar} title="Convidar Usuário" subtitle="Gerenciar convites pendentes / Ativar usuários na API" />
 
       <Tabs defaultValue="manage">
         <TabsList>

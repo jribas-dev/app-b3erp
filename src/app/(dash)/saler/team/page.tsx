@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowLeft, Users, UserPlus, UserMinus, Loader2, Phone } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Users, UserPlus, UserMinus, Loader2, Phone } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,7 +60,6 @@ function Listbox({
 // ── page ──────────────────────────────────────────────────────────────────────
 
 export default function TeamPage() {
-  const router = useRouter();
   const {
     isLoading,
     isActing,
@@ -81,12 +80,7 @@ export default function TeamPage() {
   if (!isLoading && !isSupervisor) {
     return (
       <div className="container mx-auto max-w-xl px-3 py-4 space-y-4">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={() => router.push("/home")} className="gap-2">
-            <ArrowLeft size={16} />
-            Voltar
-          </Button>
-        </div>
+        <PageHeader icon={Users} title="Configurar Equipe" />
         <Callout variant="destructive">
           <CalloutTitle>Acesso negado</CalloutTitle>
           <CalloutDescription>Esta página é restrita ao perfil supervisor.</CalloutDescription>
@@ -97,15 +91,7 @@ export default function TeamPage() {
 
   return (
     <div className="container mx-auto max-w-2xl px-3 py-4 space-y-5">
-      {/* Título */}
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={() => router.push("/home")} className="gap-2">
-          <ArrowLeft size={16} />
-          Voltar
-        </Button>
-        <Users size={20} className="text-primary" />
-        <h1 className="text-xl font-semibold">Configurar Equipe</h1>
-      </div>
+      <PageHeader icon={Users} title="Configurar Equipe" subtitle="Disponíveis são os vendedores sem equipe atribuída" />
 
       {/* Campo supervisor */}
       <div className="grid gap-1.5">

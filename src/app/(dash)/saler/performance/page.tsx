@@ -1,7 +1,6 @@
 "use client";
 
-import { ArrowLeft, TrendingUp, Users, Loader2, RefreshCw, X, UserX, Phone, Mail, MapPin, Clock, UsersRound } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { TrendingUp, Users, Loader2, RefreshCw, X, UserX, Phone, Mail, MapPin, Clock, UsersRound } from "lucide-react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -13,6 +12,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Callout, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
@@ -275,7 +275,6 @@ const TABS: { value: MetricaTab; label: string }[] = [
 ];
 
 export default function PerformancePage() {
-  const router = useRouter();
   const {
     isLoadingInit,
     isSupervisor,
@@ -302,15 +301,7 @@ export default function PerformancePage() {
 
   return (
     <div className="container mx-auto max-w-5xl px-3 py-4 space-y-4">
-      {/* Título */}
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={() => router.push("/home")} className="gap-2">
-          <ArrowLeft size={16} />
-          Voltar
-        </Button>
-        <TrendingUp size={20} className="text-primary" />
-        <h1 className="text-xl font-semibold">Análise de Desempenho</h1>
-      </div>
+      <PageHeader icon={TrendingUp} title="Análise de Desempenho" subtitle="Total vendido, ranking de clientes, lista de clientes inativos" />
 
       {/* Empresa — só aparece selector quando há mais de uma */}
       {!isLoadingInit && emitentes.length > 1 && (

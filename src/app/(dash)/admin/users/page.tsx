@@ -1,7 +1,6 @@
 "use client";
 
-import { ArrowLeft, UserLock } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { UserLock } from "lucide-react";
 import { useRef } from "react";
 
 import {
@@ -12,7 +11,7 @@ import {
   ManageUsersTab,
   type ManageUsersTabHandle,
 } from "@/components/admin/users/manage-users-tab";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/page-header";
 import {
   Tabs,
   TabsContent,
@@ -22,7 +21,6 @@ import {
 import { useSession } from "@/hooks/useSession.hook";
 
 export default function UsersPage() {
-  const router = useRouter();
   const { session } = useSession();
 
   const manageRef = useRef<ManageUsersTabHandle | null>(null);
@@ -35,21 +33,11 @@ export default function UsersPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push("/home")}
-          className="gap-2"
-        >
-          <ArrowLeft size={16} />
-          Voltar
-        </Button>
-        <h1 className="flex items-center gap-2 text-xl font-semibold">
-          <UserLock size={20} />
-          Gerenciamento de Usuários
-        </h1>
-      </div>
+      <PageHeader
+        icon={UserLock}
+        title="Gerenciamento de Usuários"
+        subtitle="Adicionar ou configurar acesso de usuários"
+      />
 
       <Tabs defaultValue="manage">
         <TabsList>

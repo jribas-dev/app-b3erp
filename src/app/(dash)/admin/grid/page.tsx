@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowLeft,
   Table2,
   Users,
   Package,
@@ -14,7 +13,7 @@ import {
   Loader2,
   type LucideIcon,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Callout, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
@@ -68,6 +67,10 @@ const PERIODOS: { value: Periodo; label: string }[] = [
   { value: "M", label: "Mensal" },
   { value: "T", label: "Trimestral" },
 ];
+
+// Listas que NÃO usam `periodo` (snapshot — ver agent_docs/api-b3dash.md).
+// O parâmetro continua sendo enviado por validação no backend, mas o seletor é ocultado.
+const LISTAS_SEM_PERIODO = new Set<string>(["estoque/por-produto"]);
 
 const STATUS_OPTIONS: Partial<Record<string, { value: string; label: string }[]>> = {
   "financeiro/receber": [
@@ -312,7 +315,6 @@ function GridCards({
 // ── page ───────────────────────────────────────────────────────────────────────
 
 export default function DashGridPage() {
-  const router = useRouter();
   const {
     emitentes,
     selectedIdemp,
@@ -334,24 +336,16 @@ export default function DashGridPage() {
   } = useDashGrid();
 
   const listasAtivas = LISTAS[selectedDominio];
-  const colKey = selectedTipo ? `${selectedDominio}/${selectedTipo}` : null;
-  const cols = colKey ? (COLUNAS[colKey] ?? []) : [];
-  const statusKey = selectedTipo ? `${selectedDominio}/${selectedTipo}` : null;
-  const statusOpts = statusKey ? STATUS_OPTIONS[statusKey] : undefined;
+  const colKey = `${selectedDominio}/${selectedTipo}`;
+  const cols = COLUNAS[colKey] ?? [];
+  const statusOpts = STATUS_OPTIONS[colKey];
+  const usaPeriodo = !LISTAS_SEM_PERIODO.has(colKey);
 
   const totalPages = gridData ? Math.max(1, Math.ceil(gridData.total / gridData.limit)) : 1;
 
   return (
     <div className="container mx-auto max-w-5xl px-3 py-4 space-y-4">
-      {/* header */}
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={() => router.push("/home")} className="gap-2">
-          <ArrowLeft size={16} />
-          Voltar
-        </Button>
-        <Table2 size={20} className="text-primary shrink-0" />
-        <h1 className="text-xl font-semibold leading-tight">Dashboard com Listagens</h1>
-      </div>
+      <PageHeader icon={Table2} title="Pesquisas detalhadas" subtitle="Selecione para visualizar listas com detalhes" />
 
       {/* empresa */}
       {isLoadingInit ? (
@@ -428,7 +422,7 @@ export default function DashGridPage() {
       )}
 
       {/* período */}
-      {!isLoadingInit && (
+      {!isLoadingInit && usaPeriodo && (
         <div className="grid gap-1.5">
           <Label>Período</Label>
           <div className="flex gap-2">
@@ -536,11 +530,7 @@ export default function DashGridPage() {
               <p className="text-sm text-center">
                 {!selectedIdemp && emitentes.length > 1
                   ? "Selecione a empresa"
-                  : !selectedTipo
-                    ? "Selecione uma lista"
-                    : !selectedPeriodo
-                      ? "Selecione o período"
-                      : "Nenhum dado encontrado"}
+                  : "Nenhum dado encontrado"}
               </p>
             </div>
           )}

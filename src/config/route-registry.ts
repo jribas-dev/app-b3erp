@@ -93,7 +93,7 @@ export const ROUTES = [
     path: "/admin/graph",
     roles: ["admin"],
     menu: {
-      label: "Dashboard com Gráficos",
+      label: "Dashboard Gerencial",
       icon: PieChart,
       section: "management",
     },
@@ -102,7 +102,7 @@ export const ROUTES = [
     path: "/admin/grid",
     roles: ["admin"],
     menu: {
-      label: "Pesquisas em Grid",
+      label: "Pesquisas detalhadas",
       icon: Grid2X2Check,
       section: "management",
     },

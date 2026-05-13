@@ -8,18 +8,79 @@ import type { Emitente } from "@/types/vendas.types";
 import type { Dominio, GridResponseDto, Periodo } from "@/types/dash.types";
 
 const LIMIT = 50;
+const STORAGE_KEY = "dash-grid-view";
+
+const VALID_DOMINIOS: Dominio[] = ["faturamento", "financeiro", "estoque"];
+const VALID_PERIODOS: Periodo[] = ["S", "M", "T"];
+
+const DOMINIO_TIPOS: Record<Dominio, string[]> = {
+  faturamento: ["por-cliente", "por-produto", "por-vendedor"],
+  financeiro: ["receber", "pagar", "movimentos"],
+  estoque: ["lancamentos", "por-produto", "por-fornecedor"],
+};
+
+const DOMINIO_FIRST_TIPO: Record<Dominio, string> = {
+  faturamento: "por-cliente",
+  financeiro: "receber",
+  estoque: "lancamentos",
+};
+
+type StoredView = {
+  dominio: Dominio;
+  tipo: string;
+  periodo: Periodo;
+};
+
+const DEFAULT_VIEW: StoredView = {
+  dominio: "faturamento",
+  tipo: "por-cliente",
+  periodo: "M",
+};
+
+function loadStoredView(): StoredView {
+  if (typeof window === "undefined") return DEFAULT_VIEW;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return DEFAULT_VIEW;
+    const parsed = JSON.parse(raw) as Partial<StoredView>;
+    if (
+      parsed.dominio &&
+      VALID_DOMINIOS.includes(parsed.dominio) &&
+      typeof parsed.tipo === "string" &&
+      DOMINIO_TIPOS[parsed.dominio]?.includes(parsed.tipo) &&
+      parsed.periodo &&
+      VALID_PERIODOS.includes(parsed.periodo)
+    ) {
+      return {
+        dominio: parsed.dominio,
+        tipo: parsed.tipo,
+        periodo: parsed.periodo,
+      };
+    }
+  } catch {
+    // ignore parse/storage errors and fall back to defaults
+  }
+  return DEFAULT_VIEW;
+}
+
+function persistView(v: StoredView) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(v));
+  } catch {
+    // storage quota / unavailable — silently skip persistence
+  }
+}
 
 export function useDashGrid() {
   const { selectedIdemp, setSelectedIdemp } = useSelectedEmitente();
   const [emitentes, setEmitentes] = useState<Emitente[]>([]);
   const [isLoadingInit, setIsLoadingInit] = useState(true);
 
-  const [selectedDominio, setSelectedDominio] = useState<Dominio>("faturamento");
-  const [selectedTipo, setSelectedTipo] = useState<string | null>(null);
-  const [selectedPeriodo, setSelectedPeriodo] = useState<Periodo | null>(null);
+  const [view, setView] = useState<StoredView>(() => loadStoredView());
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>(undefined);
-
   const [page, setPage] = useState(1);
+
   const [gridData, setGridData] = useState<GridResponseDto<Record<string, unknown>> | null>(null);
   const [isLoadingGrid, setIsLoadingGrid] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +98,7 @@ export function useDashGrid() {
           cookieIdemp != null &&
           result.data.some((e) => e.id === cookieIdemp)
         ) {
-          // já está em selectedIdemp do contexto
+          // já está em selectedIdemp do contexto — useEffect dependente cuidará do fetch
         } else if (result.data.length === 1) {
           await setSelectedIdemp(result.data[0].id);
         }
@@ -47,6 +108,10 @@ export function useDashGrid() {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    persistView(view);
+  }, [view]);
 
   const fetchGrid = useCallback(
     async (
@@ -75,30 +140,25 @@ export function useDashGrid() {
   );
 
   useEffect(() => {
-    if (selectedIdemp && selectedTipo && selectedPeriodo) {
-      fetchGrid(selectedDominio, selectedTipo, selectedIdemp, selectedPeriodo, page, selectedStatus);
+    if (selectedIdemp) {
+      fetchGrid(view.dominio, view.tipo, selectedIdemp, view.periodo, page, selectedStatus);
     }
-  }, [selectedIdemp, selectedDominio, selectedTipo, selectedPeriodo, page, selectedStatus, fetchGrid]);
+  }, [selectedIdemp, view, page, selectedStatus, fetchGrid]);
 
   function onDominioChange(d: Dominio) {
-    setSelectedDominio(d);
-    setSelectedTipo(null);
+    setView((v) => ({ ...v, dominio: d, tipo: DOMINIO_FIRST_TIPO[d] }));
     setSelectedStatus(undefined);
     setPage(1);
-    setGridData(null);
-    setError(null);
   }
 
   function onTipoChange(t: string) {
-    setSelectedTipo(t);
+    setView((v) => ({ ...v, tipo: t }));
     setSelectedStatus(undefined);
     setPage(1);
-    setGridData(null);
-    setError(null);
   }
 
   function onPeriodoChange(p: Periodo) {
-    setSelectedPeriodo(p);
+    setView((v) => ({ ...v, periodo: p }));
     setPage(1);
   }
 
@@ -122,11 +182,11 @@ export function useDashGrid() {
     selectedIdemp,
     onIdempChange,
     isLoadingInit,
-    selectedDominio,
+    selectedDominio: view.dominio,
     onDominioChange,
-    selectedTipo,
+    selectedTipo: view.tipo,
     onTipoChange,
-    selectedPeriodo,
+    selectedPeriodo: view.periodo,
     onPeriodoChange,
     selectedStatus,
     onStatusChange,

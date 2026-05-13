@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   ClipboardList,
   Edit2,
   Eye,
@@ -15,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { usePedidosLista } from "@/hooks/usePedidosLista.hook";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -192,62 +192,50 @@ export default function OrderFindPage() {
 
   return (
     <div className="container mx-auto max-w-xl px-3 py-4 space-y-4">
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/home")}
-            className="gap-1.5 text-muted-foreground"
-            aria-label="Voltar"
-          >
-            <ArrowLeft size={16} />
-            Voltar
-          </Button>
-          <ShoppingCart size={20} className="text-primary shrink-0" />
-          <h1 className="text-xl font-semibold text-foreground">
-            Meus Pedidos
-          </h1>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={refresh}
-          disabled={isRefreshing || !selectedIdemp}
-          aria-label="Atualizar lista"
-          className="gap-1.5"
-        >
-          {isRefreshing ? (
-            <Loader2 size={15} className="animate-spin" />
-          ) : (
-            <RefreshCw size={15} />
-          )}
-          Atualizar
-        </Button>
-      </div>
+      <PageHeader icon={ShoppingCart} title="Meus Pedidos" subtitle="Em aberto (5 dias) / Histórico (confirmados, 30 dias)" />
 
-      {/* Seletor de empresa — visível apenas quando há mais de uma */}
-      {!isLoadingEmitentes && emitentes.length > 1 && (
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-foreground shrink-0">
-            Empresa
-          </span>
-          <Select
-            value={selectedIdemp?.toString() ?? ""}
-            onValueChange={(v) => onIdemandChange(Number(v))}
+      {/* Seletor de empresa + botão Atualizar */}
+      {!isLoadingEmitentes && (
+        <div className="flex items-center gap-2">
+          {emitentes.length > 1 ? (
+            <>
+              <span className="text-sm font-medium text-foreground shrink-0">
+                Empresa
+              </span>
+              <Select
+                value={selectedIdemp?.toString() ?? ""}
+                onValueChange={(v) => onIdemandChange(Number(v))}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Selecione a empresa" />
+                </SelectTrigger>
+                <SelectContent>
+                  {emitentes.map((e) => (
+                    <SelectItem key={e.id} value={e.id.toString()}>
+                      {e.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          ) : (
+            <div className="flex-1" />
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refresh}
+            disabled={isRefreshing || !selectedIdemp}
+            aria-label="Atualizar lista"
+            className="gap-1.5 shrink-0"
           >
-            <SelectTrigger className="flex-1">
-              <SelectValue placeholder="Selecione a empresa" />
-            </SelectTrigger>
-            <SelectContent>
-              {emitentes.map((e) => (
-                <SelectItem key={e.id} value={e.id.toString()}>
-                  {e.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {isRefreshing ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <RefreshCw size={15} />
+            )}
+            Atualizar
+          </Button>
         </div>
       )}
 

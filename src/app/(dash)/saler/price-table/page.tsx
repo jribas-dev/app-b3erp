@@ -1,10 +1,9 @@
 "use client";
 
-import { Tag, Users, Search, Loader2, Package, ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Tag, Users, Search, Loader2, Package } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Callout, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
 import { useTabelaPrecos } from "@/hooks/useTabelaPrecos.hook";
@@ -12,7 +11,6 @@ import { formatBRL } from "@/lib/format/currency";
 import { formatDecimal, formatPct } from "@/lib/format/number";
 
 export default function PriceTablePage() {
-  const router = useRouter();
   const {
     isLoadingInit,
     clientes,
@@ -36,15 +34,7 @@ export default function PriceTablePage() {
 
   return (
     <div className="container mx-auto max-w-5xl px-3 py-4 space-y-4">
-      {/* Título */}
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={() => router.push("/home")} className="gap-2">
-          <ArrowLeft size={16} />
-          Voltar
-        </Button>
-        <Tag size={20} className="text-primary" />
-        <h1 className="text-xl font-semibold">Tabela de Preços</h1>
-      </div>
+      <PageHeader icon={Tag} title="Tabela de Preços" subtitle="Consultar tabela de preços do cliente selecionado" />
 
       {/* Seletor de cliente */}
       <div className="grid gap-1.5">
