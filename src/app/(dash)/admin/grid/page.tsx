@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Table2,
   Users,
@@ -11,10 +12,15 @@ import {
   ArrowUpDown,
   Truck,
   Loader2,
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
   type LucideIcon,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Callout, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
 import { Label } from "@/components/ui/label";
@@ -25,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDashGrid } from "@/hooks/useDashGrid.hook";
+import { useDashGrid, PAGE_SIZE_OPTIONS, type PageSize } from "@/hooks/useDashGrid.hook";
 import type { Dominio, Periodo } from "@/types/dash.types";
 import { formatBRL } from "@/lib/format/currency";
 import { formatDecimal } from "@/lib/format/number";
@@ -165,7 +171,7 @@ const COLUNAS: Record<string, ColDef[]> = {
     { header: "Data", accessor: "dthrestoque", format: "date" },
     { header: "Tipo", accessor: "tipo", format: "badge-debcred" },
     { header: "Produto", accessor: "produto" },
-    { header: "SKU", accessor: "sku" },
+    { header: "Origem", accessor: "origem" },
     { header: "Qtde", accessor: "qtde", align: "right", format: "decimal3" },
     { header: "Custo", accessor: "custo", align: "right", format: "brl" },
   ],
@@ -217,11 +223,11 @@ function formatValue(value: unknown, format?: ColFormat): React.ReactNode {
     }
     case "badge-debcred": {
       const v = String(value);
-      const isPositive = v === "C" || v === "E";
-      const cls = isPositive
+      const cls = (v === "C" || v === "E")
         ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+        : (v === "B" || v === "X") ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
         : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300";
-      const label = v === "C" ? "Crédito" : v === "D" ? "Débito" : v === "E" ? "Entrada" : "Saída";
+      const label = v === "C" ? "Crédito" : v === "D" ? "Débito" : v === "B" ? "Balanço" : v === "X" ? "REG" : v === "E" ? "Entrada" : "Saída";
       return (
         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
           {label}
@@ -318,6 +324,63 @@ function GridCards({
   );
 }
 
+// ── page jumper ────────────────────────────────────────────────────────────────
+
+function PageJumper({
+  page,
+  totalPages,
+  onPageChange,
+}: {
+  page: number;
+  totalPages: number;
+  onPageChange: (p: number) => void;
+}) {
+  const [value, setValue] = useState(String(page));
+
+  useEffect(() => {
+    setValue(String(page));
+  }, [page]);
+
+  function submit() {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+      setValue(String(page));
+      return;
+    }
+    const clamped = Math.min(totalPages, Math.max(1, Math.floor(n)));
+    if (clamped !== page) onPageChange(clamped);
+    setValue(String(clamped));
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <Input
+        type="number"
+        inputMode="numeric"
+        min={1}
+        max={totalPages}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            submit();
+          }
+        }}
+        onBlur={() => {
+          if (value === "" || Number(value) !== page) setValue(String(page));
+        }}
+        aria-label={`Página atual de ${totalPages}`}
+        className="h-8 w-14 px-2 text-center text-xs"
+      />
+      <span className="text-xs text-muted-foreground">/ {totalPages}</span>
+      <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={submit}>
+        Ir
+      </Button>
+    </div>
+  );
+}
+
 // ── page ───────────────────────────────────────────────────────────────────────
 
 export default function DashGridPage() {
@@ -339,6 +402,8 @@ export default function DashGridPage() {
     gridData,
     isLoadingGrid,
     error,
+    limit,
+    onLimitChange,
   } = useDashGrid();
 
   const listasAtivas = LISTAS[selectedDominio];
@@ -488,12 +553,32 @@ export default function DashGridPage() {
           ) : gridData && cols.length > 0 ? (
             <>
               {/* info de paginação */}
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground shrink-0">
                   {gridData.total}{" "}
                   {gridData.total === 1 ? "registro" : "registros"}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="page-size" className="text-xs text-muted-foreground">
+                    por pág.
+                  </Label>
+                  <Select
+                    value={String(limit)}
+                    onValueChange={(v) => onLimitChange(Number(v) as PageSize)}
+                  >
+                    <SelectTrigger id="page-size" size="sm" className="h-7 w-17 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAGE_SIZE_OPTIONS.map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p className="text-xs text-muted-foreground shrink-0">
                   Pág {page} / {totalPages}
                 </p>
               </div>
@@ -510,26 +595,52 @@ export default function DashGridPage() {
 
               {/* paginação */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between pt-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page <= 1}
-                    onClick={() => onPageChange(page - 1)}
-                  >
-                    ← Anterior
-                  </Button>
-                  <span className="text-xs text-muted-foreground">
-                    Pág {page} / {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page >= totalPages}
-                    onClick={() => onPageChange(page + 1)}
-                  >
-                    Próxima →
-                  </Button>
+                <div className="flex items-center justify-between pt-1 gap-2">
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 px-0"
+                      aria-label="Primeira página"
+                      disabled={page <= 1}
+                      onClick={() => onPageChange(1)}
+                    >
+                      <ChevronsLeft size={16} />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 px-0"
+                      aria-label="Página anterior"
+                      disabled={page <= 1}
+                      onClick={() => onPageChange(page - 1)}
+                    >
+                      <ChevronLeft size={16} />
+                    </Button>
+                  </div>
+                  <PageJumper page={page} totalPages={totalPages} onPageChange={onPageChange} />
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 px-0"
+                      aria-label="Próxima página"
+                      disabled={page >= totalPages}
+                      onClick={() => onPageChange(page + 1)}
+                    >
+                      <ChevronRight size={16} />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 px-0"
+                      aria-label="Última página"
+                      disabled={page >= totalPages}
+                      onClick={() => onPageChange(totalPages)}
+                    >
+                      <ChevronsRight size={16} />
+                    </Button>
+                  </div>
                 </div>
               )}
             </>

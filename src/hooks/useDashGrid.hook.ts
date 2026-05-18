@@ -7,7 +7,10 @@ import { useSelectedEmitente } from "@/components/selected-emitente-provider";
 import type { Emitente } from "@/types/vendas.types";
 import type { Dominio, GridResponseDto, Periodo } from "@/types/dash.types";
 
-const LIMIT = 50;
+export const PAGE_SIZE_OPTIONS = [12, 25, 50, 100] as const;
+export type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
+const DEFAULT_PAGE_SIZE: PageSize = 25;
+
 const STORAGE_KEY = "dash-grid-view";
 
 const VALID_DOMINIOS: Dominio[] = ["faturamento", "financeiro", "estoque"];
@@ -29,13 +32,19 @@ type StoredView = {
   dominio: Dominio;
   tipo: string;
   periodo: Periodo;
+  limit: PageSize;
 };
 
 const DEFAULT_VIEW: StoredView = {
   dominio: "faturamento",
   tipo: "por-cliente",
-  periodo: "M",
+  periodo: "S",
+  limit: DEFAULT_PAGE_SIZE,
 };
+
+function isPageSize(v: unknown): v is PageSize {
+  return typeof v === "number" && (PAGE_SIZE_OPTIONS as readonly number[]).includes(v);
+}
 
 function loadStoredView(): StoredView {
   if (typeof window === "undefined") return DEFAULT_VIEW;
@@ -55,6 +64,7 @@ function loadStoredView(): StoredView {
         dominio: parsed.dominio,
         tipo: parsed.tipo,
         periodo: parsed.periodo,
+        limit: isPageSize(parsed.limit) ? parsed.limit : DEFAULT_PAGE_SIZE,
       };
     }
   } catch {
@@ -120,13 +130,14 @@ export function useDashGrid() {
       idemp: number,
       periodo: Periodo,
       p: number,
+      limit: PageSize,
       status: string | undefined,
     ) => {
       setGridData(null);
       setError(null);
       setIsLoadingGrid(true);
       try {
-        const result = await getDashGridAction(dominio, tipo, idemp, periodo, p, LIMIT, status);
+        const result = await getDashGridAction(dominio, tipo, idemp, periodo, p, limit, status);
         if (result.success) {
           setGridData(result.data);
         } else {
@@ -141,7 +152,7 @@ export function useDashGrid() {
 
   useEffect(() => {
     if (selectedIdemp) {
-      fetchGrid(view.dominio, view.tipo, selectedIdemp, view.periodo, page, selectedStatus);
+      fetchGrid(view.dominio, view.tipo, selectedIdemp, view.periodo, page, view.limit, selectedStatus);
     }
   }, [selectedIdemp, view, page, selectedStatus, fetchGrid]);
 
@@ -171,6 +182,11 @@ export function useDashGrid() {
     setPage(p);
   }
 
+  function onLimitChange(l: PageSize) {
+    setView((v) => ({ ...v, limit: l }));
+    setPage(1);
+  }
+
   async function onIdempChange(id: number) {
     await setSelectedIdemp(id);
     setGridData(null);
@@ -195,6 +211,7 @@ export function useDashGrid() {
     gridData,
     isLoadingGrid,
     error,
-    limit: LIMIT,
+    limit: view.limit,
+    onLimitChange,
   };
 }
