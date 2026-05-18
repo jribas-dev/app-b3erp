@@ -154,7 +154,7 @@ const COLUNAS: Record<string, ColDef[]> = {
   "financeiro/pagar": [
     { header: "Fornecedor", accessor: "fornecedor" },
     { header: "Doc.", accessor: "nrodoc" },
-    { header: "Vencimento", accessor: "vencimentoMin", format: "date" },
+    { header: "Emissão", accessor: "emissao", format: "date" },
     { header: "Total", accessor: "valortotal", align: "right", format: "brl" },
     { header: "Pago", accessor: "valorPagoAcum", align: "right", format: "brl" },
     { header: "Status", accessor: "status", format: "badge-status" },
