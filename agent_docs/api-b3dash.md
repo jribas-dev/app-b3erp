@@ -49,7 +49,9 @@ Domínios disponíveis: `faturamento`, `financeiro`, `estoque`.
 | Param | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
 | `idemp` | integer | ✅ | ID da empresa (emitente) no banco do tenant. Deve pertencer ao tenant do token |
-| `periodo` | string | ✅ | Janela de tempo: `S`=Semanal (54 semanas), `M`=Mensal (12 meses), `T`=Trimestral (4 trimestres) |
+| `periodo` | string | ✅ | Janela de tempo: `S`=Semanal (16 semanas), `M`=Mensal (12 meses), `T`=Trimestral (6 trimestres) |
+
+> ⚠️ **Endpoints snapshot:** alguns gráficos retornam a posição atual e **ignoram** o valor de `periodo` (o parâmetro continua obrigatório por validação, mas não filtra). Veja a coluna **Usa `periodo`?** nas [tabelas resumo](#tabela-resumo-dos-endpoints) e a [nota de rodapé](#tabela-resumo-dos-endpoints).
 
 ### Para endpoints `/list/:tipo`
 
@@ -330,7 +332,9 @@ Fluxo de caixa projetado: entradas previstas × saídas previstas (por venciment
 
 ### `GET /b3dash/financeiro/graph/inadimplencia`
 
-Composição do contas a receber: Recebido × A Vencer × Vencido (snapshot — ignora o parâmetro `periodo`).
+Composição do contas a receber emitidos dentro da janela do `periodo`: Recebido × A Vencer × Vencido.
+
+> A janela é aplicada sobre `ctareceber.emissao` (16 semanas para `S`, 12 meses para `M`, 6 trimestres para `T`). A classificação Recebido/Vencido/A Vencer continua sendo avaliada na data atual (`CURDATE()`).
 
 **Chart type:** `pie`
 
@@ -350,7 +354,9 @@ Composição do contas a receber: Recebido × A Vencer × Vencido (snapshot — 
 
 ### `GET /b3dash/financeiro/graph/top-inadimplentes`
 
-Top 15 clientes com maior valor vencido (snapshot — ignora `periodo`).
+Top 15 clientes com maior valor vencido dentro da janela do `periodo`.
+
+> A janela é aplicada sobre `ctareceber.emissao` (16 semanas para `S`, 12 meses para `M`, 6 trimestres para `T`). Apenas títulos com `pagamento IS NULL` e `vencimento < CURDATE()` (vencidos) são considerados.
 
 **Chart type:** `bar_h`
 
@@ -570,20 +576,20 @@ Classificação ABC de produtos por participação no valor total de estoque (sn
 
 ### `GET /b3dash/estoque/graph/ruptura`
 
-Produtos com saldo abaixo do estoque mínimo, agrupados por grupo de produto (snapshot — ignora `periodo`).
+Top 15 produtos em ruptura (`saldo < saldomin`), ordenados pelo saldo de ruptura (`saldo - saldomin`) em ordem decrescente — snapshot, ignora `periodo`.
 
-**Chart type:** `bar_v`
+**Chart type:** `bar_h`
 
-**Labels:** nomes dos grupos de produto
+**Labels:** nomes dos produtos
 
 **Resposta `200`:**
 
 ```jsonc
 {
-  "chartType": "bar_v",
-  "labels": ["Eletrônicos", "Ferramentas", "Papelaria"],
+  "chartType": "bar_h",
+  "labels": ["Parafuso M6", "Cabo USB-C", "Caneta Azul"],
   "series": [
-    { "name": "Qtde em Ruptura", "data": [8, 3, 12] }
+    { "name": "Saldo ruptura", "data": [-2.5, -8.0, -15.0] }
   ]
 }
 ```
@@ -713,8 +719,8 @@ Grid de compras agrupadas por fornecedor no período.
 |---|---|---|---|
 | `GET /b3dash/financeiro/graph/receber-vs-pagar` | Gráfico | `line` (2 séries) | ✅ |
 | `GET /b3dash/financeiro/graph/fluxo-caixa-projetado` | Gráfico | `line` (2 séries) | ✅ |
-| `GET /b3dash/financeiro/graph/inadimplencia` | Gráfico | `pie` | ❌ snapshot |
-| `GET /b3dash/financeiro/graph/top-inadimplentes` | Gráfico | `bar_h` | ❌ snapshot |
+| `GET /b3dash/financeiro/graph/inadimplencia` | Gráfico | `pie` | ✅ (filtro por `emissao`) |
+| `GET /b3dash/financeiro/graph/top-inadimplentes` | Gráfico | `bar_h` | ✅ (filtro por `emissao`) |
 | `GET /b3dash/financeiro/graph/entradas-por-especie` | Gráfico | `pie` | ✅ |
 | `GET /b3dash/financeiro/graph/saldo-destinos` | Gráfico | `bar_v` | ✅ |
 | `GET /b3dash/financeiro/list/receber` | Grid | — | ✅ |
@@ -729,7 +735,7 @@ Grid de compras agrupadas por fornecedor no período.
 | `GET /b3dash/estoque/graph/top-produtos-comprados` | Gráfico | `bar_h` | ✅ |
 | `GET /b3dash/estoque/graph/top-fornecedores` | Gráfico | `bar_h` | ✅ |
 | `GET /b3dash/estoque/graph/curva-abc` | Gráfico | `pie` | ❌ snapshot |
-| `GET /b3dash/estoque/graph/ruptura` | Gráfico | `bar_v` | ❌ snapshot |
+| `GET /b3dash/estoque/graph/ruptura` | Gráfico | `bar_h` | ❌ snapshot |
 | `GET /b3dash/estoque/graph/valor-por-grupo` | Gráfico | `pie` | ❌ snapshot |
 | `GET /b3dash/estoque/list/lancamentos` | Grid | — | ✅ |
 | `GET /b3dash/estoque/list/por-produto` | Grid | — | ❌ snapshot |

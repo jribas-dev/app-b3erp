@@ -101,6 +101,18 @@ const PERIODOS: { value: Periodo; label: string }[] = [
   { value: "T", label: "Trimestral" },
 ];
 
+const PERIODO_LABEL_SUFFIX: Record<Periodo, string> = {
+  S: "16 semanas",
+  M: "12 meses",
+  T: "6 trimestres",
+};
+
+const METRICAS_SEM_PERIODO: Record<Dominio, Set<string>> = {
+  faturamento: new Set(),
+  financeiro: new Set(),
+  estoque: new Set(["curva-abc", "ruptura", "valor-por-grupo"]),
+};
+
 const CHART_COLORS = [
   "var(--chart-1)",
   "var(--chart-2)",
@@ -404,6 +416,7 @@ export default function DashGraphPage() {
   } = useDashGraph();
 
   const metricasAtivas = METRICAS[selectedDominio];
+  const usaPeriodo = !METRICAS_SEM_PERIODO[selectedDominio].has(selectedMetrica);
 
   return (
     <div className="container mx-auto max-w-xl px-3 py-4 space-y-4">
@@ -484,9 +497,12 @@ export default function DashGraphPage() {
       )}
 
       {/* período */}
-      {!isLoadingInit && (
+      {!isLoadingInit && usaPeriodo && (
         <div className="grid gap-1.5">
-          <Label>Período</Label>
+          <Label>
+            Período
+            {selectedPeriodo ? ` (${PERIODO_LABEL_SUFFIX[selectedPeriodo]})` : ""}
+          </Label>
           <div className="flex gap-2">
             {PERIODOS.map((p) => (
               <Button

@@ -68,6 +68,12 @@ const PERIODOS: { value: Periodo; label: string }[] = [
   { value: "T", label: "Trimestral" },
 ];
 
+const PERIODO_LABEL_SUFFIX: Record<Periodo, string> = {
+  S: "16 semanas",
+  M: "12 meses",
+  T: "6 trimestres",
+};
+
 // Listas que NÃO usam `periodo` (snapshot — ver agent_docs/api-b3dash.md).
 // O parâmetro continua sendo enviado por validação no backend, mas o seletor é ocultado.
 const LISTAS_SEM_PERIODO = new Set<string>(["estoque/por-produto"]);
@@ -424,7 +430,10 @@ export default function DashGridPage() {
       {/* período */}
       {!isLoadingInit && usaPeriodo && (
         <div className="grid gap-1.5">
-          <Label>Período</Label>
+          <Label>
+            Período
+            {selectedPeriodo ? ` (${PERIODO_LABEL_SUFFIX[selectedPeriodo]})` : ""}
+          </Label>
           <div className="flex gap-2">
             {PERIODOS.map((p) => (
               <Button
